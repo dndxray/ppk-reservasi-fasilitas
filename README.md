@@ -74,6 +74,4 @@ Saat laporan sedang ditangani, petugas dapat menandai fasilitas terkait sebagai 
 ---
 
 ## Academic Project
-
-Proyek ini dibuat untuk memenuhi tugas mata kuliah Pemrograman Berorientasi Objek (PBO) dengan menerapkan berbagai konsep OOP serta integrasi database menggunakan JDBC dan MySQL.
 Project ini dikembangkan sebagai tugas mata kuliah Pengembangan Platform Khusus (PPK) 2026.
