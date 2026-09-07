@@ -15,6 +15,49 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    <x-nav-link :href="route('fasilitas.index')" :active="request()->routeIs('fasilitas.*')">
+                        {{ __('Daftar Fasilitas') }}
+                    </x-nav-link>
+
+                    @if(Auth::user()->isPengguna())
+                        @if(Route::has('reservasi.index'))
+                            <x-nav-link :href="route('reservasi.index')" :active="request()->routeIs('reservasi.*')">
+                                {{ __('Reservasi Saya') }}
+                            </x-nav-link>
+                        @endif
+                        @if(Route::has('laporan.index'))
+                            <x-nav-link :href="route('laporan.index')" :active="request()->routeIs('laporan.*')">
+                                {{ __('Laporan Saya') }}
+                            </x-nav-link>
+                        @endif
+                    @endif
+
+                    @if(Auth::user()->isPetugas())
+                        @if(Route::has('petugas.antrian-reservasi'))
+                            <x-nav-link :href="route('petugas.antrian-reservasi')" :active="request()->routeIs('petugas.antrian-reservasi')">
+                                {{ __('Antrian Reservasi') }}
+                            </x-nav-link>
+                        @endif
+                        @if(Route::has('petugas.antrian-laporan'))
+                            <x-nav-link :href="route('petugas.antrian-laporan')" :active="request()->routeIs('petugas.antrian-laporan')">
+                                {{ __('Antrian Laporan') }}
+                            </x-nav-link>
+                        @endif
+                    @endif
+
+                    @if(Auth::user()->isAdmin())
+                        @if(Route::has('admin.fasilitas.index'))
+                            <x-nav-link :href="route('admin.fasilitas.index')" :active="request()->routeIs('admin.fasilitas.*')">
+                                {{ __('Kelola Fasilitas') }}
+                            </x-nav-link>
+                        @endif
+                        @if(Route::has('admin.akun.index'))
+                            <x-nav-link :href="route('admin.akun.index')" :active="request()->routeIs('admin.akun.*')">
+                                {{ __('Kelola Akun') }}
+                            </x-nav-link>
+                        @endif
+                    @endif
                 </div>
             </div>
 
