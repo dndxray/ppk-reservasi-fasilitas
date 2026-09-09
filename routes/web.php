@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\FacilityController;
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -19,6 +20,21 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+Route::get('/pengguna', [UserController::class, 'index'])
+    ->name('admin.pengguna.index');
+
+Route::post('/petugas', [UserController::class, 'storeStaff'])
+    ->name('admin.petugas.store');
+
+Route::post('/pengguna', [UserController::class, 'storeUser'])
+    ->name('admin.pengguna.store');
+
+Route::patch('/pengguna/{user}/verifikasi', [UserController::class, 'verify'])
+    ->name('admin.pengguna.verify');
+
+Route::patch('/pengguna/{user}/tolak', [UserController::class, 'reject'])
+    ->name('admin.pengguna.reject');
+
 Route::middleware('auth')->prefix('admin')->group(function () {
     Route::get('/fasilitas', [FacilityController::class, 'index'])
         ->name('admin.fasilitas.index');
@@ -32,5 +48,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
     Route::patch('/fasilitas/{facility}/nonaktifkan', [FacilityController::class, 'deactivate'])
         ->name('admin.fasilitas.deactivate');
 });
+
+
 
 require __DIR__.'/auth.php';
