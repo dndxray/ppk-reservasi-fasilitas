@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FacilityController;
 use App\Models\Facility;
@@ -26,13 +27,11 @@ Route::get('/', function () {
 })->name('beranda');
 
 
-
 Route::get('/dashboard', function () {
     return view('dashboard');
 })
-->middleware(['auth','verified'])
+->middleware(['auth', 'verified'])
 ->name('dashboard');
-
 
 
 // Fasilitas
@@ -56,7 +55,7 @@ Route::get(
 ->name('fasilitas.show');
 
 
-Route::middleware('auth')->group(function(){
+Route::middleware('auth')->group(function () {
 
     // Profile
     Route::get(
@@ -140,15 +139,63 @@ Route::middleware('auth')->group(function(){
     ->name('reservations.cancel');
 
 
+    // Pelaporan
+    Route::get(
+        '/reports/create',
+        [
+            ReportController::class,
+            'create'
+        ]
+    )
+    ->name('reports.create');
+
+
+    Route::post(
+        '/reports',
+        [
+            ReportController::class,
+            'store'
+        ]
+    )
+    ->name('reports.store');
+
+
+    Route::get(
+        '/reports',
+        [
+            ReportController::class,
+            'index'
+        ]
+    )
+    ->name('reports.index');
+
+
+    Route::get(
+        '/reports/{report}',
+        [
+            ReportController::class,
+            'show'
+        ]
+    )
+    ->name('reports.show');
+
+
+    Route::patch(
+        '/reports/{report}',
+        [
+            ReportController::class,
+            'updateStatus'
+        ]
+    )
+    ->name('reports.updateStatus');
+
 });
 
 
 // Petugas
-
 Route::middleware('auth')
 ->prefix('petugas')
-->group(function(){
-
+->group(function () {
 
     Route::get(
         '/reservations',
@@ -160,7 +207,6 @@ Route::middleware('auth')
     ->name('petugas.reservations.queue');
 
 
-
     Route::get(
         '/reservations/{reservation}',
         [
@@ -169,6 +215,7 @@ Route::middleware('auth')
         ]
     )
     ->name('petugas.reservations.show');
+
 
     Route::patch(
         '/reservations/{reservation}/approve',
@@ -179,6 +226,7 @@ Route::middleware('auth')
     )
     ->name('petugas.reservations.approve');
 
+
     Route::patch(
         '/reservations/{reservation}/reject',
         [
@@ -188,6 +236,7 @@ Route::middleware('auth')
     )
     ->name('petugas.reservations.reject');
 
+
     Route::patch(
         '/reservations/{reservation}/cancel',
         [
@@ -196,7 +245,6 @@ Route::middleware('auth')
         ]
     )
     ->name('petugas.reservations.cancel');
-
 
 });
 
