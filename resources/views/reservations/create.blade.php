@@ -52,7 +52,7 @@
 
                     @foreach($facilities as $facility)
                         <option value="{{ $facility->id }}">
-                            {{ $facility->nama_fasilitas }}
+                            {{ $facility->nama }}
                         </option>
 
                     @endforeach

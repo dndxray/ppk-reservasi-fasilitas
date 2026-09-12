@@ -9,6 +9,11 @@ use Illuminate\Http\Request;
 
 class ReservationController extends Controller
 {
+    /*
+    |--------------------------------------------------------------------------
+    | Antrian Reservasi
+    |--------------------------------------------------------------------------
+    */
     public function queue()
     {
 
@@ -30,6 +35,11 @@ class ReservationController extends Controller
             compact('reservations')
         );
     }
+    /*
+    |--------------------------------------------------------------------------
+    | Setujui Reservasi
+    |--------------------------------------------------------------------------
+    */
     public function approve(
         Reservation $reservation
     )
@@ -79,6 +89,11 @@ class ReservationController extends Controller
         );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Tolak Reservasi
+    |--------------------------------------------------------------------------
+    */
     public function reject(
         Reservation $reservation
     )
@@ -94,6 +109,11 @@ class ReservationController extends Controller
 
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Batalkan Reservasi Mendesak
+    |--------------------------------------------------------------------------
+    */
     public function cancel(
         Request $request,
         Reservation $reservation

@@ -11,6 +11,12 @@ use Carbon\Carbon;
 
 class ReservationController extends Controller
 {
+
+    /*
+    |--------------------------------------------------------------------------
+    | US 3 - Menampilkan Form Reservasi
+    |--------------------------------------------------------------------------
+    */
     public function create()
     {
 
@@ -54,7 +60,11 @@ class ReservationController extends Controller
                 'Tanggal reservasi wajib diisi.'
         ]);
 
-        // validasi jam peminajaman
+        /*
+        |--------------------------------------------------------------------------
+        | Validasi jam operasional
+        |--------------------------------------------------------------------------
+        */
         if(
             $request->waktu_mulai < "07:00"
             ||
@@ -64,7 +74,11 @@ class ReservationController extends Controller
                 'Reservasi hanya dapat dilakukan pukul 07.00 - 20.00'
             );
         }
-        // min 30 menit
+        /*
+        |--------------------------------------------------------------------------
+        | Validasi slot minimal 30 menit
+        |--------------------------------------------------------------------------
+        */
 
         $mulai = strtotime(
             $request->waktu_mulai
@@ -84,7 +98,11 @@ class ReservationController extends Controller
             );
         }
 
-        // cek bentrok
+        /*
+        |--------------------------------------------------------------------------
+        | Cek bentrok reservasi
+        |--------------------------------------------------------------------------
+        */
 
         $bentrok = Reservation::where(
             'facility_id',
@@ -130,47 +148,81 @@ class ReservationController extends Controller
             );
 
         }
-        Reservation::create([ // simpan reservasi
+
+        /*
+        |--------------------------------------------------------------------------
+        | Simpan Reservasi
+        |--------------------------------------------------------------------------
+        */
+        Reservation::create([
+
             'user_id'
                 => Auth::id(),
+
             'facility_id'
                 => $request->facility_id,
+
             'tanggal'
                 => $request->tanggal,
+
             'waktu_mulai'
                 => $request->waktu_mulai,
+
             'waktu_selesai'
                 => $request->waktu_selesai,
+
             'tujuan_penggunaan'
                 => $request->tujuan_penggunaan,
+
             'status'
                 => 'menunggu'
+
         ]);
 
         return redirect()
+
         ->route('reservations.create')
+
         ->with(
             'success',
             'Reservasi berhasil diajukan.'
         );
 
     }
-    // riwayat
+
+    /*
+    |--------------------------------------------------------------------------
+    | Riwayat Reservasi Pengguna
+    |--------------------------------------------------------------------------
+    */
+
     public function history()
     {
+
         $reservations = Reservation::where(
             'user_id',
             auth()->id()
         )
+
         ->with('facility')
+
         ->latest()
+
         ->get();
+
         return view(
             'reservations.history',
             compact('reservations')
         );
+
     }
-    // cancel reserv
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pengguna Membatalkan Reservasi
+    |--------------------------------------------------------------------------
+    */
+
     public function cancel(
         Reservation $reservation
     )
@@ -185,6 +237,7 @@ class ReservationController extends Controller
             &&
             $reservation->status != 'disetujui'
         ){
+
             return back()->withErrors(
                 'Reservasi tidak dapat dibatalkan.'
             );
@@ -195,26 +248,38 @@ class ReservationController extends Controller
             $reservation->tanggal
             .' '
             .$reservation->waktu_mulai
+
         );
+
         $batasBatal = $waktuMulai->subHour();
+
         if(now()->greaterThan($batasBatal))
         {
+
             return back()->withErrors(
                 'Reservasi hanya dapat dibatalkan maksimal 1 jam sebelum penggunaan.'
             );
         }
+
         $reservation->update([
 
             'status'
                 =>
                 'dibatalkan'
         ]);
+
         return back()->with(
             'success',
             'Reservasi berhasil dibatalkan.'
         );
+
     }
-// detal reserv
+
+    /*
+    |--------------------------------------------------------------------------
+    | Detail Reservasi
+    |--------------------------------------------------------------------------
+    */
     public function show(
         Reservation $reservation
     )
@@ -225,8 +290,10 @@ class ReservationController extends Controller
             abort(403);
         }
         $reservation->load([
+
             'facility',
             'user'
+
         ]);
         return view(
             'reservations.show',
