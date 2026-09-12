@@ -20,12 +20,30 @@ class Facility extends Model
 
 
     /**
-     * Satu fasilitas bisa memiliki banyak reservasi
+     * Satu fasilitas memiliki banyak reservasi
      */
     public function reservations()
     {
         return $this->hasMany(
             Reservation::class
         );
+    }
+
+
+    /**
+     * Mengecek fasilitas aktif
+     */
+    public function sedangAktif(): bool
+    {
+        return $this->status === 'aktif';
+    }
+
+
+    /**
+     * Mengecek fasilitas dalam perbaikan
+     */
+    public function dalamPerbaikan(): bool
+    {
+        return $this->status === 'dalam_perbaikan';
     }
 }

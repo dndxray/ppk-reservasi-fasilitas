@@ -2,20 +2,64 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\FacilityController;
+use App\Models\Facility;
 use App\Http\Controllers\ReservationController;
 use App\Http\Controllers\Petugas\ReservationController as PetugasReservationController;
 
+
 Route::get('/', function () {
-    return view('welcome');
-});
+
+    $daftarFasilitas = Facility::where(
+        'status',
+        'aktif'
+    )
+    ->orderBy('nama')
+    ->take(6)
+    ->get();
+
+    return view(
+        'beranda',
+        compact('daftarFasilitas')
+    );
+
+})->name('beranda');
+
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})
+->middleware(['auth','verified'])
+->name('dashboard');
+
+
+
+// Fasilitas
+Route::get(
+    '/fasilitas',
+    [
+        FacilityController::class,
+        'index'
+    ]
+)
+->name('fasilitas.index');
+
+
+Route::get(
+    '/fasilitas/{facility}',
+    [
+        FacilityController::class,
+        'show'
+    ]
+)
+->name('fasilitas.show');
+
 
 Route::middleware('auth')->group(function(){
 
-     Route::get(
+    // Profile
+    Route::get(
         '/profile',
         [
             ProfileController::class,
@@ -44,7 +88,8 @@ Route::middleware('auth')->group(function(){
     )
     ->name('profile.destroy');
 
-    // US 3
+
+    // Reservasi user
     Route::get(
         '/reservations/create',
         [
@@ -65,8 +110,6 @@ Route::middleware('auth')->group(function(){
     ->name('reservations.store');
 
 
-
-    // US 5
     Route::get(
         '/reservations/history',
         [
@@ -75,7 +118,6 @@ Route::middleware('auth')->group(function(){
         ]
     )
     ->name('reservations.history');
-
 
 
     Route::get(
@@ -88,8 +130,6 @@ Route::middleware('auth')->group(function(){
     ->name('reservations.show');
 
 
-
-    // US 4
     Route::patch(
         '/reservations/{reservation}/cancel',
         [
@@ -102,12 +142,14 @@ Route::middleware('auth')->group(function(){
 
 });
 
+
+// Petugas
+
 Route::middleware('auth')
 ->prefix('petugas')
 ->group(function(){
 
 
-    // Dashboard antrian reservasi
     Route::get(
         '/reservations',
         [
@@ -117,14 +159,17 @@ Route::middleware('auth')
     )
     ->name('petugas.reservations.queue');
 
-    Route::get(
-    '/petugas/reservations/{reservation}',
-    [
-    \App\Http\Controllers\Petugas\ReservationController::class, 'show'
-    ]
-    ) ->name('petugas.reservations.show');
 
-    // US 9 Setujui
+
+    Route::get(
+        '/reservations/{reservation}',
+        [
+            PetugasReservationController::class,
+            'show'
+        ]
+    )
+    ->name('petugas.reservations.show');
+
     Route::patch(
         '/reservations/{reservation}/approve',
         [
@@ -134,9 +179,6 @@ Route::middleware('auth')
     )
     ->name('petugas.reservations.approve');
 
-
-
-    // US 9 Tolak
     Route::patch(
         '/reservations/{reservation}/reject',
         [
@@ -146,9 +188,6 @@ Route::middleware('auth')
     )
     ->name('petugas.reservations.reject');
 
-
-
-    // US 10 Batalkan mendesak
     Route::patch(
         '/reservations/{reservation}/cancel',
         [
@@ -160,5 +199,6 @@ Route::middleware('auth')
 
 
 });
+
 
 require __DIR__.'/auth.php';
