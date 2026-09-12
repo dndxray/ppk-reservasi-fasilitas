@@ -15,10 +15,56 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    <x-nav-link :href="route('fasilitas.index')" :active="request()->routeIs('fasilitas.*')">
+                        {{ __('Daftar Fasilitas') }}
+                    </x-nav-link>
+
+                    @auth
+                    @if(Auth::user()->isPengguna())
+                        @if(Route::has('reservasi.index'))
+                            <x-nav-link :href="route('reservasi.index')" :active="request()->routeIs('reservasi.*')">
+                                {{ __('Reservasi Saya') }}
+                            </x-nav-link>
+                        @endif
+                        @if(Route::has('laporan.index'))
+                            <x-nav-link :href="route('laporan.index')" :active="request()->routeIs('laporan.*')">
+                                {{ __('Laporan Saya') }}
+                            </x-nav-link>
+                        @endif
+                    @endif
+
+                    @if(Auth::user()->isPetugas())
+                        @if(Route::has('petugas.antrian-reservasi'))
+                            <x-nav-link :href="route('petugas.antrian-reservasi')" :active="request()->routeIs('petugas.antrian-reservasi')">
+                                {{ __('Antrian Reservasi') }}
+                            </x-nav-link>
+                        @endif
+                        @if(Route::has('petugas.antrian-laporan'))
+                            <x-nav-link :href="route('petugas.antrian-laporan')" :active="request()->routeIs('petugas.antrian-laporan')">
+                                {{ __('Antrian Laporan') }}
+                            </x-nav-link>
+                        @endif
+                    @endif
+
+                    @if(Auth::user()->isAdmin())
+                        @if(Route::has('admin.fasilitas.index'))
+                            <x-nav-link :href="route('admin.fasilitas.index')" :active="request()->routeIs('admin.fasilitas.*')">
+                                {{ __('Kelola Fasilitas') }}
+                            </x-nav-link>
+                        @endif
+                        @if(Route::has('admin.akun.index'))
+                            <x-nav-link :href="route('admin.akun.index')" :active="request()->routeIs('admin.akun.*')">
+                                {{ __('Kelola Akun') }}
+                            </x-nav-link>
+                        @endif
+                    @endif
+                    @endauth
                 </div>
             </div>
 
             <!-- Settings Dropdown -->
+            @auth
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
@@ -51,6 +97,12 @@
                     </x-slot>
                 </x-dropdown>
             </div>
+            @else
+            <div class="hidden sm:flex sm:items-center sm:ms-6 sm:space-x-4">
+                <a href="{{ route('login') }}" class="text-sm text-gray-700 underline">Masuk</a>
+                <a href="{{ route('register') }}" class="text-sm text-gray-700 underline">Daftar</a>
+            </div>
+            @endauth
 
             <!-- Hamburger -->
             <div class="-me-2 flex items-center sm:hidden">
@@ -73,6 +125,7 @@
         </div>
 
         <!-- Responsive Settings Options -->
+        @auth
         <div class="pt-4 pb-1 border-t border-gray-200">
             <div class="px-4">
                 <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
@@ -96,5 +149,17 @@
                 </form>
             </div>
         </div>
+        @else
+        <div class="pt-4 pb-1 border-t border-gray-200">
+            <div class="mt-3 space-y-1">
+                <x-responsive-nav-link :href="route('login')">
+                    {{ __('Masuk') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('register')">
+                    {{ __('Daftar') }}
+                </x-responsive-nav-link>
+            </div>
+        </div>
+        @endauth
     </div>
 </nav>
