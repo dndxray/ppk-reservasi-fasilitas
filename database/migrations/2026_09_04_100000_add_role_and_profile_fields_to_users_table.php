@@ -26,4 +26,4 @@ return new class extends Migration
             $table->dropColumn(['role', 'nim_nip', 'no_telepon', 'status_verifikasi']);
         });
     }
-};
+}; 
