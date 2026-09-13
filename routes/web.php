@@ -15,7 +15,7 @@ Route::get('/', function () {
         'status',
         'aktif'
     )
-    ->orderBy('nama')
+    ->orderBy('nama_fasilitas')
     ->take(6)
     ->get();
 
@@ -139,7 +139,7 @@ Route::middleware('auth')->group(function () {
     ->name('reservations.cancel');
 
 
-    // Pelaporan
+    // Pelaporan Kerusakan - Pengguna
     Route::get(
         '/reports/create',
         [
@@ -170,6 +170,19 @@ Route::middleware('auth')->group(function () {
     ->name('reports.index');
 
 
+    // Pelaporan Kerusakan - Petugas
+    // Harus diletakkan sebelum /reports/{report}
+    Route::get(
+        '/reports/antrian',
+        [
+            ReportController::class,
+            'antrian'
+        ]
+    )
+    ->name('reports.antrian');
+
+
+    // Detail laporan
     Route::get(
         '/reports/{report}',
         [
@@ -180,6 +193,7 @@ Route::middleware('auth')->group(function () {
     ->name('reports.show');
 
 
+    // Update status laporan oleh petugas
     Route::patch(
         '/reports/{report}',
         [

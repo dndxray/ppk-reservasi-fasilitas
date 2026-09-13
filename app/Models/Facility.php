@@ -10,14 +10,13 @@ class Facility extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nama',
+        'nama_fasilitas',
         'tipe',
         'lokasi',
         'kapasitas',
         'deskripsi',
         'status',
     ];
-
 
     /**
      * Satu fasilitas memiliki banyak reservasi
@@ -29,7 +28,6 @@ class Facility extends Model
         );
     }
 
-
     /**
      * Mengecek fasilitas aktif
      */
@@ -37,7 +35,6 @@ class Facility extends Model
     {
         return $this->status === 'aktif';
     }
-
 
     /**
      * Mengecek fasilitas dalam perbaikan

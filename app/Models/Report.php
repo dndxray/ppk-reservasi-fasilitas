@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use App\Models\Facility;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 
 class Report extends Model
 {
@@ -16,11 +17,25 @@ class Report extends Model
         'status',
         'catatan_resolusi',
         'diproses_oleh',
-        'diselesaikan_pada'
+        'diselesaikan_pada',
     ];
+
+    protected $casts = [
+        'diselesaikan_pada' => 'datetime',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function facility()
     {
         return $this->belongsTo(Facility::class);
+    }
+
+    public function petugas()
+    {
+        return $this->belongsTo(User::class, 'diproses_oleh');
     }
 }
