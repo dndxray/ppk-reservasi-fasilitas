@@ -21,6 +21,25 @@
 
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                 <div class="max-w-xl">
+                    <section>
+                        <header>
+                            <h2 class="text-lg font-medium text-gray-900">
+                                {{ __('Keluar dari Akun') }}
+                            </h2>
+                        </header>
+
+                        <form method="POST" action="{{ route('logout') }}" class="mt-6">
+                            @csrf
+                            <x-secondary-button type="submit">
+                                {{ __('Log Out') }}
+                            </x-secondary-button>
+                        </form>
+                    </section>
+                </div>
+            </div>
+
+            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
+                <div class="max-w-xl">
                     @include('profile.partials.delete-user-form')
                 </div>
             </div>
