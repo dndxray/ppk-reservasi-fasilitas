@@ -8,9 +8,15 @@ use App\Models\Facility;
 
 class FacilityController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $facilities = Facility::all();
+        $search = $request->search;
+
+        $facilities = Facility::when($search, function ($query) use ($search) {
+            $query->where('nama_fasilitas', 'like', '%' . $search . '%');
+        })->paginate(10);
+
+        return view('admin.facilities.index', compact('facilities', 'search'));
     }
 
     //Menyimpan fasilitas baru
@@ -21,7 +27,7 @@ class FacilityController extends Controller
             'tipe' => 'required|string|max:255',
             'lokasi' => 'required|string|max:255',
             'kapasitas' => 'nullable|integer|min:0',
-            'deskipsi' => 'nullable|string',
+            'deskripsi' => 'nullable|string',
             'status' => 'required|in:aktif,dalam_perbaikan,nonaktif',
         ]);
 
@@ -64,5 +70,28 @@ class FacilityController extends Controller
             'message' => 'Fasilitas berhasil dinonaktifkan',
             'data' => $facility,
         ]);
+    }
+    // Menampilkan form edit
+    public function edit(Facility $facility)
+    {
+        $tipeOptions = [
+            'Ruangan',
+            'Laboratorium',
+            'Aula',
+            'Lapangan',
+            'Peralatan',
+        ];
+
+        return view('admin.facilities.form', compact('facility', 'tipeOptions'));
+    }
+
+    // Mengaktifkan kembali fasilitas
+    public function activate(Facility $facility)
+    {
+        $facility->update([
+            'status' => 'aktif'
+        ]);
+
+        return redirect()->route('admin.fasilitas.index');
     }
 }

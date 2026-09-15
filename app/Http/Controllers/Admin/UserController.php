@@ -9,9 +9,38 @@ use Illuminate\Http\Request;
 class UserController extends Controller
 {
     // Menampilkan smeua user
-    public function index()
+    public function indexUsers(Request $request)
     {
-        return User::all();
+        $search = $request->search;
+
+        $users = User::where('role', 'pengguna')
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%');
+                });
+            })
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('admin.pengguna.index', compact('users', 'search'));
+    }
+
+    public function indexStaff(Request $request)
+    {
+        $search = $request->search;
+
+        $staff = User::where('role', 'petugas')
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('email', 'like', '%' . $search . '%');
+                });
+            })
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('admin.petugas.index', compact('staff', 'search'));
     }
     
     // Mendaftarkan petugas
@@ -80,5 +109,14 @@ class UserController extends Controller
             'message' => 'Pendaftaran pengguna ditolak',
             'data' => $user,
         ]);
+    }
+    public function createUser()
+    {
+        return view('admin.pengguna.create');
+    }
+
+    public function createStaff()
+    {
+        return view('admin.petugas.create');
     }
 }

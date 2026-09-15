@@ -47,6 +47,11 @@ class Facility extends Model
     {
         return $this->status === 'dalam_perbaikan';
     }
+    public function tipeLabel()
+    {
+        return ucfirst($this->tipe);
+    }
 }
+
 
 
