@@ -30,4 +30,24 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isPetugas(): bool
+    {
+        return $this->role === 'petugas';
+    }
+
+    public function isPengguna(): bool
+    {
+        return $this->role === 'pengguna';
+    }
+
+    public function isVerifikasi(): bool
+    {
+        return $this->status_verifikasi === 'terverifikasi';
+    }
 }
