@@ -4,6 +4,7 @@
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-8">
+
                     <h1 class="text-2xl font-bold text-gray-800">
                         Loka &mdash; Sistem Reservasi &amp; Pelaporan Fasilitas Kampus
                     </h1>
@@ -45,7 +46,6 @@
                     </div>
                 </div>
             </div>
-
 
             {{-- Daftar fasilitas --}}
             <div class="mt-6">
@@ -122,7 +122,6 @@
                     </div>
 
                 @endif
-
             </div>
 
         </div>

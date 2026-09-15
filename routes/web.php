@@ -2,53 +2,472 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\FacilityController;
+use App\Http\Controllers\Admin\FacilityController as AdminFacilityController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\Petugas\ReservationController as PetugasReservationController;
+use App\Http\Controllers\Admin\ReportController as AdminReportController;
+use App\Models\Facility;
 use Illuminate\Support\Facades\Route;
 
+
 Route::get('/', function () {
-    return view('welcome');
-});
+
+    $daftarFasilitas = Facility::where(
+        'status',
+        'aktif'
+    )
+    ->orderBy('nama_fasilitas')
+    ->take(6)
+    ->get();
+
+    return view(
+        'beranda',
+        compact('daftarFasilitas')
+    );
+
+})->name('beranda');
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})
+->middleware(['auth', 'verified'])
+->name('dashboard');
+
+
+// =========================
+// FASILITAS
+// =========================
+
+Route::get(
+    '/fasilitas',
+    [
+        FacilityController::class,
+        'index'
+    ]
+)
+->name('fasilitas.index');
+
+
+Route::get(
+    '/fasilitas/{facility}',
+    [
+        FacilityController::class,
+        'show'
+    ]
+)
+->name('fasilitas.show');
+
+
+// =========================
+// USER LOGIN
+// =========================
 
 Route::middleware('auth')->group(function () {
 
     // Profile
-    Route::get('/profile', [ProfileController::class, 'edit'])
-        ->name('profile.edit');
-
-    Route::patch('/profile', [ProfileController::class, 'update'])
-        ->name('profile.update');
-
-    Route::delete('/profile', [ProfileController::class, 'destroy'])
-        ->name('profile.destroy');
-
-
-    // Pelaporan Kerusakan - Pengguna
-    Route::get('/reports/create', [ReportController::class, 'create'])
-        ->name('reports.create');
-
-    Route::post('/reports', [ReportController::class, 'store'])
-        ->name('reports.store');
-
-    Route::get('/reports', [ReportController::class, 'index'])
-        ->name('reports.index');
+    Route::get(
+        '/profile',
+        [
+            ProfileController::class,
+            'edit'
+        ]
+    )
+    ->name('profile.edit');
 
 
-    // Pelaporan Kerusakan - Petugas
+    Route::patch(
+        '/profile',
+        [
+            ProfileController::class,
+            'update'
+        ]
+    )
+    ->name('profile.update');
+
+
+    Route::delete(
+        '/profile',
+        [
+            ProfileController::class,
+            'destroy'
+        ]
+    )
+    ->name('profile.destroy');
+
+
+    // =========================
+    // RESERVASI USER
+    // =========================
+
+    Route::get(
+        '/reservations/create',
+        [
+            ReservationController::class,
+            'create'
+        ]
+    )
+    ->name('reservations.create');
+
+
+    Route::post(
+        '/reservations',
+        [
+            ReservationController::class,
+            'store'
+        ]
+    )
+    ->name('reservations.store');
+
+
+    Route::get(
+        '/reservations/history',
+        [
+            ReservationController::class,
+            'history'
+        ]
+    )
+    ->name('reservations.history');
+
+
+    Route::get(
+        '/reservations/{reservation}',
+        [
+            ReservationController::class,
+            'show'
+        ]
+    )
+    ->name('reservations.show');
+
+
+    Route::patch(
+        '/reservations/{reservation}/cancel',
+        [
+            ReservationController::class,
+            'cancel'
+        ]
+    )
+    ->name('reservations.cancel');
+
+
+    // =========================
+    // PELAPORAN KERUSAKAN - USER
+    // =========================
+
+    Route::get(
+        '/reports/create',
+        [
+            ReportController::class,
+            'create'
+        ]
+    )
+    ->name('reports.create');
+
+
+    Route::post(
+        '/reports',
+        [
+            ReportController::class,
+            'store'
+        ]
+    )
+    ->name('reports.store');
+
+
+    Route::get(
+        '/reports',
+        [
+            ReportController::class,
+            'index'
+        ]
+    )
+    ->name('reports.index');
+
+
+    // =========================
+    // PELAPORAN - PETUGAS
+    // =========================
+
     // Harus diletakkan sebelum /reports/{report}
-    Route::get('/reports/antrian', [ReportController::class, 'antrian'])
-        ->name('reports.antrian');
+    Route::get(
+        '/reports/antrian',
+        [
+            ReportController::class,
+            'antrian'
+        ]
+    )
+    ->name('reports.antrian');
 
 
     // Detail laporan
-    Route::get('/reports/{report}', [ReportController::class, 'show'])
-        ->name('reports.show');
+    Route::get(
+        '/reports/{report}',
+        [
+            ReportController::class,
+            'show'
+        ]
+    )
+    ->name('reports.show');
+
 
     // Update status laporan oleh petugas
-    Route::patch('/reports/{report}', [ReportController::class, 'updateStatus'])
-        ->name('reports.updateStatus');
+    Route::patch(
+        '/reports/{report}',
+        [
+            ReportController::class,
+            'updateStatus'
+        ]
+    )
+    ->name('reports.updateStatus');
+
 });
+
+
+// =========================
+// PETUGAS RESERVASI
+// =========================
+
+Route::middleware('auth')
+->prefix('petugas')
+->group(function () {
+
+    Route::get(
+        '/reservations',
+        [
+            PetugasReservationController::class,
+            'queue'
+        ]
+    )
+    ->name('petugas.reservations.queue');
+
+
+    Route::get(
+        '/reservations/{reservation}',
+        [
+            PetugasReservationController::class,
+            'show'
+        ]
+    )
+    ->name('petugas.reservations.show');
+
+
+    Route::patch(
+        '/reservations/{reservation}/approve',
+        [
+            PetugasReservationController::class,
+            'approve'
+        ]
+    )
+    ->name('petugas.reservations.approve');
+
+
+    Route::patch(
+        '/reservations/{reservation}/reject',
+        [
+            PetugasReservationController::class,
+            'reject'
+        ]
+    )
+    ->name('petugas.reservations.reject');
+
+
+    Route::patch(
+        '/reservations/{reservation}/cancel',
+        [
+            PetugasReservationController::class,
+            'cancel'
+        ]
+    )
+    ->name('petugas.reservations.cancel');
+
+});
+
+
+// =========================
+// ADMIN
+// =========================
+
+Route::middleware('auth')
+->prefix('admin')
+->group(function () {
+
+    // =========================
+    // PENGGUNA
+    // =========================
+
+    Route::get(
+        '/pengguna',
+        [
+            UserController::class,
+            'indexUsers'
+        ]
+    )
+    ->name('admin.pengguna.index');
+
+
+    Route::get(
+        '/pengguna/create',
+        [
+            UserController::class,
+            'createUser'
+        ]
+    )
+    ->name('admin.pengguna.create');
+
+
+    Route::post(
+        '/pengguna',
+        [
+            UserController::class,
+            'storeUser'
+        ]
+    )
+    ->name('admin.pengguna.store');
+
+
+    Route::patch(
+        '/pengguna/{user}/verifikasi',
+        [
+            UserController::class,
+            'verify'
+        ]
+    )
+    ->name('admin.pengguna.verify');
+
+
+    Route::patch(
+        '/pengguna/{user}/tolak',
+        [
+            UserController::class,
+            'reject'
+        ]
+    )
+    ->name('admin.pengguna.reject');
+
+
+    // =========================
+    // PETUGAS
+    // =========================
+
+    Route::get(
+        '/petugas',
+        [
+            UserController::class,
+            'indexStaff'
+        ]
+    )
+    ->name('admin.petugas.index');
+
+
+    Route::get(
+        '/petugas/create',
+        [
+            UserController::class,
+            'createStaff'
+        ]
+    )
+    ->name('admin.petugas.create');
+
+
+    Route::post(
+        '/petugas',
+        [
+            UserController::class,
+            'storeStaff'
+        ]
+    )
+    ->name('admin.petugas.store');
+
+
+    // =========================
+    // FASILITAS
+    // =========================
+
+    Route::get(
+        '/fasilitas',
+        [
+            AdminFacilityController::class,
+            'index'
+        ]
+    )
+    ->name('admin.fasilitas.index');
+
+
+    Route::get(
+        '/fasilitas/create',
+        function () {
+            return view('admin.facilities.form');
+        }
+    )
+    ->name('admin.facilities.create');
+
+
+    Route::post(
+        '/fasilitas',
+        [
+            AdminFacilityController::class,
+            'store'
+        ]
+    )
+    ->name('admin.facilities.store');
+
+
+    Route::get(
+        '/fasilitas/{facility}/edit',
+        [
+            AdminFacilityController::class,
+            'edit'
+        ]
+    )
+    ->name('admin.facilities.edit');
+
+
+    Route::put(
+        '/fasilitas/{facility}',
+        [
+            AdminFacilityController::class,
+            'update'
+        ]
+    )
+    ->name('admin.facilities.update');
+
+
+    Route::patch(
+        '/fasilitas/{facility}/nonaktifkan',
+        [
+            AdminFacilityController::class,
+            'deactivate'
+        ]
+    )
+    ->name('admin.facilities.deactivate');
+
+
+    Route::patch(
+        '/fasilitas/{facility}/aktifkan',
+        [
+            AdminFacilityController::class,
+            'activate'
+        ]
+    )
+    ->name('admin.facilities.activate');
+
+
+    // =========================
+    // REKAP
+    // =========================
+
+    Route::get(
+        '/rekap',
+        [
+            AdminReportController::class,
+            'index'
+        ]
+    )
+    ->name('admin.rekap.index');
+
+});
+
 
 require __DIR__.'/auth.php';
