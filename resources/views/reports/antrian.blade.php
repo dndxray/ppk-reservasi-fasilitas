@@ -193,10 +193,10 @@
                                     </div>
 
 
-                                    @if($report->status === 'menunggu')
+                                    @if($report->status === 'baru')
 
                                         <span class="shrink-0 px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700">
-                                            Menunggu
+                                            Baru
                                         </span>
 
                                     @elseif($report->status === 'diproses')
