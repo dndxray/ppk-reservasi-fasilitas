@@ -57,6 +57,20 @@ class FacilityController extends Controller
         ]);
     }
 
+    public function slots(Facility $facility, Request $request)
+    {
+    $tanggal = now()->toDateString();
+
+    if ($request->filled('tanggal') && strtotime($request->tanggal)) {
+        $tanggal = date('Y-m-d', strtotime($request->tanggal));
+    }
+
+    return response()->json([
+        'tanggal' => $tanggal,
+        'slots' => $this->daftarSlot($facility, $tanggal),
+    ]);
+    }
+
     private function daftarSlot(Facility $facility, string $tanggal): array
     {
         $reservasi = collect();
