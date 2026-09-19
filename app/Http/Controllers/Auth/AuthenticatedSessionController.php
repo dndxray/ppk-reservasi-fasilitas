@@ -26,6 +26,24 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        $user = Auth::user();
+
+        if ($user->status_verifikasi === 'menunggu') {
+            Auth::logout();
+
+            return redirect()->route('login')->withErrors([
+                'email' => 'Akun kamu masih menunggu verifikasi admin. Silakan tunggu konfirmasi sebelum login.',
+            ]);
+        }
+
+        if ($user->status_verifikasi === 'ditolak') {
+            Auth::logout();
+
+            return redirect()->route('login')->withErrors([
+                'email' => 'Akun kamu ditolak oleh admin. Silakan hubungi admin untuk informasi lebih lanjut.',
+            ]);
+        }
+
         $request->session()->regenerate();
 
         return redirect()->intended(route('dashboard', absolute: false));
