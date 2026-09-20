@@ -31,9 +31,9 @@
                         <label class="block text-sm text-gray-700 mb-1">Tipe</label>
                         <select name="tipe" class="w-full rounded-lg border-gray-300 text-sm">
                             <option value="">Semua Tipe</option>
-                            @foreach($daftarTipe as $tipe)
-                                <option value="{{ $tipe }}" @selected(request('tipe') == $tipe)>
-                                    {{ ucfirst(str_replace('_', ' ', $tipe)) }}
+                            @foreach($daftarTipe as $t)
+                                <option value="{{ $t }}" @selected($tipe == $t)>
+                                    {{ ucfirst(str_replace('_', ' ', $t)) }}
                                 </option>
                             @endforeach
                         </select>
