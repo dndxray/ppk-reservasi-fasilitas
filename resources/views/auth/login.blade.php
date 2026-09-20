@@ -90,6 +90,40 @@
         </div>
 
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('form[action="{{ route('login') }}"]');
+            const email = document.getElementById('email');
+            const password = document.getElementById('password');
 
+            form.addEventListener('submit', function (e) {
+                let valid = true;
+
+                // Validasi format email sederhana
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailPattern.test(email.value)) {
+                    e.preventDefault();
+                    valid = false;
+                    email.classList.add('ring-2', 'ring-red-500');
+                } else {
+                    email.classList.remove('ring-2', 'ring-red-500');
+                }
+
+                // Validasi password tidak kosong & minimal 6 karakter
+                if (password.value.length < 6) {
+                    e.preventDefault();
+                    valid = false;
+                    password.classList.add('ring-2', 'ring-red-500');
+                } else {
+                    password.classList.remove('ring-2', 'ring-red-500');
+                }
+
+                if (!valid) {
+                    alert('Periksa kembali email dan password Anda.');
+                }
+            });
+        });
+    </script>
+    </body>
 </body>
 </html>

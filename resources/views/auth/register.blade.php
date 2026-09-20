@@ -99,5 +99,63 @@
 
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('form[action="{{ route('register') }}"]');
+            const name = document.getElementById('name');
+            const email = document.getElementById('email');
+            const password = document.getElementById('password');
+            const passwordConfirmation = document.getElementById('password_confirmation');
+
+            // cek kecocokan password tiap kali diketik
+            passwordConfirmation.addEventListener('input', function () {
+                if (password.value !== passwordConfirmation.value) {
+                    passwordConfirmation.classList.add('ring-2', 'ring-red-500');
+                } else {
+                    passwordConfirmation.classList.remove('ring-2', 'ring-red-500');
+                }
+            });
+
+            form.addEventListener('submit', function (e) {
+                let valid = true;
+
+                if (name.value.trim().length < 3) {
+                    e.preventDefault();
+                    valid = false;
+                    name.classList.add('ring-2', 'ring-red-500');
+                } else {
+                    name.classList.remove('ring-2', 'ring-red-500');
+                }
+
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailPattern.test(email.value)) {
+                    e.preventDefault();
+                    valid = false;
+                    email.classList.add('ring-2', 'ring-red-500');
+                } else {
+                    email.classList.remove('ring-2', 'ring-red-500');
+                }
+    
+                if (password.value.length < 8) {
+                    e.preventDefault();
+                    valid = false;
+                    password.classList.add('ring-2', 'ring-red-500');
+                } else {
+                    password.classList.remove('ring-2', 'ring-red-500');
+                }
+    
+                if (password.value !== passwordConfirmation.value) {
+                    e.preventDefault();
+                    valid = false;
+                    passwordConfirmation.classList.add('ring-2', 'ring-red-500');
+                }
+    
+                if (!valid) {
+                    alert('Periksa kembali data yang Anda masukkan.');
+                }
+            });
+        });
+    </script>
+    </body>
 </body>
 </html>
