@@ -279,6 +279,32 @@
 
                                 </div>
 
+                                {{-- Status Fasilitas --}}
+                                <div class="mt-5">
+                                    <label
+                                        for="status_fasilitas"
+                                        class="block text-sm font-medium text-[#47201B] mb-2"
+                                    >
+                                        Status Fasilitas Terkait
+                                    </label>
+
+                                    <select
+                                        name="status_fasilitas"
+                                        id="status_fasilitas"
+                                        class="w-full rounded-lg border-[#996561]/30 focus:border-[#CA734D] focus:ring-[#CA734D]"
+                                    >
+                                        <option value="aktif" {{ $report->facility->status === 'aktif' ? 'selected' : '' }}>
+                                            Aktif (Tersedia)
+                                        </option>
+                                        <option value="dalam_perbaikan" {{ $report->facility->status === 'dalam_perbaikan' ? 'selected' : '' }}>
+                                            Dalam Perbaikan
+                                        </option>
+                                        <option value="nonaktif" {{ $report->facility->status === 'nonaktif' ? 'selected' : '' }} disabled>
+                                            Nonaktif
+                                        </option>
+                                    </select>
+                                </div>
+
                                 {{-- Catatan --}}
                                 <div class="mt-5">
 
