@@ -50,9 +50,28 @@ class ReportController extends Controller
     }
 
     // US7 - Riwayat laporan milik pengguna
-    public function index()
+    public function index(Request $request)
     {
-        $reports = Report::where('user_id', Auth::id())
+        $query = Report::where('user_id', Auth::id())
+            ->with('facility');
+
+        if ($request->filled('cari')) {
+            $cari = $request->cari;
+
+            $query->where(function ($q) use ($cari) {
+                $q->where('kategori', 'like', "%{$cari}%")
+                    ->orWhere('deskripsi', 'like', "%{$cari}%")
+                    ->orWhereHas('facility', function ($facility) use ($cari) {
+                        $facility->where(
+                            'nama_fasilitas',
+                            'like',
+                            "%{$cari}%"
+                        );
+                    });
+            });
+        }
+
+        $reports = $query
             ->latest()
             ->get();
 
@@ -82,6 +101,7 @@ class ReportController extends Controller
         $request->validate([
             'status' => 'required|in:baru,diproses,selesai,ditolak',
             'catatan_resolusi' => 'nullable|string',
+            'status_fasilitas' => 'nullable|in:aktif,dalam_perbaikan',
         ]);
 
         $report->status = $request->status;
@@ -95,6 +115,12 @@ class ReportController extends Controller
         }
 
         $report->save();
+
+        if ($request->has('status_fasilitas')) {
+            $report->facility->update([
+                'status' => $request->status_fasilitas
+            ]);
+        }
 
         return redirect()
             ->route('reports.show', $report)
