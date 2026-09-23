@@ -11,35 +11,46 @@ use Illuminate\View\View;
 
 class FacilityController extends Controller
 {
-    public function index(Request $request): View
-    {
-        $query = Facility::query();
-        //tipe fasilitas
-        if ($request->filled('tipe')) {
-            $query->where('tipe', $request->tipe);
-        }
+    public function index(Request $request)
+{
+    // Baca filter dari cookie kalau user ga isi filter baru 
+    $tipe = $request->filled('tipe') ? $request->tipe : $request->cookie('filter_tipe');
+    $lokasi = $request->filled('lokasi') ? $request->lokasi : $request->cookie('filter_lokasi');
 
-        // lokasi
-        if ($request->filled('lokasi')) {
-            $query->where('lokasi', 'like', '%' . $request->lokasi . '%');
-        }
+    $query = Facility::query();
 
-        // kapasitas min
-        if ($request->filled('kapasitas_minimal')) {
-            $query->where('kapasitas', '>=', $request->kapasitas_minimal);
-        }
+    if ($tipe) {
+        $query->where('tipe', $tipe);
+    }
 
-        // nama fasilitas
-        if ($request->filled('cari')) {
-            $query->where('nama_fasilitas', 'like', '%' . $request->cari . '%');
-        }
+    if ($lokasi) {
+        $query->where('lokasi', 'like', '%' . $lokasi . '%');
+    }
 
-        $daftarFasilitas = $query->orderBy('nama_fasilitas')->paginate(12)->withQueryString();
+    if ($request->filled('kapasitas_minimal')) {
+        $query->where('kapasitas', '>=', $request->kapasitas_minimal);
+    }
 
-        $daftarTipe = Facility::select('tipe')->distinct()->pluck('tipe');
-        $daftarLokasi = Facility::select('lokasi')->distinct()->pluck('lokasi');
+    if ($request->filled('cari')) {
+        $query->where('nama_fasilitas', 'like', '%' . $request->cari . '%');
+    }
 
-        return view('fasilitas.index', compact('daftarFasilitas', 'daftarTipe', 'daftarLokasi'));
+    $daftarFasilitas = $query->orderBy('nama_fasilitas')->paginate(12)->withQueryString();
+
+    $daftarTipe = Facility::select('tipe')->distinct()->pluck('tipe');
+    $daftarLokasi = Facility::select('lokasi')->distinct()->pluck('lokasi');
+
+    $response = response()->view('fasilitas.index', compact('daftarFasilitas', 'daftarTipe', 'daftarLokasi', 'tipe', 'lokasi'));
+
+    // Simpan filter ke cookie (30 hari)
+    if ($request->filled('tipe')) {
+        $response->cookie('filter_tipe', $request->tipe, 60 * 24 * 30);
+    }
+    if ($request->filled('lokasi')) {
+        $response->cookie('filter_lokasi', $request->lokasi, 60 * 24 * 30);
+    }
+
+    return $response;
     }
  // detai fasilitas
     public function show(Facility $facility, Request $request): View
@@ -55,6 +66,20 @@ class FacilityController extends Controller
             'tanggal' => $tanggal,
             'daftarSlot' => $this->daftarSlot($facility, $tanggal),
         ]);
+    }
+
+    public function slots(Facility $facility, Request $request)
+    {
+    $tanggal = now()->toDateString();
+
+    if ($request->filled('tanggal') && strtotime($request->tanggal)) {
+        $tanggal = date('Y-m-d', strtotime($request->tanggal));
+    }
+
+    return response()->json([
+        'tanggal' => $tanggal,
+        'slots' => $this->daftarSlot($facility, $tanggal),
+    ]);
     }
 
     private function daftarSlot(Facility $facility, string $tanggal): array

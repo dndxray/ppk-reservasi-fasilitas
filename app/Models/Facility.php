@@ -16,20 +16,16 @@ class Facility extends Model
         'kapasitas',
         'deskripsi',
         'status',
-
-        
     ];
+
     protected $guarded = [];
-    
 
     /**
      * Satu fasilitas memiliki banyak reservasi
      */
     public function reservations()
     {
-        return $this->hasMany(
-            Reservation::class
-        );
+        return $this->hasMany(Reservation::class);
     }
 
     /**
@@ -47,11 +43,9 @@ class Facility extends Model
     {
         return $this->status === 'dalam_perbaikan';
     }
+
     public function tipeLabel()
     {
         return ucfirst($this->tipe);
     }
 }
-
-
-
