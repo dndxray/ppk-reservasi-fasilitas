@@ -30,7 +30,7 @@
                         <tr class="border-t border-stone-100">
                             <td class="px-4 py-3 font-semibold text-slate-800">{{ $facility->nama_fasilitas }}</td>
                             <td class="px-4 py-3">{{ $facility->lokasi }}</td>
-                            <td class="px-4 py-3">{{ $facility->statusLabel() }}</td>
+                            <td class="px-4 py-3">{{ ucfirst(str_replace('_', ' ', $facility->status)) }}</td>
                             <td class="px-4 py-3">{{ $facility->total_reservasi }}</td>
                             <td class="px-4 py-3">{{ $facility->total_laporan }}</td>
                         </tr>

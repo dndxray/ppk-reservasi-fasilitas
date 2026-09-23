@@ -269,9 +269,6 @@ Route::middleware('auth')
 
 Route::middleware('auth')->prefix('admin')->group(function () {
 
-    // =========================
-    // PENGGUNA
-    // =========================
     Route::get('/pengguna', [UserController::class, 'indexUsers'])
         ->name('admin.pengguna.index');
     
@@ -288,9 +285,7 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         ->name('admin.pengguna.reject');
 
 
-    // =========================
-    // PETUGAS
-    // =========================
+
     Route::get('/petugas', [UserController::class, 'indexStaff'])
         ->name('admin.petugas.index');
     
@@ -301,9 +296,6 @@ Route::middleware('auth')->prefix('admin')->group(function () {
         ->name('admin.petugas.store');
 
 
-    // =========================
-    // FASILITAS
-    // =========================
     Route::get('/fasilitas', [AdminFacilityController::class, 'index'])
         ->name('admin.fasilitas.index');
 
@@ -328,6 +320,15 @@ Route::middleware('auth')->prefix('admin')->group(function () {
 
     Route::get('/rekap', [AdminReportController::class, 'index'])
         ->name('admin.rekap.index');
+
+    Route::get('/rekap/export/csv', [AdminReportController::class, 'exportCsv'])
+        ->name('admin.rekap.export.csv');
+
+    Route::get('/rekap/export/excel', [AdminReportController::class, 'exportExcel'])
+        ->name('admin.rekap.export.excel');
+    
+    Route::get('/rekap/export/pdf', [AdminReportController::class, 'exportExcel'])
+    ->name('admin.rekap.export.pdf');
 });
 
 
