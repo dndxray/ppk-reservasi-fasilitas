@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Reservation;
 use App\Models\Report;
 use App\Models\Facility;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 
 class ReportController extends Controller
 {
@@ -111,5 +113,218 @@ class ReportController extends Controller
             'selisihFasilitas',
             'selisihLaporan'
         ));
+    }
+    public function exportCsv()
+    {
+        $fasilitas = Facility::all();
+
+        $reservasi = Reservation::where('status', 'disetujui')
+            ->selectRaw('facility_id, COUNT(*) as jumlah')
+            ->groupBy('facility_id')
+            ->pluck('jumlah', 'facility_id');
+
+        $laporan = Report::selectRaw('facility_id, COUNT(*) as jumlah')
+            ->groupBy('facility_id')
+            ->pluck('jumlah', 'facility_id');
+
+        $filename = 'rekap-fasilitas.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function () use ($fasilitas, $reservasi, $laporan) {
+            $file = fopen('php://output', 'w');
+
+            fputcsv($file, [
+                'Nama Fasilitas',
+                'Tipe',
+                'Lokasi',
+                'Kapasitas',
+                'Total Reservasi',
+                'Total Laporan'
+            ]);
+
+            foreach ($fasilitas as $facility) {
+                fputcsv($file, [
+                    $facility->nama_fasilitas,
+                    $facility->tipe,
+                    $facility->lokasi,
+                    $facility->kapasitas,
+                    $reservasi[$facility->id] ?? 0,
+                    $laporan[$facility->id] ?? 0,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+    public function exportExcel()
+    {
+        $fasilitas = Facility::all();
+
+        $reservasi = Reservation::where('status', 'disetujui')
+            ->selectRaw('facility_id, COUNT(*) as jumlah')
+            ->groupBy('facility_id')
+            ->pluck('jumlah', 'facility_id');
+
+        $laporan = Report::selectRaw('facility_id, COUNT(*) as jumlah')
+            ->groupBy('facility_id')
+            ->pluck('jumlah', 'facility_id');
+
+        $filename = 'rekap-fasilitas.xls';
+
+        $html = '
+            <html>
+            <head>
+                <meta charset="UTF-8">
+            </head>
+
+            <body>
+
+                <table border="1">
+                    <tr>
+                        <th>Nama Fasilitas</th>
+                        <th>Tipe</th>
+                        <th>Lokasi</th>
+                        <th>Kapasitas</th>
+                        <th>Total Reservasi</th>
+                        <th>Total Laporan</th>
+                    </tr>
+        ';
+
+        foreach ($fasilitas as $facility) {
+            $html .= '
+                    <tr>
+                        <td>' . $facility->nama_fasilitas . '</td>
+                        <td>' . $facility->tipe . '</td>
+                        <td>' . $facility->lokasi . '</td>
+                        <td>' . $facility->kapasitas . '</td>
+                        <td>' . ($reservasi[$facility->id] ?? 0) . '</td>
+                        <td>' . ($laporan[$facility->id] ?? 0) . '</td>
+                    </tr>
+            ';
+        }
+
+        $html .= '
+                </table>
+
+            </body>
+            </html>
+        ';
+
+        return response($html, 200, [
+            'Content-Type' => 'application/vnd.ms-excel',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+    public function exportPdf()
+    {
+        $fasilitas = Facility::all();
+
+        $reservasi = Reservation::where('status', 'disetujui')
+            ->selectRaw('facility_id, COUNT(*) as jumlah')
+            ->groupBy('facility_id')
+            ->pluck('jumlah', 'facility_id');
+
+        $laporan = Report::selectRaw('facility_id, COUNT(*) as jumlah')
+            ->groupBy('facility_id')
+            ->pluck('jumlah', 'facility_id');
+
+        $html = '
+            <html>
+            <head>
+                <meta charset="UTF-8">
+
+                <style>
+                    body {
+                        font-family: sans-serif;
+                        font-size: 11px;
+                    }
+
+                    h2 {
+                        text-align: center;
+                        margin-bottom: 5px;
+                    }
+
+                    .subtitle {
+                        text-align: center;
+                        color: #666;
+                        margin-bottom: 20px;
+                    }
+
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+
+                    th {
+                        background-color: #be123c;
+                        color: white;
+                        padding: 8px;
+                        text-align: center;
+                    }
+
+                    td {
+                        border: 1px solid #ddd;
+                        padding: 7px;
+                    }
+
+                    .center {
+                        text-align: center;
+                    }
+                </style>
+            </head>
+
+            <body>
+
+                <h2>Rekap Fasilitas</h2>
+
+                <div class="subtitle">
+                    Rekapitulasi Reservasi dan Laporan Kerusakan
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nama Fasilitas</th>
+                            <th>Tipe</th>
+                            <th>Lokasi</th>
+                            <th>Kapasitas</th>
+                            <th>Total Reservasi</th>
+                            <th>Total Laporan</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+        ';
+
+        foreach ($fasilitas as $facility) {
+            $html .= '
+                        <tr>
+                            <td>' . $facility->nama_fasilitas . '</td>
+                            <td>' . $facility->tipe . '</td>
+                            <td>' . $facility->lokasi . '</td>
+                            <td class="center">' . $facility->kapasitas . '</td>
+                            <td class="center">' . ($reservasi[$facility->id] ?? 0) . '</td>
+                            <td class="center">' . ($laporan[$facility->id] ?? 0) . '</td>
+                        </tr>
+            ';
+        }
+
+        $html .= '
+                    </tbody>
+                </table>
+
+            </body>
+            </html>
+        ';
+
+        return Pdf::loadHTML($html)
+            ->setPaper('a4', 'landscape')
+            ->download('rekap-fasilitas.pdf');
     }
 }
