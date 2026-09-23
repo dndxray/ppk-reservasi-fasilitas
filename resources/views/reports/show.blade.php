@@ -4,7 +4,7 @@
 
         <div class="px-6 py-8 max-w-7xl mx-auto">
 
-            {{-- Header --}}
+            {{-- tombol back & judul --}}
             <div class="flex items-center mb-6">
                 @if(auth()->user()->role === 'petugas')
                     <a href="{{ route('reports.antrian') }}" class="mr-4 text-[#47201B] hover:text-[#CA734D] transition">
@@ -24,7 +24,7 @@
                 </h1>
             </div>
 
-            {{-- Pesan sukses --}}
+            {{-- alert sukses --}}
             @if (session('success'))
                 <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor">
@@ -34,18 +34,173 @@
                 </div>
             @endif
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        @if(auth()->user()->role === 'petugas')
+            
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                    
+                    {{-- info laporan (kiri) --}}
+                    <div class="lg:col-span-3 bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
+                        <h2 class="text-xl font-bold text-[#1A1A1A] mb-8">Informasi Laporan</h2>
+                        
+                        <div class="space-y-6">
+                            <div class="flex items-center">
+                                <div class="w-1/3 flex items-center text-sm text-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-[#A94438]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                    Nama Fasilitas
+                                </div>
+                                <div class="w-2/3 text-sm text-gray-900 font-medium">
+                                    {{ $report->facility->nama_fasilitas ?? '-' }}
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <div class="w-1/3 flex items-center text-sm text-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-[#A94438]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                    </svg>
+                                    Kategori
+                                </div>
+                                <div class="w-2/3 text-sm text-gray-900 font-medium">
+                                    {{ $report->kategori }}
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <div class="w-1/3 flex items-center text-sm text-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-[#A94438]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    Tanggal Ditemukan
+                                </div>
+                                <div class="w-2/3 text-sm text-gray-900 font-medium">
+                                    {{ $report->tanggal_ditemukan ? \Carbon\Carbon::parse($report->tanggal_ditemukan)->translatedFormat('d F Y') : $report->created_at?->translatedFormat('d F Y') }}
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="w-1/3 flex items-center text-sm text-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-[#A94438]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                                    </svg>
+                                    Deskripsi Kerusakan
+                                </div>
+                                <div class="w-2/3 text-sm text-gray-900 font-medium whitespace-pre-line">
+                                    {{ $report->deskripsi }}
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center mt-6">
+                                <div class="w-1/3 flex items-center text-sm text-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-[#A94438]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                    Nama Pelapor
+                                </div>
+                                <div class="w-2/3 flex items-center gap-3">
+                                    <span class="text-sm text-gray-900 font-medium">{{ $report->user->name ?? '-' }}</span>
+                                    <button class="bg-[#C84F4F] text-white px-3 py-1 rounded-md text-xs font-semibold hover:bg-[#A94438]">Lihat Profil</button>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <div class="w-1/3 flex items-center text-sm text-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-[#A94438]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                    </svg>
+                                    Nomor Kontak
+                                </div>
+                                <div class="w-2/3 text-sm text-gray-900 font-medium">
+                                    {{ $report->user->phone ?? '08122xxxxxx' }}
+                                </div>
+                            </div>
 
-                {{-- Kolom Kiri --}}
+                            <div class="pt-6">
+                                <h3 class="text-md font-bold text-[#1A1A1A] mb-4">Foto Kerusakan</h3>
+                                <div class="flex gap-4">
+                                    @if($report->foto)
+                                        <img src="{{ asset('storage/' . $report->foto) }}" class="w-32 h-32 rounded-xl object-cover border border-gray-200">
+                                    @else
+                                        <div class="w-32 h-32 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 border border-gray-200 text-xs">Tak ada foto</div>
+                                    @endif
+                                    <div class="w-32 h-32 rounded-xl bg-[#C4C4C4]"></div>
+                                    <div class="w-32 h-32 rounded-xl bg-[#C4C4C4]"></div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {{-- update status (kanan) --}}
+                    <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-8 shadow-sm h-fit">
+                        <h2 class="text-xl font-bold text-[#1A1A1A] mb-6">Perbarui Status</h2>
+                        
+                        <div class="mb-6">
+                            <p class="text-sm font-bold text-[#1A1A1A] mb-2">Status saat ini</p>
+                            @php
+                                $statusText = 'Menunggu';
+                                $dotColor = 'bg-yellow-500';
+                                $textColor = 'text-yellow-600';
+
+                                if ($report->status === 'selesai') {
+                                    $statusText = 'Selesai';
+                                    $dotColor = 'bg-green-500';
+                                    $textColor = 'text-green-600';
+                                } elseif ($report->status === 'ditolak') {
+                                    $statusText = 'Ditolak';
+                                    $dotColor = 'bg-red-500';
+                                    $textColor = 'text-red-600';
+                                }
+                            @endphp
+                            <div class="flex items-center gap-2">
+                                <div class="w-2.5 h-2.5 rounded-full {{ $dotColor }}"></div>
+                                <span class="text-sm font-medium {{ $textColor }}">{{ $statusText }}</span>
+                            </div>
+                        </div>
+
+                        <form action="{{ route('reports.updateStatus', $report) }}" method="POST">
+                            @csrf
+                            @method('PATCH')
+                            
+                            <div class="mb-5">
+                                <label class="block text-sm font-bold text-[#1A1A1A] mb-2">Pilih Status Baru</label>
+                                <select name="status" class="w-full rounded-xl border-gray-300 bg-[#F8F7F7] focus:border-[#A94438] focus:ring-[#A94438] text-sm py-3 px-4">
+                                    <option value="baru" {{ $report->status === 'baru' ? 'selected' : '' }}>Baru</option>
+                                    <option value="diproses" {{ $report->status === 'diproses' ? 'selected' : '' }}>Diproses</option>
+                                    <option value="selesai" {{ $report->status === 'selesai' ? 'selected' : '' }}>Selesai</option>
+                                    <option value="ditolak" {{ $report->status === 'ditolak' ? 'selected' : '' }}>Ditolak</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-5">
+                                <label class="block text-sm font-bold text-[#1A1A1A] mb-2">Catatan</label>
+                                <textarea name="catatan_resolusi" rows="4" placeholder="Ketik Catatan..." class="w-full rounded-xl border-gray-300 bg-[#F8F7F7] focus:border-[#A94438] focus:ring-[#A94438] text-sm p-4">{{ old('catatan_resolusi', $report->catatan_resolusi) }}</textarea>
+                            </div>
+                            
+                            <input type="hidden" name="status_fasilitas" value="{{ $report->facility->status }}">
+                            
+                            <button type="submit" class="w-full mt-2 bg-[#C84F4F] hover:bg-[#A94438] text-white py-3.5 rounded-xl font-bold text-sm transition">
+                                Perbarui Status
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            @else
+            
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                {{-- info laporan pengguna --}}
                 <div class="lg:col-span-2 space-y-6">
                     
-                    {{-- Detail Laporan Card --}}
+                    {{-- detail laporan --}}
                     <div class="bg-white rounded-xl border border-gray-200 p-8">
                         
                         <div class="flex justify-between items-center mb-8">
                             <h2 class="text-xl font-bold text-[#1A1A1A]">Detail Laporan</h2>
                             
-                            {{-- Status Badge --}}
+                            {{-- status badge --}}
                             @php
                                 $statusColors = [
                                     'baru' => 'bg-blue-500',
@@ -141,10 +296,10 @@
                     </div>
                 </div>
 
-                {{-- Kolom Kanan --}}
+                {{-- fasilitas terkait (kanan) --}}
                 <div class="space-y-6">
                     
-                    {{-- Fasilitas Card --}}
+                    {{-- kartu fasilitas & foto --}}
                     <div class="bg-white rounded-xl border border-gray-200 p-5">
                         
                         @if($report->foto)
@@ -187,7 +342,7 @@
 
                     </div>
 
-                    {{-- Form Proses Laporan (Petugas) / Catatan (Pengguna) --}}
+                    {{-- proses status laporan --}}
                     @if(auth()->user()->role === 'petugas')
                         
                         <div class="bg-white rounded-xl border border-gray-200 p-6">
@@ -248,7 +403,9 @@
 
                 </div>
 
-            </div>
+            
+
+            @endif
 
         </div>
 

@@ -1,4 +1,4 @@
-<nav x-data="{ open: false }" class="bg-[#511E1D]">
+<nav x-data="{ open: false }" class="bg-[#511E1D] sticky top-0 z-30 shadow-sm">
     <div class="max-w-full mx-auto px-4 sm:px-6">
         <div class="flex justify-between items-center h-16">
             <div class="flex items-center gap-4">
