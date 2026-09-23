@@ -492,5 +492,5 @@ Route::middleware('auth')
     
     Route::get('/rekap/export/pdf', [AdminReportController::class, 'exportExcel'])
     ->name('admin.rekap.export.pdf');
-
+}); 
 require __DIR__.'/auth.php';
