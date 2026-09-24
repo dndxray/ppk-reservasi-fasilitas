@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
-
 class ReservationController extends Controller
 {
 
@@ -196,19 +195,60 @@ class ReservationController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function history()
-    {
+    public function history(Request $request)
+{
 
-        $reservations = Reservation::where(
+        $query = Reservation::where(
             'user_id',
             auth()->id()
         )
+        ->with('facility');
 
-        ->with('facility')
 
-        ->latest()
 
-        ->get();
+        // LOGIKA PENCARIAN
+        if($request->search){
+
+            $search = $request->search;
+
+
+            $query->whereHas(
+                'facility',
+                function($q) use ($search){
+
+                    $q->where(
+                        'nama_fasilitas',
+                        'LIKE',
+                        "%$search%"
+                    )
+                    ->orWhere(
+                        'lokasi',
+                        'LIKE',
+                        "%$search%"
+                    );
+
+                }
+            );
+
+
+        }
+
+        // FILTER STATUS
+        if($request->status){
+
+            $query->where(
+                'status',
+                $request->status
+            );
+
+        }
+
+
+        $reservations = $query
+            ->latest()
+            ->get();
+
+
 
         return view(
             'reservations.history',

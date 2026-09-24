@@ -11,29 +11,53 @@ class ReservationController extends Controller
 {
     /*
     |--------------------------------------------------------------------------
-    | Antrian Reservasi
+    | Antrian &Riwayat Reservasi
     |--------------------------------------------------------------------------
     */
-    public function queue()
-    {
+   public function index(Request $request){
+        $query = Reservation::with([
+            'user',
+            'facility'
+        ]);
 
-        $reservations = Reservation::with([
-        'user',
-        'facility'])
-        ->whereIn(
-            'status',
-            [
-            'menunggu',
-            'disetujui'
-            ]
-        )
-        ->latest()
-        ->get();
+        if($request->status){
+
+            $query->where(
+                'status',
+                $request->status
+            );
+
+        }
+
+
+        if($request->search){
+
+            $query->whereHas(
+                'user',
+                function($q) use ($request){
+
+                    $q->where(
+                        'name',
+                        'like',
+                        '%'.$request->search.'%'
+                    );
+
+                }
+            );
+
+        }
+
+
+        $reservations = $query
+            ->latest()
+            ->get();
+
 
         return view(
-            'petugas.reservations.queue',
+            'petugas.reservations.index',
             compact('reservations')
         );
+
     }
     /*
     |--------------------------------------------------------------------------
@@ -162,4 +186,5 @@ class ReservationController extends Controller
         compact('reservation')
     );
 }
+
 }

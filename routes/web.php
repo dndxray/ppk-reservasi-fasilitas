@@ -40,68 +40,33 @@ Route::get('/dashboard', function () {
 
 
 // Fasilitas
-Route::get(
-    '/fasilitas',
-    [
-        FacilityController::class,
-        'index'
-    ]
-)
-->name('fasilitas.index');
+Route::get('/fasilitas',[FacilityController::class, 'index'])
+    ->name('fasilitas.index');
 
 
-Route::get(
-    '/fasilitas/{facility}',
-    [
-        FacilityController::class,
-        'show'
-    ]
-)
-->name('fasilitas.show');
+Route::get('/fasilitas/{facility}',[FacilityController::class, 'show'])
+    ->name('fasilitas.show');
 
 
 Route::middleware('auth')->group(function () {
 
     // Profile
-    Route::get(
-        '/profile',
-        [
-            ProfileController::class,
-            'edit'
-        ]
-    )
-    ->name('profile.edit');
+    Route::get('/profile', [ProfileController::class,'edit'])
+        ->name('profile.edit');
+
+    Route::patch('/profile', [ProfileController::class, 'update'])
+        ->name('profile.update');
+
+    Route::delete('/profile', [ProfileController::class, 'destroy'])
+        ->name('profile.destroy');
 
 
-    Route::patch(
-        '/profile',
-        [
-            ProfileController::class,
-            'update'
-        ]
-    )
-    ->name('profile.update');
+    // =========================
+    // RESERVASI USER
+    // =========================
 
-
-    Route::delete(
-        '/profile',
-        [
-            ProfileController::class,
-            'destroy'
-        ]
-    )
-    ->name('profile.destroy');
-
-
-    // Reservasi user
-    Route::get(
-        '/reservations/create',
-        [
-            ReservationController::class,
-            'create'
-        ]
-    )
-    ->name('reservations.create');
+    Route::get( '/reservations/create',[ReservationController::class, 'create'])
+        ->name('reservations.create');
 
 
     Route::post(
@@ -114,6 +79,7 @@ Route::middleware('auth')->group(function () {
     ->name('reservations.store');
 
 
+    // Riwayat reservasi pengguna
     Route::get(
         '/reservations/history',
         [
@@ -124,6 +90,7 @@ Route::middleware('auth')->group(function () {
     ->name('reservations.history');
 
 
+    // Detail reservasi pengguna
     Route::get(
         '/reservations/{reservation}',
         [
@@ -132,6 +99,16 @@ Route::middleware('auth')->group(function () {
         ]
     )
     ->name('reservations.show');
+
+
+    Route::patch(
+        '/reservations/{reservation}/cancel',
+        [
+            ReservationController::class,
+            'cancel'
+        ]
+    )
+    ->name('reservations.cancel');
 
 
     Route::patch(
@@ -176,7 +153,6 @@ Route::middleware('auth')->group(function () {
 
 
     // Pelaporan Kerusakan - Petugas
-    // Harus diletakkan sebelum /reports/{report}
     Route::get(
         '/reports/antrian',
         [
@@ -217,7 +193,7 @@ Route::middleware('auth')
 ->group(function () {
 
     Route::get(
-        '/reservations',
+        '/reservations/queue',
         [
             PetugasReservationController::class,
             'queue'
@@ -227,12 +203,22 @@ Route::middleware('auth')
 
 
     Route::get(
+        '/reservations',
+        [
+            PetugasReservationController::class,
+            'index'
+        ]
+    )
+    ->name('petugas.reservations.index');
+
+    Route::get(
         '/reservations/{reservation}',
         [
             PetugasReservationController::class,
             'show'
         ]
     )
+    
     ->name('petugas.reservations.show');
 
 
