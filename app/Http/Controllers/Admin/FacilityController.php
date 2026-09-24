@@ -19,7 +19,24 @@ class FacilityController extends Controller
         return view('admin.facilities.index', compact('facilities', 'search'));
     }
 
-    //Menyimpan fasilitas baru
+    // Menampilkan form tambah fasilitas
+    public function create()
+    {
+        $tipeOptions = [
+            'ruangan' => 'Ruangan',
+            'aula' => 'Aula',
+            'laboratorium' => 'Laboratorium',
+            'lapangan' => 'Lapangan',
+            'lainnya' => 'Lainnya',
+        ];
+
+        return view('admin.facilities.form', [
+            'facility' => new Facility(),
+            'tipeOptions' => $tipeOptions,
+        ]);
+    }
+
+    // Menyimpan fasilitas baru
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -28,18 +45,32 @@ class FacilityController extends Controller
             'lokasi' => 'required|string|max:255',
             'kapasitas' => 'nullable|integer|min:0',
             'deskripsi' => 'nullable|string',
-            'status' => 'required|in:aktif,dalam_perbaikan,nonaktif',
         ]);
 
-        $facility = Facility::create($validated);
+        $validated['status'] = 'aktif';
 
-        return response()->json([
-            'message' => 'Fasilitas berhasil ditambahkan',
-            'data' => $facility,
-        ], 201);
+        Facility::create($validated);
+
+        return redirect()
+            ->route('admin.fasilitas.index')
+            ->with('success', 'Fasilitas berhasil ditambahkan.');
     }
 
-    //Mengubah fasilitas
+    // Menampilkan form edit
+    public function edit(Facility $facility)
+    {
+        $tipeOptions = [
+            'ruangan' => 'Ruangan',
+            'aula' => 'Aula',
+            'laboratorium' => 'Laboratorium',
+            'lapangan' => 'Lapangan',
+            'lainnya' => 'Lainnya',
+        ];
+
+        return view('admin.facilities.form', compact('facility', 'tipeOptions'));
+    }
+
+    // Mengubah fasilitas
     public function update(Request $request, Facility $facility)
     {
         $validated = $request->validate([
@@ -48,50 +79,36 @@ class FacilityController extends Controller
             'lokasi' => 'required|string|max:255',
             'kapasitas' => 'nullable|integer|min:0',
             'deskripsi' => 'nullable|string',
-            'status' => 'required|in:aktif,dalam_perbaikan,nonaktif',
         ]);
 
         $facility->update($validated);
 
-        return response()->json([
-            'message' => 'Fasilitas berhasil diperbarui',
-            'data' => $facility,
-        ]);
+        return redirect()
+            ->route('admin.fasilitas.index')
+            ->with('success', 'Fasilitas berhasil diperbarui.');
     }
 
     // Menonaktifkan fasilitas
     public function deactivate(Facility $facility)
     {
         $facility->update([
-            'status' => 'nonaktif'
+            'status' => 'nonaktif',
         ]);
 
-        return response()->json([
-            'message' => 'Fasilitas berhasil dinonaktifkan',
-            'data' => $facility,
-        ]);
-    }
-    // Menampilkan form edit
-    public function edit(Facility $facility)
-    {
-        $tipeOptions = [
-            'Ruangan',
-            'Laboratorium',
-            'Aula',
-            'Lapangan',
-            'Peralatan',
-        ];
-
-        return view('admin.facilities.form', compact('facility', 'tipeOptions'));
+        return redirect()
+            ->route('admin.fasilitas.index')
+            ->with('success', 'Fasilitas berhasil dinonaktifkan.');
     }
 
     // Mengaktifkan kembali fasilitas
     public function activate(Facility $facility)
     {
         $facility->update([
-            'status' => 'aktif'
+            'status' => 'aktif',
         ]);
 
-        return redirect()->route('admin.fasilitas.index');
+        return redirect()
+            ->route('admin.fasilitas.index')
+            ->with('success', 'Fasilitas berhasil diaktifkan.');
     }
 }

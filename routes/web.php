@@ -112,7 +112,7 @@ Route::middleware('auth')->prefix('petugas')->name('petugas.')->group(function (
     Route::get('/dashboard', fn () => view('petugas.dashboard'))->name('dashboard');
 
     // ----- Reservasi -----
-    Route::get('/reservations/queue', [PetugasReservationController::class, 'queue'])->name('reservations.queue'); 
+    Route::get('/reservations/queue', [PetugasReservationController::class, 'index'])->name('reservations.queue');
     Route::get('/reservations', [PetugasReservationController::class, 'index'])->name('reservations.index');
     Route::get('/reservations/{reservation}', [PetugasReservationController::class, 'show'])->name('reservations.show');
     Route::patch('/reservations/{reservation}/approve', [PetugasReservationController::class, 'approve'])->name('reservations.approve');
@@ -145,7 +145,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     // ----- Fasilitas -----
     Route::get('/fasilitas', [AdminFacilityController::class, 'index'])->name('fasilitas.index');
-    Route::get('/fasilitas/create', fn () => view('admin.facilities.form'))->name('facilities.create');
+    Route::get('/fasilitas/create', [AdminFacilityController::class, 'create'])->name('facilities.create');
     Route::post('/fasilitas', [AdminFacilityController::class, 'store'])->name('facilities.store');
     Route::get('/fasilitas/{facility}/edit', [AdminFacilityController::class, 'edit'])->name('facilities.edit');
     Route::put('/fasilitas/{facility}', [AdminFacilityController::class, 'update'])->name('facilities.update');
