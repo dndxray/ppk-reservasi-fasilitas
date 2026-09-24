@@ -12,6 +12,7 @@ class Report extends Model
         'user_id',
         'facility_id',
         'kategori',
+        'tanggal_ditemukan',
         'deskripsi',
         'foto',
         'status',
@@ -21,6 +22,7 @@ class Report extends Model
     ];
 
     protected $casts = [
+        'tanggal_ditemukan' => 'date',
         'diselesaikan_pada' => 'datetime',
     ];
 

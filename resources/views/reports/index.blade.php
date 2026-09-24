@@ -13,7 +13,7 @@
                 </p>
             </div>
 
-            {{-- kartu "Lapor Disini" sesuai wireframe, klik -> ke form lapor --}}
+            {{-- tombol lapor disini buat ke form --}}
             <a href="{{ route('reports.create') }}"
                class="flex items-center gap-4 bg-white rounded-xl shadow-sm border border-[#996561]/20 p-5 mb-8 hover:bg-[#F3EFE8] transition">
                 <div class="w-11 h-11 rounded-full bg-[#E1D3C4] flex items-center justify-center shrink-0">
@@ -34,7 +34,7 @@
                 Riwayat Laporan Saya
             </h2>
 
-            {{-- search & filter --}}
+            {{-- kolom pencarian & tombol filter --}}
             <form method="GET" action="{{ route('reports.index') }}" class="flex gap-3 mb-4">
                 <input type="text" name="cari" value="{{ request('cari') }}" placeholder="Cari fasilitas/tanggal..."
                     class="flex-1 border-[#996561]/40 rounded-md shadow-sm bg-white focus:border-[#CA734D] focus:ring-[#CA734D]">
@@ -51,7 +51,7 @@
 
                 @if($reports->count() > 0)
 
-                    {{-- Desktop Table --}}
+                    {{-- tabel laporan versi desktop --}}
                     <div class="hidden md:block overflow-x-auto">
                         <table class="w-full text-sm">
 
@@ -85,9 +85,9 @@
                                             {{ $report->kategori }}
                                         </td>
 
-                                        {{-- pakai created_at karena kolom tanggal_ditemukan belum ada di tabel reports --}}
+                                        {{-- pakai created_at karena di tabel belum ada kolom tanggal_ditemukan --}}
                                         <td class="px-6 py-4 text-[#996561]">
-                                            {{ $report->created_at?->format('d/m/Y') }}
+                                             {{ $report->created_at?->format('d/m/Y') }}
                                         </td>
 
                                         <td class="px-6 py-4">
@@ -125,7 +125,7 @@
                         </table>
                     </div>
 
-                    {{-- Mobile Card --}}
+                    {{-- list laporan versi mobile (bentuk card) --}}
                     <div class="md:hidden divide-y divide-[#996561]/10">
                         @foreach($reports as $report)
                             <div class="p-5">
@@ -164,7 +164,7 @@
 
                 @else
 
-                    {{-- Empty State --}}
+                    {{-- tampilan kalau belum ada laporan sama sekali --}}
                     <div class="px-6 py-16 text-center">
                         <div class="mx-auto w-14 h-14 flex items-center justify-center rounded-full bg-[#F3EFE8] mb-4">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-[#996561]" fill="none" viewBox="0 0 24 24" stroke="currentColor">

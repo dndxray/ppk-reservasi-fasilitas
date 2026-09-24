@@ -1,321 +1,163 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\Admin\FacilityController as AdminFacilityController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Petugas\FacilityControllerStaff;
-use App\Models\Facility;
-use App\Http\Controllers\ReservationController;
-use App\Http\Controllers\Petugas\ReservationController as PetugasReservationController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
-
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\FacilityController;
+use App\Http\Controllers\Petugas\ReservationController as PetugasReservationController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ReservationController;
+use App\Models\Facility;
+use App\Models\Report;
+use App\Models\Reservation;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
+/*
+|--------------------------------------------------------------------------
+| 1. BERANDA & DASHBOARD
+|--------------------------------------------------------------------------
+*/
+
 Route::get('/', function () {
+    if (Auth::check()) {
+        return redirect()->route('dashboard');
+    }
 
-    $daftarFasilitas = Facility::where(
-        'status',
-        'aktif'
-    )
-    ->orderBy('nama_fasilitas')
-    ->take(6)
-    ->get();
+    $daftarFasilitas = Facility::where('status', 'aktif')
+        ->orderBy('nama_fasilitas')
+        ->take(6)
+        ->get();
 
-    return view(
-        'beranda',
-        compact('daftarFasilitas')
-    );
-
+    return view('beranda', compact('daftarFasilitas'))
+        ->with('aktivitasReservasi', null)
+        ->with('aktivitasLaporan', null);
 })->name('beranda');
 
-
 Route::get('/dashboard', function () {
-    return view('dashboard');
-})
-->middleware(['auth', 'verified'])
-->name('dashboard');
+    $user = Auth::user();
+
+    if ($user->isAdmin()) {
+        return redirect()->route('admin.dashboard');
+    }
+
+    if ($user->isPetugas()) {
+        return redirect()->route('petugas.dashboard');
+    }
+
+    $daftarFasilitas = Facility::where('status', 'aktif')
+        ->orderBy('nama_fasilitas')
+        ->take(6)
+        ->get();
+
+    $aktivitasReservasi = Reservation::where('user_id', $user->id)->latest()->first();
+    $aktivitasLaporan   = Report::where('user_id', $user->id)->latest()->first();
+
+    return view('beranda', compact('daftarFasilitas', 'aktivitasReservasi', 'aktivitasLaporan'));
+})->middleware(['auth', 'verified'])->name('dashboard');
 
 
-// Fasilitas
-Route::get('/fasilitas',[FacilityController::class, 'index'])
-    ->name('fasilitas.index');
+/*
+|--------------------------------------------------------------------------
+| 2. FASILITAS (PUBLIK)
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/fasilitas', [FacilityController::class, 'index'])->name('fasilitas.index');
+Route::get('/fasilitas/{facility}/slots', [FacilityController::class, 'slots'])->name('fasilitas.slots');
+Route::get('/fasilitas/{facility}', [FacilityController::class, 'show'])->name('fasilitas.show');
 
 
-Route::get('/fasilitas/{facility}',[FacilityController::class, 'show'])
-    ->name('fasilitas.show');
-
+/*
+|--------------------------------------------------------------------------
+| 3. USER LOGIN (Profil, Reservasi, Laporan)
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware('auth')->group(function () {
 
-    // Profile
-    Route::get('/profile', [ProfileController::class,'edit'])
-        ->name('profile.edit');
+    // ----- Profil -----
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::patch('/profile', [ProfileController::class, 'update'])
-        ->name('profile.update');
+    // ----- Reservasi (pengguna) -----
+    Route::get('/reservations/create', [ReservationController::class, 'create'])->name('reservations.create');
+    Route::post('/reservations', [ReservationController::class, 'store'])->name('reservations.store');
+    Route::get('/reservations/history', [ReservationController::class, 'history'])->name('reservations.history'); // sebelum {reservation}
+    Route::get('/reservations/{reservation}', [ReservationController::class, 'show'])->name('reservations.show');
+    Route::patch('/reservations/{reservation}/cancel', [ReservationController::class, 'cancel'])->name('reservations.cancel');
 
-    Route::delete('/profile', [ProfileController::class, 'destroy'])
-        ->name('profile.destroy');
+    // ----- Pelaporan kerusakan (pengguna) -----
+    Route::get('/reports/create', [ReportController::class, 'create'])->name('reports.create');
+    Route::post('/reports', [ReportController::class, 'store'])->name('reports.store');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
-
-    // =========================
-    // RESERVASI USER
-    // =========================
-
-    Route::get( '/reservations/create',[ReservationController::class, 'create'])
-        ->name('reservations.create');
-
-
-    Route::post(
-        '/reservations',
-        [
-            ReservationController::class,
-            'store'
-        ]
-    )
-    ->name('reservations.store');
-
-
-    // Riwayat reservasi pengguna
-    Route::get(
-        '/reservations/history',
-        [
-            ReservationController::class,
-            'history'
-        ]
-    )
-    ->name('reservations.history');
-
-
-    // Detail reservasi pengguna
-    Route::get(
-        '/reservations/{reservation}',
-        [
-            ReservationController::class,
-            'show'
-        ]
-    )
-    ->name('reservations.show');
-
-
-    Route::patch(
-        '/reservations/{reservation}/cancel',
-        [
-            ReservationController::class,
-            'cancel'
-        ]
-    )
-    ->name('reservations.cancel');
-
-
-    Route::patch(
-        '/reservations/{reservation}/cancel',
-        [
-            ReservationController::class,
-            'cancel'
-        ]
-    )
-    ->name('reservations.cancel');
-
-
-    // Pelaporan Kerusakan - Pengguna
-    Route::get(
-        '/reports/create',
-        [
-            ReportController::class,
-            'create'
-        ]
-    )
-    ->name('reports.create');
-
-
-    Route::post(
-        '/reports',
-        [
-            ReportController::class,
-            'store'
-        ]
-    )
-    ->name('reports.store');
-
-
-    Route::get(
-        '/reports',
-        [
-            ReportController::class,
-            'index'
-        ]
-    )
-    ->name('reports.index');
-
-
-    // Pelaporan Kerusakan - Petugas
-    Route::get(
-        '/reports/antrian',
-        [
-            ReportController::class,
-            'antrian'
-        ]
-    )
-    ->name('reports.antrian');
-
-
-    // Detail laporan
-    Route::get(
-        '/reports/{report}',
-        [
-            ReportController::class,
-            'show'
-        ]
-    )
-    ->name('reports.show');
-
-
-    // Update status laporan oleh petugas
-    Route::patch(
-        '/reports/{report}',
-        [
-            ReportController::class,
-            'updateStatus'
-        ]
-    )
-    ->name('reports.updateStatus');
-
+    // ----- Pelaporan kerusakan (petugas) -----
+    Route::get('/reports/antrian', [ReportController::class, 'antrian'])->name('reports.antrian'); // sebelum {report}
+    Route::get('/reports/{report}', [ReportController::class, 'show'])->name('reports.show');
+    Route::patch('/reports/{report}', [ReportController::class, 'updateStatus'])->name('reports.updateStatus');
 });
 
 
-// Petugas
-Route::middleware('auth')
-->prefix('petugas')
-->group(function () {
+/*
+|--------------------------------------------------------------------------
+| 4. PETUGAS
+|--------------------------------------------------------------------------
+*/
 
-    Route::get(
-        '/reservations/queue',
-        [
-            PetugasReservationController::class,
-            'queue'
-        ]
-    )
-    ->name('petugas.reservations.queue');
+Route::middleware('auth')->prefix('petugas')->name('petugas.')->group(function () {
 
+    Route::get('/dashboard', fn () => view('petugas.dashboard'))->name('dashboard');
 
-    Route::get(
-        '/reservations',
-        [
-            PetugasReservationController::class,
-            'index'
-        ]
-    )
-    ->name('petugas.reservations.index');
-
-    Route::get(
-        '/reservations/{reservation}',
-        [
-            PetugasReservationController::class,
-            'show'
-        ]
-    )
-    
-    ->name('petugas.reservations.show');
-
-
-    Route::patch(
-        '/reservations/{reservation}/approve',
-        [
-            PetugasReservationController::class,
-            'approve'
-        ]
-    )
-    ->name('petugas.reservations.approve');
-
-
-    Route::patch(
-        '/reservations/{reservation}/reject',
-        [
-            PetugasReservationController::class,
-            'reject'
-        ]
-    )
-    ->name('petugas.reservations.reject');
-
-
-    Route::patch(
-        '/reservations/{reservation}/cancel',
-        [
-            PetugasReservationController::class,
-            'cancel'
-        ]
-    )
-    ->name('petugas.reservations.cancel');
-
-});
-
-Route::middleware('auth')->prefix('admin')->group(function () {
-
-    // =========================
-    // PENGGUNA
-    // =========================
-    Route::get('/pengguna', [UserController::class, 'indexUsers'])
-        ->name('admin.pengguna.index');
-    
-    Route::get('/pengguna/create', [UserController::class, 'createUser'])
-        ->name('admin.pengguna.create');
-
-    Route::post('/pengguna', [UserController::class, 'storeUser'])
-        ->name('admin.pengguna.store');
-
-    Route::patch('/pengguna/{user}/verifikasi', [UserController::class, 'verify'])
-        ->name('admin.pengguna.verify');
-
-    Route::patch('/pengguna/{user}/tolak', [UserController::class, 'reject'])
-        ->name('admin.pengguna.reject');
-
-
-    // =========================
-    // PETUGAS
-    // =========================
-    Route::get('/petugas', [UserController::class, 'indexStaff'])
-        ->name('admin.petugas.index');
-    
-    Route::get('/petugas/create', [UserController::class, 'createStaff'])
-        ->name('admin.petugas.create');
-
-    Route::post('/petugas', [UserController::class, 'storeStaff'])
-        ->name('admin.petugas.store');
-
-
-    // =========================
-    // FASILITAS
-    // =========================
-    Route::get('/fasilitas', [AdminFacilityController::class, 'index'])
-        ->name('admin.fasilitas.index');
-
-    Route::get('/fasilitas/create', function () {
-        return view('admin.facilities.form');
-    })->name('admin.facilities.create');
-
-    Route::post('/fasilitas', [AdminFacilityController::class, 'store'])
-        ->name('admin.facilities.store');
-
-    Route::get('/fasilitas/{facility}/edit', [AdminFacilityController::class, 'edit'])
-        ->name('admin.facilities.edit');
-
-    Route::put('/fasilitas/{facility}', [AdminFacilityController::class, 'update'])
-        ->name('admin.facilities.update');
-
-    Route::patch('/fasilitas/{facility}/nonaktifkan', [AdminFacilityController::class, 'deactivate'])
-        ->name('admin.facilities.deactivate');
-
-    Route::patch('/fasilitas/{facility}/aktifkan', [AdminFacilityController::class, 'activate'])
-        ->name('admin.facilities.activate');
-
-    Route::get('/rekap', [AdminReportController::class, 'index'])
-        ->name('admin.rekap.index');
+    // ----- Reservasi -----
+    Route::get('/reservations/queue', [PetugasReservationController::class, 'queue'])->name('reservations.queue'); 
+    Route::get('/reservations', [PetugasReservationController::class, 'index'])->name('reservations.index');
+    Route::get('/reservations/{reservation}', [PetugasReservationController::class, 'show'])->name('reservations.show');
+    Route::patch('/reservations/{reservation}/approve', [PetugasReservationController::class, 'approve'])->name('reservations.approve');
+    Route::patch('/reservations/{reservation}/reject', [PetugasReservationController::class, 'reject'])->name('reservations.reject');
+    Route::patch('/reservations/{reservation}/cancel', [PetugasReservationController::class, 'cancel'])->name('reservations.cancel');
 });
 
 
+/*
+|--------------------------------------------------------------------------
+| 5. ADMIN
+|--------------------------------------------------------------------------
+*/
 
-require __DIR__.'/auth.php';
+Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
+
+    Route::get('/dashboard', fn () => view('admin.dashboard'))->name('dashboard');
+
+    // ----- Pengguna -----
+    Route::get('/pengguna', [UserController::class, 'indexUsers'])->name('pengguna.index');
+    Route::get('/pengguna/create', [UserController::class, 'createUser'])->name('pengguna.create');
+    Route::post('/pengguna', [UserController::class, 'storeUser'])->name('pengguna.store');
+    Route::patch('/pengguna/{user}/verifikasi', [UserController::class, 'verify'])->name('pengguna.verify');
+    Route::patch('/pengguna/{user}/tolak', [UserController::class, 'reject'])->name('pengguna.reject');
+
+    // ----- Petugas -----
+    Route::get('/petugas', [UserController::class, 'indexStaff'])->name('petugas.index');
+    Route::get('/petugas/create', [UserController::class, 'createStaff'])->name('petugas.create');
+    Route::post('/petugas', [UserController::class, 'storeStaff'])->name('petugas.store');
+
+    // ----- Fasilitas -----
+    Route::get('/fasilitas', [AdminFacilityController::class, 'index'])->name('fasilitas.index');
+    Route::get('/fasilitas/create', fn () => view('admin.facilities.form'))->name('facilities.create');
+    Route::post('/fasilitas', [AdminFacilityController::class, 'store'])->name('facilities.store');
+    Route::get('/fasilitas/{facility}/edit', [AdminFacilityController::class, 'edit'])->name('facilities.edit');
+    Route::put('/fasilitas/{facility}', [AdminFacilityController::class, 'update'])->name('facilities.update');
+    Route::patch('/fasilitas/{facility}/nonaktifkan', [AdminFacilityController::class, 'deactivate'])->name('facilities.deactivate');
+    Route::patch('/fasilitas/{facility}/aktifkan', [AdminFacilityController::class, 'activate'])->name('facilities.activate');
+
+    // ----- Rekap -----
+    Route::get('/rekap', [AdminReportController::class, 'index'])->name('rekap.index');
+    Route::get('/rekap/export/csv', [AdminReportController::class, 'exportCsv'])->name('rekap.export.csv');
+    Route::get('/rekap/export/excel', [AdminReportController::class, 'exportExcel'])->name('rekap.export.excel');
+    Route::get('/rekap/export/pdf', [AdminReportController::class, 'exportPdf'])->name('rekap.export.pdf');
+});
+
+
+require __DIR__ . '/auth.php';
