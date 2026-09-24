@@ -10,91 +10,97 @@ use Carbon\Carbon;
 
 class ReservationController extends Controller
 {
-
     /*
     |--------------------------------------------------------------------------
     | US 3 - Menampilkan Form Reservasi
     |--------------------------------------------------------------------------
     */
-    public function create()
+    public function create(Request $request)
     {
+        $facilities = Facility::where('status', 'aktif')
+            ->orderBy('nama_fasilitas')
+            ->get();
 
-        $facilities = Facility::where(
-            'status',
-            'aktif'
-        )->get();
+        $selectedFacilityId = null;
+        if ($request->filled('facility_id')) {
+            $facility = Facility::where('id', $request->facility_id)
+                ->where('status', 'aktif')
+                ->first();
+            if ($facility) {
+                $selectedFacilityId = $facility->id;
+            }
+        }
 
-
-        return view(
-            'reservations.create',
-            compact('facilities')
-        );
-
+        return view('reservations.create', compact('facilities', 'selectedFacilityId'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'facility_id'
-                => 'required|exists:facilities,id',
-            'tanggal'
-                => [
-                    'required',
-                    'date',
-                    'after_or_equal:today'],
-            'waktu_mulai'
-                => 'required',
-
-            'waktu_selesai'
-                => 'required',
-
-            'tujuan_penggunaan'
-                => 'required|min:5'
-        ],[
-            'tanggal.after_or_equal'
-                =>
-                'Tanggal reservasi tidak valid.',
-            'tanggal.required'
-                =>
-                'Tanggal reservasi wajib diisi.'
+            'facility_id' => [
+                'required',
+                \Illuminate\Validation\Rule::exists('facilities', 'id')->where(function ($query) {
+                    $query->where('status', 'aktif');
+                })
+            ],
+            'tanggal' => [
+                'required',
+                'date',
+                'after_or_equal:today'
+            ],
+            'waktu_mulai' => [
+                'required',
+            ],
+            'waktu_selesai' => [
+                'required',
+            ],
+            'tujuan_penggunaan' => [
+                'required',
+                'min:5'
+            ]
+        ], [
+            'facility_id.required' => 'Fasilitas wajib dipilih.',
+            'facility_id.exists' => 'Fasilitas yang dipilih tidak valid atau sedang tidak aktif.',
+            'tanggal.required' => 'Tanggal reservasi wajib diisi.',
+            'tanggal.date' => 'Format tanggal reservasi tidak valid.',
+            'tanggal.after_or_equal' => 'Tanggal reservasi tidak boleh sebelum hari ini.',
+            'waktu_mulai.required' => 'Waktu mulai wajib diisi.',
+            'waktu_selesai.required' => 'Waktu selesai wajib diisi.',
+            'tujuan_penggunaan.required' => 'Tujuan penggunaan wajib diisi.',
+            'tujuan_penggunaan.min' => 'Tujuan penggunaan minimal 5 karakter.'
         ]);
 
+        $allowedSlots = [
+            '07:00', '07:30', '08:00', '08:30', '09:00', '09:30',
+            '10:00', '10:30', '11:00', '11:30', '12:00', '12:30',
+            '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
+            '16:00', '16:30', '17:00', '17:30', '18:00', '18:30',
+            '19:00', '19:30', '20:00'
+        ];
+
+        $waktuMulai = substr($request->waktu_mulai, 0, 5);
+        $waktuSelesai = substr($request->waktu_selesai, 0, 5);
+
         /*
         |--------------------------------------------------------------------------
-        | Validasi jam operasional
+        | Validasi slot 30 menit & Jam Operasional (07:00 - 20:00)
         |--------------------------------------------------------------------------
         */
-        if(
-            $request->waktu_mulai < "07:00"
-            ||
-            $request->waktu_selesai > "20:00"
-        ){
-            return back()->withErrors(
-                'Reservasi hanya dapat dilakukan pukul 07.00 - 20.00'
-            );
+        if (!in_array($waktuMulai, $allowedSlots) || !in_array($waktuSelesai, $allowedSlots)) {
+            return back()->withErrors('Waktu harus menggunakan slot 30 menit pada jam operasional (07.00 - 20.00).')->withInput();
         }
+
+        if ($waktuMulai < "07:00" || $waktuSelesai > "20:00") {
+            return back()->withErrors('Reservasi hanya dapat dilakukan pukul 07.00 - 20.00.')->withInput();
+        }
+
         /*
         |--------------------------------------------------------------------------
-        | Validasi slot minimal 30 menit
+        | Validasi waktu selesai harus lebih besar dari waktu mulai
         |--------------------------------------------------------------------------
         */
-
-        $mulai = strtotime(
-            $request->waktu_mulai
-        );
-
-        $selesai = strtotime(
-            $request->waktu_selesai
-        );
-
-
-        if( date('i',$mulai) % 30 != 0
-            ||
-            date('i',$selesai) % 30 != 0
-        ){
-            return back()->withErrors(
-                'Waktu harus menggunakan slot 30 menit'
-            );
+        if ($waktuSelesai <= $waktuMulai) {
+            return back()->withErrors('Waktu selesai harus lebih besar dari waktu mulai.')->withInput();
         }
 
         /*
@@ -102,50 +108,17 @@ class ReservationController extends Controller
         | Cek bentrok reservasi
         |--------------------------------------------------------------------------
         */
+        $bentrok = Reservation::where('facility_id', $request->facility_id)
+            ->where('tanggal', $request->tanggal)
+            ->whereIn('status', ['menunggu', 'disetujui'])
+            ->where(function($query) use ($waktuMulai, $waktuSelesai){
+                $query->where('waktu_mulai', '<', $waktuSelesai)
+                      ->where('waktu_selesai', '>', $waktuMulai);
+            })
+            ->exists();
 
-        $bentrok = Reservation::where(
-            'facility_id',
-            $request->facility_id
-        )
-
-        ->where(
-            'tanggal',
-            $request->tanggal
-        )
-
-        ->whereIn(
-            'status',
-            [
-                'menunggu',
-                'disetujui'
-            ]
-        )
-
-        ->where(function($query) use ($request){
-
-            $query
-
-            ->where(
-                'waktu_mulai',
-                '<',
-                $request->waktu_selesai
-            )
-
-            ->where(
-                'waktu_selesai',
-                '>',
-                $request->waktu_mulai
-            );
-
-        })
-        ->exists();
-
-        if($bentrok){
-
-            return back()->withErrors(
-                'Fasilitas sudah digunakan pada waktu tersebut.'
-            );
-
+        if ($bentrok) {
+            return back()->withErrors('Fasilitas sudah digunakan pada waktu tersebut.')->withInput();
         }
 
         /*
@@ -154,39 +127,18 @@ class ReservationController extends Controller
         |--------------------------------------------------------------------------
         */
         Reservation::create([
-
-            'user_id'
-                => Auth::id(),
-
-            'facility_id'
-                => $request->facility_id,
-
-            'tanggal'
-                => $request->tanggal,
-
-            'waktu_mulai'
-                => $request->waktu_mulai,
-
-            'waktu_selesai'
-                => $request->waktu_selesai,
-
-            'tujuan_penggunaan'
-                => $request->tujuan_penggunaan,
-
-            'status'
-                => 'menunggu'
-
+            'user_id' => Auth::id(),
+            'facility_id' => $request->facility_id,
+            'tanggal' => $request->tanggal,
+            'waktu_mulai' => $waktuMulai,
+            'waktu_selesai' => $waktuSelesai,
+            'tujuan_penggunaan' => $request->tujuan_penggunaan,
+            'status' => 'menunggu'
         ]);
 
         return redirect()
-
-        ->route('reservations.create')
-
-        ->with(
-            'success',
-            'Reservasi berhasil diajukan.'
-        );
-
+            ->route('reservations.create')
+            ->with('success', 'Reservasi berhasil diajukan.');
     }
 
     /*

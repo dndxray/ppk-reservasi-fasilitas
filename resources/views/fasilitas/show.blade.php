@@ -28,7 +28,7 @@
 
                     @if($fasilitas->sedangAktif())
                         @auth
-                            <a href="{{ route('reservations.create', ['facility' => $fasilitas->id]) }}"
+                            <a href="{{ route('reservations.create', ['facility_id' => $fasilitas->id]) }}"
                                class="flex items-center gap-2 px-4 py-2 bg-[#4a1a24] text-white text-sm font-medium rounded-lg hover:bg-[#3a141c] transition whitespace-nowrap">
                                 Reservasi Sekarang
                             </a>
