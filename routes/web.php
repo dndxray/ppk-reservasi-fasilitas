@@ -112,7 +112,7 @@ Route::middleware('auth')->prefix('petugas')->name('petugas.')->group(function (
     Route::get('/dashboard', fn () => view('petugas.dashboard'))->name('dashboard');
 
     // ----- Reservasi -----
-    Route::get('/reservations/queue', [PetugasReservationController::class, 'queue'])->name('reservations.queue'); 
+    Route::get('/reservations/queue', [PetugasReservationController::class, 'index'])->name('reservations.queue');
     Route::get('/reservations', [PetugasReservationController::class, 'index'])->name('reservations.index');
     Route::get('/reservations/{reservation}', [PetugasReservationController::class, 'show'])->name('reservations.show');
     Route::patch('/reservations/{reservation}/approve', [PetugasReservationController::class, 'approve'])->name('reservations.approve');

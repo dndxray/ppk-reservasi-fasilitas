@@ -80,10 +80,9 @@ class UserController extends Controller
         $validated['status_verifikasi'] = 'terverifikasi';
         $user = User::create($validated);
 
-        return response()->json([
-            'message'=>'Pengguna berhasil didaftarkan',
-            'data' => $user,
-        ], 201);
+    return redirect()
+    ->route('admin.pengguna.index')
+    ->with('success', 'Pengguna berhasil didaftarkan.');
     }
     //Verifikasi pengguna
     public function verify(User $user)
