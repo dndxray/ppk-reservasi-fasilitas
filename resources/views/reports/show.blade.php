@@ -139,19 +139,27 @@
                         <div class="mb-6">
                             <p class="text-sm font-bold text-[#1A1A1A] mb-2">Status saat ini</p>
                             @php
-                                $statusText = 'Menunggu';
-                                $dotColor = 'bg-yellow-500';
-                                $textColor = 'text-yellow-600';
-
-                                if ($report->status === 'selesai') {
-                                    $statusText = 'Selesai';
-                                    $dotColor = 'bg-green-500';
-                                    $textColor = 'text-green-600';
-                                } elseif ($report->status === 'ditolak') {
-                                    $statusText = 'Ditolak';
-                                    $dotColor = 'bg-red-500';
-                                    $textColor = 'text-red-600';
-                                }
+                                $statusColors = [
+                                    'baru' => 'bg-blue-500',
+                                    'diproses' => 'bg-yellow-500',
+                                    'selesai' => 'bg-green-500',
+                                    'ditolak' => 'bg-red-500',
+                                ];
+                                $statusTextColors = [
+                                    'baru' => 'text-blue-600',
+                                    'diproses' => 'text-yellow-600',
+                                    'selesai' => 'text-green-600',
+                                    'ditolak' => 'text-red-600',
+                                ];
+                                $statusLabels = [
+                                    'baru' => 'Baru',
+                                    'diproses' => 'Diproses',
+                                    'selesai' => 'Selesai',
+                                    'ditolak' => 'Ditolak',
+                                ];
+                                $dotColor = $statusColors[$report->status] ?? 'bg-blue-500';
+                                $textColor = $statusTextColors[$report->status] ?? 'text-blue-600';
+                                $statusText = $statusLabels[$report->status] ?? 'Baru';
                             @endphp
                             <div class="flex items-center gap-2">
                                 <div class="w-2.5 h-2.5 rounded-full {{ $dotColor }}"></div>

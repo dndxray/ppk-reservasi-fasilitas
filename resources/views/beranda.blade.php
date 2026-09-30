@@ -109,23 +109,47 @@
                     @endif
 
                     @if($aktivitasLaporan)
-                        <a href="{{ route('reports.show', $aktivitasLaporan) }}"
+                        @php
+                            $lapStatus = $aktivitasLaporan->status;
+                            if ($lapStatus === 'selesai') {
+                                $targetStatus = 'selesai';
+                                $lapBg = 'bg-emerald-500';
+                            } elseif ($lapStatus === 'ditolak') {
+                                $targetStatus = 'ditolak';
+                                $lapBg = 'bg-rose-500';
+                            } else {
+                                $targetStatus = 'diproses';
+                                $lapBg = 'bg-amber-500';
+                            }
+                            $lapUrl = route('reports.index', ['status' => $targetStatus]);
+                        @endphp
+                        <a href="{{ $lapUrl }}"
                            class="flex items-center justify-between bg-white shadow-sm rounded-xl p-4 hover:bg-gray-50 transition">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-amber-500 text-white flex items-center justify-center flex-shrink-0">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
+                                <div class="w-10 h-10 rounded-full {{ $lapBg }} text-white flex items-center justify-center flex-shrink-0">
+                                    @if($lapStatus === 'ditolak')
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    @elseif($lapStatus === 'selesai')
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    @else
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                    @endif
                                 </div>
                                 <div>
                                     <div class="font-semibold text-gray-800 text-sm">
-                                        @if($aktivitasLaporan->status === 'selesai') Laporan telah selesai ditangani
-                                        @elseif($aktivitasLaporan->status === 'ditolak') Laporan ditolak
-                                        @elseif($aktivitasLaporan->status === 'diproses') Laporan sedang diproses
+                                        @if($lapStatus === 'selesai') Laporan telah selesai ditangani
+                                        @elseif($lapStatus === 'ditolak') Laporan ditolak
+                                        @elseif($lapStatus === 'diproses') Laporan sedang diproses
                                         @else Laporan baru menunggu diproses
                                         @endif
                                     </div>
-                                    <div class="text-xs text-gray-500">Lihat detail laporan Anda</div>
+                                    <div class="text-xs text-gray-500">Lihat riwayat laporan Anda</div>
                                 </div>
                             </div>
                             <span class="text-gray-400">›</span>

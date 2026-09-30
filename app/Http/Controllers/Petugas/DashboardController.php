@@ -15,8 +15,7 @@ class DashboardController extends Controller
         $reservasiDitolak = Reservation::where('status', 'ditolak')->count();
 
         $laporanSelesai = Report::where('status', 'selesai')->count();
-        // Laporan yang sedang berjalan / antrian penanganan
-        $laporanDiproses = Report::whereIn('status', ['diproses', 'baru'])->count();
+        $laporanDiproses = Report::where('status', 'diproses')->count();
         $laporanDitolak = Report::where('status', 'ditolak')->count();
 
         return view('petugas.dashboard', compact(
