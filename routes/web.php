@@ -146,6 +146,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     // ----- Fasilitas -----
     Route::get('/fasilitas', [AdminFacilityController::class, 'index'])->name('fasilitas.index');
     Route::get('/fasilitas/create', [AdminFacilityController::class, 'create'])->name('facilities.create');
+    Route::get('/fasilitas/{facility}', [AdminFacilityController::class, 'show'])->name('facilities.show'); 
     Route::post('/fasilitas', [AdminFacilityController::class, 'store'])->name('facilities.store');
     Route::get('/fasilitas/{facility}/edit', [AdminFacilityController::class, 'edit'])->name('facilities.edit');
     Route::put('/fasilitas/{facility}', [AdminFacilityController::class, 'update'])->name('facilities.update');
