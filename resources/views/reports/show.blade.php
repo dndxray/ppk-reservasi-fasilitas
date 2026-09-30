@@ -140,26 +140,29 @@
                             <p class="text-sm font-bold text-[#1A1A1A] mb-2">Status saat ini</p>
                             @php
                                 $statusColors = [
-                                    'baru' => 'bg-blue-500',
-                                    'diproses' => 'bg-yellow-500',
+                                    'menunggu' => 'bg-yellow-500',
+                                    'baru' => 'bg-yellow-500',
+                                    'diproses' => 'bg-blue-500',
                                     'selesai' => 'bg-green-500',
                                     'ditolak' => 'bg-red-500',
                                 ];
                                 $statusTextColors = [
-                                    'baru' => 'text-blue-600',
-                                    'diproses' => 'text-yellow-600',
+                                    'menunggu' => 'text-yellow-600',
+                                    'baru' => 'text-yellow-600',
+                                    'diproses' => 'text-blue-600',
                                     'selesai' => 'text-green-600',
                                     'ditolak' => 'text-red-600',
                                 ];
                                 $statusLabels = [
-                                    'baru' => 'Baru',
+                                    'menunggu' => 'Menunggu',
+                                    'baru' => 'Menunggu',
                                     'diproses' => 'Diproses',
                                     'selesai' => 'Selesai',
                                     'ditolak' => 'Ditolak',
                                 ];
-                                $dotColor = $statusColors[$report->status] ?? 'bg-blue-500';
-                                $textColor = $statusTextColors[$report->status] ?? 'text-blue-600';
-                                $statusText = $statusLabels[$report->status] ?? 'Baru';
+                                $dotColor = $statusColors[$report->status] ?? 'bg-yellow-500';
+                                $textColor = $statusTextColors[$report->status] ?? 'text-yellow-600';
+                                $statusText = $statusLabels[$report->status] ?? 'Menunggu';
                             @endphp
                             <div class="flex items-center gap-2">
                                 <div class="w-2.5 h-2.5 rounded-full {{ $dotColor }}"></div>
@@ -174,7 +177,7 @@
                             <div class="mb-5">
                                 <label class="block text-sm font-bold text-[#1A1A1A] mb-2">Pilih Status Baru</label>
                                 <select name="status" class="w-full rounded-xl border-gray-300 bg-[#F8F7F7] focus:border-[#A94438] focus:ring-[#A94438] text-sm py-3 px-4">
-                                    <option value="baru" {{ $report->status === 'baru' ? 'selected' : '' }}>Baru</option>
+                                    <option value="menunggu" {{ ($report->status === 'menunggu' || $report->status === 'baru') ? 'selected' : '' }}>Menunggu</option>
                                     <option value="diproses" {{ $report->status === 'diproses' ? 'selected' : '' }}>Diproses</option>
                                     <option value="selesai" {{ $report->status === 'selesai' ? 'selected' : '' }}>Selesai</option>
                                     <option value="ditolak" {{ $report->status === 'ditolak' ? 'selected' : '' }}>Ditolak</option>
@@ -211,26 +214,29 @@
                             {{-- status badge --}}
                             @php
                                 $statusColors = [
-                                    'baru' => 'bg-blue-500',
-                                    'diproses' => 'bg-yellow-500',
+                                    'menunggu' => 'bg-yellow-500',
+                                    'baru' => 'bg-yellow-500',
+                                    'diproses' => 'bg-blue-500',
                                     'selesai' => 'bg-green-500',
                                     'ditolak' => 'bg-red-500',
                                 ];
                                 $statusTextColors = [
-                                    'baru' => 'text-blue-500',
-                                    'diproses' => 'text-yellow-600',
+                                    'menunggu' => 'text-yellow-600',
+                                    'baru' => 'text-yellow-600',
+                                    'diproses' => 'text-blue-500',
                                     'selesai' => 'text-green-500',
                                     'ditolak' => 'text-red-500',
                                 ];
                                 $statusLabels = [
-                                    'baru' => 'Baru',
+                                    'menunggu' => 'Menunggu',
+                                    'baru' => 'Menunggu',
                                     'diproses' => 'Diproses',
                                     'selesai' => 'Selesai',
                                     'ditolak' => 'Ditolak',
                                 ];
-                                $dotColor = $statusColors[$report->status] ?? 'bg-gray-500';
-                                $textColor = $statusTextColors[$report->status] ?? 'text-gray-500';
-                                $label = $statusLabels[$report->status] ?? ucfirst($report->status);
+                                $dotColor = $statusColors[$report->status] ?? 'bg-yellow-500';
+                                $textColor = $statusTextColors[$report->status] ?? 'text-yellow-600';
+                                $label = $statusLabels[$report->status] ?? 'Menunggu';
                             @endphp
                             
                             <div class="flex items-center gap-2">
@@ -365,7 +371,7 @@
                                     <div>
                                         <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status Laporan</label>
                                         <select name="status" id="status" required class="w-full rounded-lg border-gray-300 bg-[#F8F7F7] focus:border-[#A94438] focus:ring-[#A94438] text-sm">
-                                            <option value="baru" {{ $report->status === 'baru' ? 'selected' : '' }}>Baru</option>
+                                            <option value="menunggu" {{ ($report->status === 'menunggu' || $report->status === 'baru') ? 'selected' : '' }}>Menunggu</option>
                                             <option value="diproses" {{ $report->status === 'diproses' ? 'selected' : '' }}>Diproses</option>
                                             <option value="selesai" {{ $report->status === 'selesai' ? 'selected' : '' }}>Selesai</option>
                                             <option value="ditolak" {{ $report->status === 'ditolak' ? 'selected' : '' }}>Ditolak</option>
