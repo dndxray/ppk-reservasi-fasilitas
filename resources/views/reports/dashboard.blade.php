@@ -8,7 +8,7 @@
     <div class="py-8">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
-            {{-- kartu ringkasan, biar petugas langsung tau ada berapa yang nunggu --}}
+            {{-- ringkasan, biar petugas langsung tau ada berapa yang nunggu --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="bg-white shadow-sm rounded-lg p-6">
                     <p class="text-sm text-gray-500">Laporan Kerusakan Pending</p>
@@ -18,12 +18,12 @@
                     </a>
                 </div>
 
-                {{-- placeholder buat antrian reservasi punya Anggota B, biar dashboard-nya sesuai US 8 (reservasi & laporan) --}}
+                {{-- placeholder buat antrian reservasi, biar dashboard-nya sesuai US 8 (reservasi & laporan) --}}
                 <div class="bg-white shadow-sm rounded-lg p-6">
                     <p class="text-sm text-gray-500">Reservasi Pending</p>
                     <p class="text-3xl font-bold mt-1">{{ $reservasiPending ?? '-' }}</p>
                     <a href="#" class="text-sm text-gray-400 mt-2 inline-block">
-                        Menunggu modul reservasi (B)
+                        Menunggu modul reservasi
                     </a>
                 </div>
             </div>
@@ -32,7 +32,7 @@
                 <h3 class="font-semibold mb-3">Laporan Terbaru</h3>
 
                 @if ($laporanTerbaru->isEmpty())
-                    <p class="text-gray-500 text-sm">Nggak ada laporan pending saat ini.</p>
+                    <p class="text-gray-500 text-sm">Tidak ada laporan pending saat ini.</p>
                 @else
                     <table class="w-full text-sm text-left">
                         <thead class="border-b text-gray-600">

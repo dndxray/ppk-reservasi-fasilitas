@@ -100,7 +100,7 @@
                                 </div>
                                 <div class="w-2/3 flex items-center gap-3">
                                     <span class="text-sm text-gray-900 font-medium">{{ $report->user->name ?? '-' }}</span>
-                                    <button class="bg-[#C84F4F] text-white px-3 py-1 rounded-md text-xs font-semibold hover:bg-[#A94438]">Lihat Profil</button>
+                                    <button type="button" class="bg-[#C84F4F] text-white px-3 py-1 rounded-md text-xs font-semibold hover:bg-[#A94438]">Lihat Profil</button>
                                 </div>
                             </div>
                             
@@ -178,7 +178,7 @@
                                 <textarea name="catatan_resolusi" rows="4" placeholder="Ketik Catatan..." class="w-full rounded-xl border-gray-300 bg-[#F8F7F7] focus:border-[#A94438] focus:ring-[#A94438] text-sm p-4">{{ old('catatan_resolusi', $report->catatan_resolusi) }}</textarea>
                             </div>
                             
-                            <input type="hidden" name="status_fasilitas" value="{{ $report->facility->status }}">
+                            <input type="hidden" name="status_fasilitas" value="{{ $report->facility?->status ?? 'aktif' }}">
                             
                             <button type="submit" class="w-full mt-2 bg-[#C84F4F] hover:bg-[#A94438] text-white py-3.5 rounded-xl font-bold text-sm transition">
                                 Perbarui Status

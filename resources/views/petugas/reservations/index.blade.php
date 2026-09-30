@@ -1,6 +1,6 @@
 <x-app-layout>
 
-    <div class="min-h-screen bg-[#F8F7F7]">
+    <div class="min-h-screen bg-[#F8F7F7]" x-data="{ showFilter: false }">
 
         <div class="px-4 sm:px-8 py-6 sm:py-10 max-w-7xl mx-auto">
 
@@ -20,37 +20,56 @@
                 </div>
             </div>
 
-            {{-- search & filter --}}
-            <form method="GET" action="{{ route('petugas.reservations.index') }}" class="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-                <div class="w-full sm:flex-1 relative">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari nama pemesan atau fasilitas..." class="w-full bg-[#F5EBE9] border-0 rounded-xl px-5 py-3.5 text-sm focus:ring-[#A94438] placeholder-gray-500">
-                </div>
-                
-                <div class="w-full sm:w-52">
-                    <select name="status" class="w-full bg-[#F5EBE9] border-0 rounded-xl px-4 py-3.5 text-sm focus:ring-[#A94438] text-gray-700 font-medium cursor-pointer">
-                        <option value="">Semua Status</option>
-                        <option value="menunggu" @selected(request('status')=='menunggu')>Menunggu</option>
-                        <option value="disetujui" @selected(request('status')=='disetujui')>Disetujui</option>
-                        <option value="ditolak" @selected(request('status')=='ditolak')>Ditolak</option>
-                        <option value="dibatalkan" @selected(request('status')=='dibatalkan')>Dibatalkan</option>
-                    </select>
-                </div>
+            {{-- search & filter (gaya index fasilitas) --}}
+            <div class="flex items-start gap-3 mb-6 sm:mb-8">
 
-                <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <button type="submit" class="flex-1 sm:flex-initial bg-[#511E1D] hover:bg-[#3B1514] transition text-white px-8 py-3.5 rounded-xl font-medium flex items-center justify-center gap-2 text-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                {{-- search --}}
+                <form method="GET" action="{{ route('petugas.reservations.index') }}" class="flex-1 min-w-0">
+                    <input type="hidden" name="status" value="{{ request('status') }}">
+                    <input type="text" name="search" value="{{ request('search') }}"
+                           placeholder="Cari nama pemesan atau fasilitas..."
+                           class="w-full px-4 py-3 bg-[#F5EFE9] border-0 rounded-lg text-sm focus:ring-2 focus:ring-[#511E1D]">
+                </form>
+
+                {{-- tombol filter + dropdown --}}
+                <div class="relative shrink-0">
+                    <button type="button" @click="showFilter = !showFilter"
+                            class="inline-flex items-center gap-2 px-5 py-3 bg-[#4a1a24] text-white text-sm font-medium rounded-lg hover:bg-[#3a141c] transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M3 4h18M6 8h12M9 12h6M11 16h2" />
                         </svg>
                         Filter
                     </button>
 
-                    @if(request('search') || request('status'))
-                        <a href="{{ route('petugas.reservations.index') }}" class="px-4 py-3.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-medium text-sm flex items-center justify-center transition">
-                            Reset
-                        </a>
-                    @endif
+                    <div x-show="showFilter" x-transition x-cloak @click.outside="showFilter = false"
+                         class="absolute right-0 top-full mt-2 z-20 w-72 bg-white shadow-lg rounded-lg p-4">
+                        <form method="GET" action="{{ route('petugas.reservations.index') }}" class="space-y-3">
+                            <input type="hidden" name="search" value="{{ request('search') }}">
+
+                            <div>
+                                <label class="block text-sm text-gray-700 mb-1">Status Reservasi</label>
+                                <select name="status" class="w-full rounded-lg border-gray-300 text-sm">
+                                    <option value="">Semua Status</option>
+                                    <option value="menunggu" @selected(request('status') == 'menunggu')>Menunggu</option>
+                                    <option value="disetujui" @selected(request('status') == 'disetujui')>Disetujui</option>
+                                    <option value="ditolak" @selected(request('status') == 'ditolak')>Ditolak</option>
+                                    <option value="dibatalkan" @selected(request('status') == 'dibatalkan')>Dibatalkan</option>
+                                </select>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <button type="submit" class="px-4 py-2 bg-[#4a1a24] text-white text-sm rounded-lg hover:bg-[#3a141c]">
+                                    Terapkan
+                                </button>
+                                <a href="{{ route('petugas.reservations.index') }}" class="px-4 py-2 border border-gray-300 text-sm rounded-lg hover:bg-gray-50">
+                                    Reset
+                                </a>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-            </form>
+            </div>
 
             {{-- kartu tabel utama --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -210,35 +229,22 @@
                                                 <span class="text-sm font-medium {{ $statusColor }}">{{ $statusText }}</span>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-5">
-                                            <div class="flex items-center justify-center gap-2">
-                                                @if($reservation->status === 'menunggu')
-                                                    <form method="POST" action="{{ route('petugas.reservations.approve', $reservation->id) }}" class="inline">
-                                                        @csrf
-                                                        @method('PATCH')
-                                                        <button type="submit" class="w-8 h-8 flex items-center justify-center rounded bg-green-100 text-green-600 hover:bg-green-200 transition" title="Setujui Reservasi">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                                            </svg>
-                                                        </button>
-                                                    </form>
-                                                    <form method="POST" action="{{ route('petugas.reservations.reject', $reservation->id) }}" class="inline">
-                                                        @csrf
-                                                        @method('PATCH')
-                                                        <button type="submit" class="w-8 h-8 flex items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition" title="Tolak Reservasi">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                                            </svg>
-                                                        </button>
-                                                    </form>
-                                                @endif
-                                                <a href="{{ route('petugas.reservations.show', $reservation->id) }}" class="w-8 h-8 flex items-center justify-center rounded text-gray-500 hover:bg-gray-100 transition" title="Lihat Detail">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                                        <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
-                                                    </svg>
-                                                </a>
-                                            </div>
+                                        {{-- tombol aksi: lihat detail (outline ghost) --}}
+                                        <td class="px-6 py-5 text-center">
+                                            <a href="{{ route('petugas.reservations.show', $reservation) }}"
+                                            class="group inline-flex items-center justify-center gap-1.5 px-4 py-2 border border-[#A94438] text-[#A94438] hover:bg-[#A94438] hover:text-white active:bg-[#8F352B] active:border-[#8F352B] text-xs font-semibold rounded-xl shadow-xs hover:shadow transition duration-150 ease-in-out whitespace-nowrap">
+                                                <span>Lihat Detail</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                    class="w-3.5 h-3.5 transition-transform duration-150 group-hover:translate-x-0.5"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                    stroke="currentColor">
+                                                    <path stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </a>
                                         </td>
                                     </tr>
                                 @endforeach
