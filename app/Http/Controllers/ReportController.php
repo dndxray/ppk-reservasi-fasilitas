@@ -65,7 +65,7 @@ class ReportController extends Controller
             'tanggal_ditemukan' => $request->tanggal_ditemukan ?? now()->toDateString(),
             'deskripsi' => $request->deskripsi,
             'foto' => $foto,
-            'status' => 'baru',
+            'status' => 'menunggu',
         ]);
 
         return redirect()
@@ -98,9 +98,11 @@ class ReportController extends Controller
         // Filter status proses laporan
         if ($request->filled('status')) {
             $status = $request->status;
-            if ($status === 'belum_selesai') {
-                $query->whereIn('status', ['baru', 'diproses']);
-            } elseif (in_array($status, ['baru', 'diproses', 'selesai', 'ditolak'])) {
+            if ($status === 'menunggu' || $status === 'baru') {
+                $query->whereIn('status', ['menunggu', 'baru']);
+            } elseif ($status === 'belum_selesai') {
+                $query->whereIn('status', ['menunggu', 'baru', 'diproses']);
+            } elseif (in_array($status, ['diproses', 'selesai', 'ditolak'])) {
                 $query->where('status', $status);
             }
         }
@@ -149,7 +151,7 @@ class ReportController extends Controller
         }
 
         $request->validate([
-            'status' => 'required|in:baru,diproses,selesai,ditolak',
+            'status' => 'required|in:menunggu,baru,diproses,selesai,ditolak',
             'catatan_resolusi' => 'nullable|string',
             'status_fasilitas' => 'nullable|in:aktif,dalam_perbaikan',
         ]);
@@ -204,9 +206,11 @@ class ReportController extends Controller
         // Filter status proses laporan
         if ($request->filled('status')) {
             $status = $request->status;
-            if ($status === 'belum_selesai') {
-                $query->whereIn('status', ['baru', 'diproses']);
-            } elseif (in_array($status, ['baru', 'diproses', 'selesai', 'ditolak'])) {
+            if ($status === 'menunggu' || $status === 'baru') {
+                $query->whereIn('status', ['menunggu', 'baru']);
+            } elseif ($status === 'belum_selesai') {
+                $query->whereIn('status', ['menunggu', 'baru', 'diproses']);
+            } elseif (in_array($status, ['diproses', 'selesai', 'ditolak'])) {
                 $query->where('status', $status);
             }
         }

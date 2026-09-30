@@ -117,8 +117,11 @@
                             } elseif ($lapStatus === 'ditolak') {
                                 $targetStatus = 'ditolak';
                                 $lapBg = 'bg-rose-500';
-                            } else {
+                            } elseif ($lapStatus === 'diproses') {
                                 $targetStatus = 'diproses';
+                                $lapBg = 'bg-blue-500';
+                            } else {
+                                $targetStatus = 'menunggu';
                                 $lapBg = 'bg-amber-500';
                             }
                             $lapUrl = route('reports.index', ['status' => $targetStatus]);
@@ -146,7 +149,7 @@
                                         @if($lapStatus === 'selesai') Laporan telah selesai ditangani
                                         @elseif($lapStatus === 'ditolak') Laporan ditolak
                                         @elseif($lapStatus === 'diproses') Laporan sedang diproses
-                                        @else Laporan baru menunggu diproses
+                                        @else Laporan menunggu diproses
                                         @endif
                                     </div>
                                     <div class="text-xs text-gray-500">Lihat riwayat laporan Anda</div>

@@ -56,7 +56,7 @@
                                     <label class="block text-sm text-gray-700 mb-1 font-medium">Status</label>
                                     <select name="status" class="w-full rounded-lg border-gray-300 text-sm focus:ring-2 focus:ring-[#511E1D] focus:border-[#511E1D]">
                                         <option value="">Semua Status</option>
-                                        <option value="baru" @selected(request('status') === 'baru')>Baru</option>
+                                        <option value="menunggu" @selected(request('status') === 'menunggu' || request('status') === 'baru')>Menunggu</option>
                                         <option value="selesai" @selected(request('status') === 'selesai')>Selesai</option>
                                         <option value="diproses" @selected(request('status') === 'diproses')>Diproses</option>
                                         <option value="ditolak" @selected(request('status') === 'ditolak')>Ditolak</option>
@@ -156,14 +156,14 @@
                                         {{-- status & warna badge --}}
                                         <td class="px-6 py-5">
                                             @php
-                                                $statusText = 'Baru';
-                                                $statusColor = 'text-blue-600';
-                                                $dotColor = 'bg-blue-500';
+                                                $statusText = 'Menunggu';
+                                                $statusColor = 'text-yellow-600';
+                                                $dotColor = 'bg-yellow-500';
 
                                                 if ($report->status === 'diproses') {
                                                     $statusText = 'Diproses';
-                                                    $statusColor = 'text-yellow-600';
-                                                    $dotColor = 'bg-yellow-500';
+                                                    $statusColor = 'text-blue-600';
+                                                    $dotColor = 'bg-blue-500';
                                                 } elseif ($report->status === 'selesai') {
                                                     $statusText = 'Selesai';
                                                     $statusColor = 'text-green-600';
@@ -197,15 +197,32 @@
                         </table>
                         
                         {{-- nomor halaman --}}
+                        @php
+                            $perPage = 10;
+                            $totalData = $reports->count();
+                            $totalPages = max(1, (int) ceil($totalData / $perPage));
+                        @endphp
                         <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between text-sm text-[#A94438]">
-                            <p>Menampilkan {{ $reports->count() }} dari {{ $reports->count() }} data</p>
+                            <p>Menampilkan {{ $totalData }} dari {{ $totalData }} data</p>
                             
                             <div class="flex items-center gap-2">
-                                <button type="button" class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-gray-600">&lt;</button>
-                                <button type="button" class="w-7 h-7 flex items-center justify-center rounded bg-[#A94438] text-white">1</button>
-                                <button type="button" class="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded">2</button>
-                                <button type="button" class="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded">3</button>
-                                <button type="button" class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-gray-600">&gt;</button>
+                                <button type="button" disabled class="w-7 h-7 flex items-center justify-center text-gray-300 cursor-not-allowed select-none">&lt;</button>
+                                <button type="button" class="w-7 h-7 flex items-center justify-center rounded bg-[#A94438] text-white font-medium cursor-default">1</button>
+                                @if($totalPages >= 2)
+                                    <button type="button" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded cursor-pointer transition">2</button>
+                                @else
+                                    <button type="button" disabled class="w-7 h-7 flex items-center justify-center text-gray-300 cursor-not-allowed select-none">2</button>
+                                @endif
+                                @if($totalPages >= 3)
+                                    <button type="button" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded cursor-pointer transition">3</button>
+                                @else
+                                    <button type="button" disabled class="w-7 h-7 flex items-center justify-center text-gray-300 cursor-not-allowed select-none">3</button>
+                                @endif
+                                @if($totalPages > 1)
+                                    <button type="button" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded cursor-pointer transition">&gt;</button>
+                                @else
+                                    <button type="button" disabled class="w-7 h-7 flex items-center justify-center text-gray-300 cursor-not-allowed select-none">&gt;</button>
+                                @endif
                             </div>
                         </div>
                     </div>
