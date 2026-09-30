@@ -65,7 +65,7 @@
                             @foreach($fasilitasPopuler as $fasilitas)
                                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                                     <div class="relative h-32">
-                                        <img src="{{ asset('images/login-bg.jpg') }}" alt="{{ $fasilitas->nama_fasilitas }}"
+                                        <img src="{{ $fasilitas->foto_url }}" alt="{{ $fasilitas->nama_fasilitas }}"
                                              class="w-full h-full object-cover">
                                         <span class="absolute top-2 right-2 text-[10px] font-medium px-3 py-0.5 rounded-full
                                             @if($fasilitas->sedangAktif()) bg-emerald-200 text-emerald-800
@@ -103,7 +103,7 @@
                     <div class="space-y-3">
                         @foreach($daftarFasilitas as $fasilitas)
                             <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-3 flex gap-3">
-                                <img src="{{ asset('images/login-bg.jpg') }}" alt="{{ $fasilitas->nama_fasilitas }}"
+                                <img src="{{ $fasilitas->foto_url }}" alt="{{ $fasilitas->nama_fasilitas }}"
                                      class="w-20 h-16 rounded-md object-cover flex-shrink-0">
 
                                 <div class="flex-1 min-w-0 flex flex-col justify-between">
@@ -249,7 +249,7 @@
                             @endphp
                             <a href="{{ route('reservations.show', $reservasi) }}"
                                class="border border-gray-200 rounded-lg p-2 flex gap-3 hover:bg-gray-50 transition">
-                                <img src="{{ asset('images/login-bg.jpg') }}" alt=""
+                                <img src="{{ $reservasi->facility?->foto_url ?? asset('images/login-bg.jpg') }}" alt=""
                                      class="w-14 h-12 rounded-md object-cover flex-shrink-0">
                                 <div class="min-w-0">
                                     <p class="text-sm font-semibold text-gray-900 truncate">
