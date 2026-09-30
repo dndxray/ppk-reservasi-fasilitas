@@ -10,13 +10,23 @@ use Illuminate\Support\Facades\Auth;
 class ReportController extends Controller
 {
     // buka form buat lapor kerusakan
-    public function create()
+    public function create(Request $request)
     {
         $facilities = Facility::where('status', 'aktif')
             ->orderBy('nama_fasilitas')
             ->get();
 
-        return view('reports.create', compact('facilities'));
+        $selectedFacilityId = null;
+        if ($request->filled('facility_id')) {
+            $facility = Facility::where('id', $request->facility_id)
+                ->where('status', 'aktif')
+                ->first();
+            if ($facility) {
+                $selectedFacilityId = $facility->id;
+            }
+        }
+
+        return view('reports.create', compact('facilities', 'selectedFacilityId'));
     }
 
     // simpan laporan baru dari user
@@ -25,21 +35,33 @@ class ReportController extends Controller
         $request->validate([
             'facility_id' => 'required|exists:facilities,id',
             'kategori' => 'required|string|max:100',
+            'kategori_lainnya' => 'required_if:kategori,Lainnya|nullable|string|max:100',
             'tanggal_ditemukan' => 'nullable|date',
             'deskripsi' => 'required|string',
             'foto' => 'nullable|image|max:2048',
+        ], [
+            'facility_id.required' => 'Fasilitas wajib dipilih.',
+            'facility_id.exists' => 'Fasilitas yang dipilih tidak valid.',
+            'kategori.required' => 'Kategori kerusakan wajib dipilih.',
+            'kategori_lainnya.required_if' => 'Mohon sebutkan kategori kerusakan lainnya.',
+            'deskripsi.required' => 'Deskripsi kerusakan wajib diisi.',
+            'foto.image' => 'File foto harus berupa gambar.',
+            'foto.max' => 'Ukuran foto maksimal 2MB.',
         ]);
 
         $foto = null;
-
         if ($request->hasFile('foto')) {
             $foto = $request->file('foto')->store('reports', 'public');
         }
 
+        $kategori = ($request->kategori === 'Lainnya')
+            ? $request->kategori_lainnya
+            : $request->kategori;
+
         Report::create([
             'user_id' => Auth::id(),
             'facility_id' => $request->facility_id,
-            'kategori' => $request->kategori,
+            'kategori' => $kategori,
             'tanggal_ditemukan' => $request->tanggal_ditemukan ?? now()->toDateString(),
             'deskripsi' => $request->deskripsi,
             'foto' => $foto,
@@ -47,8 +69,8 @@ class ReportController extends Controller
         ]);
 
         return redirect()
-            ->route('reports.index')
-            ->with('success', 'Laporan kerusakan berhasil dikirim.');
+            ->route('reports.create')
+            ->with('success', 'Laporan berhasil diajukan.');
     }
 
     // riwayat laporan user (ada fitur search juga)
@@ -73,11 +95,38 @@ class ReportController extends Controller
             });
         }
 
+        // Filter status proses laporan
+        if ($request->filled('status')) {
+            $status = $request->status;
+            if ($status === 'belum_selesai') {
+                $query->whereIn('status', ['baru', 'diproses']);
+            } elseif (in_array($status, ['baru', 'diproses', 'selesai', 'ditolak'])) {
+                $query->where('status', $status);
+            }
+        }
+
+        // Filter kategori
+        if ($request->filled('kategori')) {
+            $query->where('kategori', $request->kategori);
+        }
+
+        // Filter tanggal
+        if ($request->filled('tanggal')) {
+            $query->whereDate('tanggal_ditemukan', $request->tanggal);
+        }
+
         $reports = $query
             ->latest()
             ->get();
 
-        return view('reports.index', compact('reports'));
+        $daftarKategori = Report::distinct()
+            ->whereNotNull('kategori')
+            ->where('kategori', '!=', '')
+            ->pluck('kategori')
+            ->sort()
+            ->values();
+
+        return view('reports.index', compact('reports', 'daftarKategori'));
     }
 
     // lihat detail laporan
@@ -117,7 +166,7 @@ class ReportController extends Controller
 
         $report->save();
 
-        if ($request->has('status_fasilitas')) {
+        if ($request->filled('status_fasilitas') && $report->facility) {
             $report->facility->update([
                 'status' => $request->status_fasilitas
             ]);
@@ -152,8 +201,35 @@ class ReportController extends Controller
             });
         }
 
+        // Filter status proses laporan
+        if ($request->filled('status')) {
+            $status = $request->status;
+            if ($status === 'belum_selesai') {
+                $query->whereIn('status', ['baru', 'diproses']);
+            } elseif (in_array($status, ['baru', 'diproses', 'selesai', 'ditolak'])) {
+                $query->where('status', $status);
+            }
+        }
+
+        // Filter kategori
+        if ($request->filled('kategori')) {
+            $query->where('kategori', $request->kategori);
+        }
+
+        // Filter tanggal
+        if ($request->filled('tanggal')) {
+            $query->whereDate('tanggal_ditemukan', $request->tanggal);
+        }
+
         $reports = $query->latest()->get();
 
-        return view('reports.antrian', compact('reports'));
+        $daftarKategori = Report::distinct()
+            ->whereNotNull('kategori')
+            ->where('kategori', '!=', '')
+            ->pluck('kategori')
+            ->sort()
+            ->values();
+
+        return view('reports.antrian', compact('reports', 'daftarKategori'));
     }
 }
