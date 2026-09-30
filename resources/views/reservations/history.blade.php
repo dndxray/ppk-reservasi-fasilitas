@@ -227,13 +227,6 @@
                                                               d="M9 5l7 7-7 7" />
                                                     </svg>
                                                 </a>
-
-                                                @if($reservation->status === 'menunggu' || $reservation->status === 'disetujui')
-                                                    <button type="button" onclick="openCancelModal({{ $reservation->id }})"
-                                                            class="inline-flex items-center justify-center px-4 py-2 bg-[#F8D8D5] text-[#950704] hover:bg-[#f2c4c0] text-xs font-semibold rounded-xl transition duration-150 whitespace-nowrap">
-                                                        Batalkan
-                                                    </button>
-                                                @endif
                                             </div>
                                         </td>
                                     </tr>

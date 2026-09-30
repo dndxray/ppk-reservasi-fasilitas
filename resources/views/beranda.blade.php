@@ -84,9 +84,17 @@
                 <h2 class="font-semibold text-gray-800 mb-3">Aktivitas Terbaru</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
 
-                    @if($aktivitasReservasi)
-                        <a href="{{ route('reservations.show', $aktivitasReservasi) }}"
-                           class="flex items-center justify-between bg-white shadow-sm rounded-xl p-4 hover:bg-gray-50 transition">
+                    @if($aktivitasReservasi) 
+                        @php 
+                            if ($aktivitasReservasi->status === 'menunggu') { 
+                                $reservasiUrl = route('reservations.history', ['status' => 'menunggu']); 
+                            } else { 
+                                $reservasiUrl = route('reservations.show', $aktivitasReservasi); 
+                            } 
+                        @endphp 
+                    
+                        <a href="{{ $reservasiUrl }}" 
+                        class="flex items-center justify-between bg-white shadow-sm rounded-xl p-4 hover:bg-gray-50 transition">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center flex-shrink-0">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
