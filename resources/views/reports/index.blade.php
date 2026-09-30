@@ -50,12 +50,21 @@
         <div class="px-4 sm:px-8 py-8 sm:py-10 max-w-7xl mx-auto">
 
             <div class="mb-6">
-                <h1 class="text-2xl font-bold text-[#47201B]">
-                    Laporkan Kerusakan Fasilitas
-                </h1>
-                <p class="mt-1 text-sm text-[#996561]">
-                    Laporkan kerusakan fasilitas yang kamu temukan dan pantau status laporannya di sini.
-                </p>
+                <div class="flex items-center gap-3">
+                    <a href="{{ route('dashboard') }}" class="text-[#47201B] hover:text-[#CA734D] transition" title="Kembali ke Beranda">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </a>
+                    <div>
+                        <h1 class="text-xl sm:text-2xl font-bold text-[#47201B]">
+                            Laporkan Kerusakan Fasilitas
+                        </h1>
+                        <p class="mt-0.5 text-xs sm:text-sm text-[#996561]">
+                            Laporkan kerusakan fasilitas yang kamu temukan dan pantau status laporannya di sini.
+                        </p>
+                    </div>
+                </div>
             </div>
 
             {{-- tombol lapor disini buat ke form --}}
