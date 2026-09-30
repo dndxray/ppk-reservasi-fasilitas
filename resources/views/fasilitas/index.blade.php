@@ -9,8 +9,21 @@
 
     <div class="py-8 px-6 lg:px-10" x-data="{ showFilter: false }">
 
-        <h1 class="text-2xl font-bold text-gray-900">Reservasi Fasilitas</h1>
-        <p class="text-[#B23A2E] text-sm mt-1 mb-6">Temukan Fasilitas yang ingin Anda reservasi.</p>
+        {{-- judul + tombol tambah reservasi --}}
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Reservasi Fasilitas</h1>
+                <p class="text-[#B23A2E] text-sm mt-1">Temukan Fasilitas yang ingin Anda reservasi.</p>
+            </div>
+
+            <a href="{{ route('reservations.create') }}"
+               class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#4a1a24] text-white text-sm font-medium rounded-lg hover:bg-[#3a141c] transition whitespace-nowrap">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Tambah Reservasi
+            </a>
+        </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
