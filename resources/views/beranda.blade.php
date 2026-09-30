@@ -56,7 +56,7 @@
             </div>
         </div>
 
-        
+
         @guest
             <a href="{{ route('login') }}"
                class="inline-flex items-center gap-4 bg-white border border-gray-200 shadow-sm rounded-2xl px-5 py-3 mb-6 hover:bg-gray-50 transition">
@@ -154,7 +154,7 @@
                 @foreach($daftarFasilitas as $fasilitas)
                     <div class="min-w-[300px] bg-white rounded-xl shadow-sm overflow-hidden flex-shrink-0">
                         <div class="relative h-40">
-                            <img src="{{ asset('images/login-bg.jpg') }}" alt="{{ $fasilitas->nama_fasilitas }}"
+                            <img src="{{ $fasilitas->foto_url }}" alt="{{ $fasilitas->nama_fasilitas }}"
                                  class="w-full h-full object-cover">
                             <span class="absolute top-3 right-3 text-xs font-medium px-3 py-1 rounded-full
                                 @if($fasilitas->sedangAktif()) bg-emerald-200 text-emerald-800
