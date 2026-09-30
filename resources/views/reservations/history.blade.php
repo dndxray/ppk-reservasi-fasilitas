@@ -6,20 +6,30 @@
 
 <div class="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8">
 
-
-
 {{-- HEADER --}}
 
 <div class="mb-5 sm:mb-8">
 
-<h1 class="text-xl sm:text-3xl font-bold text-[#47201B]">
-Riwayat Reservasi
-</h1>
+    <div class="flex items-center gap-3 sm:gap-4 bg-[#F5F0ED] rounded-xl px-4 sm:px-6 py-4 sm:py-6">
 
-<p class="text-gray-500 text-xs sm:text-base mt-1 sm:mt-2
-">
-Lihat seluruh riwayat pengajuan reservasi fasilitas Anda.
-</p>
+        <a href="{{ route('fasilitas.index') }}"
+           class="text-[#47201B] hover:opacity-70 transition"
+           aria-label="Kembali">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 sm:w-6 sm:h-6"
+                 fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+        </a>
+
+        <h1 class="text-lg sm:text-2xl font-bold text-[#47201B]">
+            Riwayat Reservasi
+        </h1>
+
+    </div>
+
+    <p class="text-gray-500 text-xs sm:text-base mt-3 sm:mt-4 px-1">
+        Lihat seluruh riwayat pengajuan reservasi fasilitas Anda.
+    </p>
 
 </div>
 
