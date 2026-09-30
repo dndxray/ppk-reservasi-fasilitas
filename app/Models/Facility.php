@@ -16,6 +16,7 @@ class Facility extends Model
         'kapasitas',
         'deskripsi',
         'status',
+        'foto',
     ];
 
     protected $guarded = [];
@@ -47,5 +48,12 @@ class Facility extends Model
     public function tipeLabel()
     {
         return ucfirst($this->tipe);
+    }
+
+    public function getFotoUrlAttribute(): string
+    {
+        return $this->foto
+            ? asset('storage/' . $this->foto)
+            : asset('images/login-bg.jpg');
     }
 }
