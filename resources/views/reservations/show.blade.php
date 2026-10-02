@@ -59,7 +59,7 @@
                 ========================= --}}
                 <div class="lg:col-span-2 bg-white rounded-2xl border border-[#E6D6CE] p-6 sm:p-8">
 
-                    <div class="flex justify-between items-center pb-6 mb-6 border-b border-[#F0E6E0]">
+                    <div class="flex justify-between items-center mb-6">
                         <h2 class="text-xl font-bold text-[#47201B]">Informasi Pemesan</h2>
 
                         <span class="px-4 py-1.5 rounded-full text-sm font-semibold {{ $status['class'] }}">
@@ -67,7 +67,7 @@
                         </span>
                     </div>
 
-                    <dl class="divide-y divide-[#F0E6E0]">
+                    <dl>
 
                         {{-- NAMA --}}
                         <div class="grid grid-cols-[32px_140px_1fr] sm:grid-cols-[40px_180px_1fr] items-center gap-y-1 py-4">
@@ -132,9 +132,11 @@
                 <div class="bg-white rounded-2xl border border-[#E6D6CE] p-6">
 
                     {{-- FOTO --}}
-                    <div class="h-40 bg-[#E1D3C4] rounded-xl flex items-center justify-center overflow-hidden">
-                        <p class="text-[#996561]">Foto fasilitas</p>
-                    </div>
+                    <img
+                        src="{{ $reservation->facility->foto_url }}"
+                        alt="Foto {{ $reservation->facility->nama_fasilitas }}"
+                        class="h-40 w-full rounded-xl object-cover"
+                    >
 
                     {{-- NAMA + TIPE (teks biasa, bukan tombol) --}}
                     <h2 class="text-xl font-bold text-[#47201B] mt-5">

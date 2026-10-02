@@ -150,9 +150,11 @@
                 <div class="bg-white rounded-2xl border border-[#E6D6CE] p-4 sm:p-6">
 
                     {{-- FOTO --}}
-                    <div class="h-28 sm:h-40 bg-[#E1D3C4] rounded-xl flex items-center justify-center overflow-hidden">
-                        <p class="text-[#996561] text-xs sm:text-base">Foto fasilitas</p>
-                    </div>
+                    <img
+                        src="{{ $reservation->facility->foto_url }}"
+                        alt="Foto {{ $reservation->facility->nama_fasilitas }}"
+                        class="h-28 sm:h-40 w-full rounded-xl object-cover"
+                    >
 
                     {{-- NAMA + TIPE (teks biasa, bukan tombol) --}}
                     <h2 class="text-base sm:text-xl font-bold text-[#47201B] mt-3 sm:mt-5 break-words">
