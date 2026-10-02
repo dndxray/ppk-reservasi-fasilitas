@@ -198,7 +198,8 @@ class ReservationController extends Controller
 
         $reservations = $query
             ->latest()
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
 
 
