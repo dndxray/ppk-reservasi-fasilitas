@@ -86,11 +86,7 @@
 
                     @if($aktivitasReservasi) 
                         @php 
-                            if ($aktivitasReservasi->status === 'menunggu') { 
-                                $reservasiUrl = route('reservations.history', ['status' => 'menunggu']); 
-                            } else { 
-                                $reservasiUrl = route('reservations.show', $aktivitasReservasi); 
-                            } 
+                            $reservasiUrl = route('reservations.show', [$aktivitasReservasi->id, 'from' => 'beranda']); 
                         @endphp 
                     
                         <a href="{{ $reservasiUrl }}" 
@@ -117,7 +113,7 @@
                     @endif
 
                     @if($aktivitasLaporan)
-                        <a href="{{ route('reports.show', $aktivitasLaporan) }}"
+                        <a href="{{ route('reports.show', [$aktivitasLaporan->id, 'from' => 'beranda']) }}"
                            class="flex items-center justify-between bg-white shadow-sm rounded-xl p-4 hover:bg-gray-50 transition">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full bg-amber-500 text-white flex items-center justify-center flex-shrink-0">
