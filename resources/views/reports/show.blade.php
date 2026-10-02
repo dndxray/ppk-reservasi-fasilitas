@@ -6,7 +6,13 @@
 
             {{-- tombol back & judul --}}
             <div class="flex items-center mb-6">
-                @if(auth()->user()->role === 'petugas')
+                @if(request('from') === 'beranda' || url()->previous() === route('beranda'))
+                    <a href="{{ route('beranda') }}" class="mr-4 text-[#47201B] hover:text-[#CA734D] transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </a>
+                @elseif(auth()->user()->role === 'petugas')
                     <a href="{{ route('reports.antrian') }}" class="mr-4 text-[#47201B] hover:text-[#CA734D] transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
@@ -15,7 +21,7 @@
                 @else
                     <a href="{{ route('reports.index') }}" class="mr-4 text-[#47201B] hover:text-[#CA734D] transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                         </svg>
                     </a>
                 @endif

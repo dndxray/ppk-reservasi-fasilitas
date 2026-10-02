@@ -84,9 +84,13 @@
                 <h2 class="font-semibold text-gray-800 mb-3">Aktivitas Terbaru</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
 
-                    @if($aktivitasReservasi)
-                        <a href="{{ route('reservations.show', $aktivitasReservasi) }}"
-                           class="flex items-center justify-between bg-white shadow-sm rounded-xl p-4 hover:bg-gray-50 transition">
+                    @if($aktivitasReservasi) 
+                        @php 
+                            $reservasiUrl = route('reservations.show', [$aktivitasReservasi->id, 'from' => 'beranda']); 
+                        @endphp 
+                    
+                        <a href="{{ $reservasiUrl }}" 
+                        class="flex items-center justify-between bg-white shadow-sm rounded-xl p-4 hover:bg-gray-50 transition">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center flex-shrink-0">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,24 +113,7 @@
                     @endif
 
                     @if($aktivitasLaporan)
-                        @php
-                            $lapStatus = $aktivitasLaporan->status;
-                            if ($lapStatus === 'selesai') {
-                                $targetStatus = 'selesai';
-                                $lapBg = 'bg-emerald-500';
-                            } elseif ($lapStatus === 'ditolak') {
-                                $targetStatus = 'ditolak';
-                                $lapBg = 'bg-rose-500';
-                            } elseif ($lapStatus === 'diproses') {
-                                $targetStatus = 'diproses';
-                                $lapBg = 'bg-blue-500';
-                            } else {
-                                $targetStatus = 'menunggu';
-                                $lapBg = 'bg-amber-500';
-                            }
-                            $lapUrl = route('reports.index', ['status' => $targetStatus]);
-                        @endphp
-                        <a href="{{ $lapUrl }}"
+                        <a href="{{ route('reports.show', $aktivitasLaporan) }}"
                            class="flex items-center justify-between bg-white shadow-sm rounded-xl p-4 hover:bg-gray-50 transition">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full {{ $lapBg }} text-white flex items-center justify-center flex-shrink-0">

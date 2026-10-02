@@ -74,6 +74,15 @@
                 </div>
             </div>
 
+            @if(request()->filled('search'))
+                <div class="mb-4">
+                    <h2 class="font-semibold text-gray-800 text-sm sm:text-base">
+                        Hasil pencarian untuk "<span class="text-[#A94438]">{{ request('search') }}</span>"
+                        <span class="text-xs font-normal text-gray-500">({{ $reservations->total() }} riwayat)</span>
+                    </h2>
+                </div>
+            @endif
+
             {{-- kartu tabel utama --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
 
@@ -159,7 +168,7 @@
                                 @foreach($reservations as $index => $reservation)
                                     <tr class="hover:bg-gray-50 transition">
                                         <td class="px-6 py-5 text-gray-700 font-medium">
-                                            {{ $index + 1 }}.
+                                            {{ $reservations->firstItem() + $index }}.
                                         </td>
                                         <td class="px-6 py-5">
                                             <p class="font-medium text-gray-900">
@@ -227,19 +236,16 @@
                                                               d="M9 5l7 7-7 7" />
                                                     </svg>
                                                 </a>
-
-                                                @if($reservation->status === 'menunggu' || $reservation->status === 'disetujui')
-                                                    <button type="button" onclick="openCancelModal({{ $reservation->id }})"
-                                                            class="inline-flex items-center justify-center px-4 py-2 bg-[#F8D8D5] text-[#950704] hover:bg-[#f2c4c0] text-xs font-semibold rounded-xl transition duration-150 whitespace-nowrap">
-                                                        Batalkan
-                                                    </button>
-                                                @endif
                                             </div>
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
+                    </div>
+
+                    <div class="px-6 py-4 border-t border-gray-100">
+                        {{ $reservations->links() }}
                     </div>
 
                 @else
