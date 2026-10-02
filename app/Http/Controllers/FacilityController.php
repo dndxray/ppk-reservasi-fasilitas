@@ -44,15 +44,24 @@ class FacilityController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        // 3 fasilitas paling sering direservasi, mengikuti filter yang sama
-        // (yang dibatalkan tidak dihitung)
-        $fasilitasPopuler = Facility::query()
-            ->tap($terapkanFilter)
-            ->withCount(['reservations' => fn ($q) =>
-                $q->whereIn('status', ['menunggu', 'disetujui'])])
-            ->orderByDesc('reservations_count')
-            ->take(3)
-            ->get();
+        // 3 fasilitas terakhir dilihat (jika belum ada, fallback 3 fasilitas aktif)
+        $recentlyViewed = session('recently_viewed_facilities', []);
+        if (!empty($recentlyViewed)) {
+            $fasilitasPopuler = Facility::query()
+                ->tap($terapkanFilter)
+                ->whereIn('id', $recentlyViewed)
+                ->where('status', 'aktif')
+                ->get()
+                ->sortBy(fn($item) => array_search($item->id, $recentlyViewed))
+                ->take(3);
+        } else {
+            $fasilitasPopuler = Facility::query()
+                ->tap($terapkanFilter)
+                ->where('status', 'aktif')
+                ->orderBy('nama_fasilitas')
+                ->take(3)
+                ->get();
+        }
 
         $daftarTipe = Facility::select('tipe')->distinct()->pluck('tipe');
         $daftarLokasi = Facility::select('lokasi')->distinct()->pluck('lokasi');
@@ -87,6 +96,13 @@ class FacilityController extends Controller
 
     public function show(Request $request, Facility $facility): View
     {
+        // Simpan ID fasilitas ke session "recently_viewed_facilities" (maksimal 6 fasilitas)
+        $recentlyViewed = session()->get('recently_viewed_facilities', []);
+        $recentlyViewed = array_values(array_diff($recentlyViewed, [$facility->id]));
+        array_unshift($recentlyViewed, $facility->id);
+        $recentlyViewed = array_slice($recentlyViewed, 0, 6);
+        session()->put('recently_viewed_facilities', $recentlyViewed);
+
         $tanggal = $this->parseTanggal($request);
 
         $daftarSlot = $this->daftarSlot($facility, $tanggal);

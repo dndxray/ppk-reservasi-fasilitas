@@ -26,10 +26,18 @@ Route::get('/', function () {
         return redirect()->route('dashboard');
     }
 
-    $daftarFasilitas = Facility::where('status', 'aktif')
-        ->orderBy('nama_fasilitas')
-        ->take(6)
-        ->get();
+    $recentlyViewed = session('recently_viewed_facilities', []);
+    if (!empty($recentlyViewed)) {
+        $daftarFasilitas = Facility::whereIn('id', $recentlyViewed)
+            ->where('status', 'aktif')
+            ->get()
+            ->sortBy(fn($item) => array_search($item->id, $recentlyViewed));
+    } else {
+        $daftarFasilitas = Facility::where('status', 'aktif')
+            ->orderBy('nama_fasilitas')
+            ->take(6)
+            ->get();
+    }
 
     return view('beranda', compact('daftarFasilitas'))
         ->with('aktivitasReservasi', null)
@@ -47,10 +55,18 @@ Route::get('/dashboard', function () {
         return redirect()->route('petugas.dashboard');
     }
 
-    $daftarFasilitas = Facility::where('status', 'aktif')
-        ->orderBy('nama_fasilitas')
-        ->take(6)
-        ->get();
+    $recentlyViewed = session('recently_viewed_facilities', []);
+    if (!empty($recentlyViewed)) {
+        $daftarFasilitas = Facility::whereIn('id', $recentlyViewed)
+            ->where('status', 'aktif')
+            ->get()
+            ->sortBy(fn($item) => array_search($item->id, $recentlyViewed));
+    } else {
+        $daftarFasilitas = Facility::where('status', 'aktif')
+            ->orderBy('nama_fasilitas')
+            ->take(6)
+            ->get();
+    }
 
     $aktivitasReservasi = Reservation::where('user_id', $user->id)->latest()->first();
     $aktivitasLaporan   = Report::where('user_id', $user->id)->latest()->first();
