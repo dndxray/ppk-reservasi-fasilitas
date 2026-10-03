@@ -16,6 +16,7 @@ class FacilityController extends Controller
             'ruangan' => 'Ruangan',
             'aula' => 'Aula',
             'laboratorium' => 'Laboratorium',
+            'alat' => 'Alat',
             'lapangan' => 'Lapangan',
             'lainnya' => 'Lainnya',
         ];
@@ -23,11 +24,14 @@ class FacilityController extends Controller
 
     private function rules(): array
     {
+        $alat = request('tipe') === 'alat';
+
         return [
             'nama_fasilitas' => ['required', 'string', 'min:3', 'max:255'],
             'tipe' => ['required', 'string', Rule::in(array_keys($this->tipeOptions()))],
             'lokasi' => ['required', 'string', 'min:3', 'max:255'],
-            'kapasitas' => ['required', 'integer', 'min:1'],
+            'kapasitas' => $alat ? ['nullable'] : ['required', 'integer', 'min:1'],
+            'kuantitas' => $alat ? ['required', 'integer', 'min:1'] : ['nullable'],
             'deskripsi' => ['required', 'string', 'min:10'],
             'foto' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ];
@@ -43,6 +47,7 @@ class FacilityController extends Controller
             'min.string' => ':attribute minimal :min karakter.',
             'max.string' => ':attribute maksimal :max karakter.',
             'kapasitas.min' => 'Kapasitas minimal 1 orang.',
+            'kuantitas.min' => 'Kuantitas minimal 1 unit.',
             'tipe.in' => 'Tipe fasilitas tidak valid.',
             'foto.image' => 'File foto harus berupa gambar.',
             'foto.mimes' => 'Format foto tidak valid. Gunakan JPG, PNG, atau WEBP.',
@@ -58,6 +63,7 @@ class FacilityController extends Controller
             'tipe' => 'Tipe fasilitas',
             'lokasi' => 'Lokasi fasilitas',
             'kapasitas' => 'Kapasitas',
+            'kuantitas' => 'Kuantitas',
             'deskripsi' => 'Deskripsi',
             'foto' => 'Foto',
         ];
@@ -102,6 +108,7 @@ class FacilityController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate($this->rules(), $this->messages(), $this->attributes());
+        $validated = $this->bersihkanJumlah($validated);
 
         if ($request->hasFile('foto')) {
             $validated['foto'] = $request->file('foto')->store('facilities', 'public');
@@ -129,6 +136,7 @@ class FacilityController extends Controller
     public function update(Request $request, Facility $facility)
     {
         $validated = $request->validate($this->rules(), $this->messages(), $this->attributes());
+        $validated = $this->bersihkanJumlah($validated);
 
         if ($request->hasFile('foto')) {
             // hapus foto lama kalau ada
@@ -149,23 +157,35 @@ class FacilityController extends Controller
             ->with('success', 'Fasilitas berhasil diperbarui.');
     }
 
-    // Menonaktifkan fasilitas (dipicu dari halaman detail)
-    public function deactivate(Facility $facility)
+    public function updateStatus(Request $request, Facility $facility)
     {
-        $facility->update(['status' => 'nonaktif']);
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(['aktif', 'dalam_perbaikan', 'nonaktif'])],
+        ], [
+            'status.required' => 'Status wajib dipilih.',
+            'status.in'       => 'Status tidak valid.',
+        ]);
+
+        $facility->update(['status' => $validated['status']]);
+
+        $label = [
+            'aktif'           => 'Aktif',
+            'dalam_perbaikan' => 'Dalam Perbaikan',
+            'nonaktif'        => 'Nonaktif',
+        ][$validated['status']];
 
         return redirect()
             ->route('admin.facilities.show', $facility)
-            ->with('success', 'Fasilitas berhasil dinonaktifkan.');
+            ->with('success', "Status fasilitas berhasil diubah menjadi {$label}.");
     }
-
-    // Mengaktifkan kembali fasilitas (dipicu dari halaman detail)
-    public function activate(Facility $facility)
+    private function bersihkanJumlah(array $data): array
     {
-        $facility->update(['status' => 'aktif']);
+        if (($data['tipe'] ?? null) === 'alat') {
+            $data['kapasitas'] = null;
+        } else {
+            $data['kuantitas'] = null;
+        }
 
-        return redirect()
-            ->route('admin.facilities.show', $facility)
-            ->with('success', 'Fasilitas berhasil diaktifkan.');
+        return $data;
     }
 }
