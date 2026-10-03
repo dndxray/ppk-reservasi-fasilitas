@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\FacilityController as AdminFacilityController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\Petugas\DashboardController as PetugasDashboardController;
@@ -146,7 +147,7 @@ Route::middleware('auth')->prefix('petugas')->name('petugas.')->group(function (
 
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
-    Route::get('/dashboard', fn () => view('admin.dashboard'))->name('dashboard');
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     // ----- Pengguna -----
     Route::get('/pengguna', [UserController::class, 'indexUsers'])->name('pengguna.index');
@@ -154,11 +155,17 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::post('/pengguna', [UserController::class, 'storeUser'])->name('pengguna.store');
     Route::patch('/pengguna/{user}/verifikasi', [UserController::class, 'verify'])->name('pengguna.verify');
     Route::patch('/pengguna/{user}/tolak', [UserController::class, 'reject'])->name('pengguna.reject');
+    Route::get('/pengguna/{user}', [UserController::class, 'showUser'])->whereNumber('user')->name('pengguna.show');
+    Route::patch('/pengguna/{user}/nonaktifkan', [UserController::class, 'deactivateUser'])->whereNumber('user')->name('pengguna.deactivate');
+    Route::patch('/pengguna/{user}/aktifkan', [UserController::class, 'activateUser'])->whereNumber('user')->name('pengguna.activate');
 
     // ----- Petugas -----
     Route::get('/petugas', [UserController::class, 'indexStaff'])->name('petugas.index');
     Route::get('/petugas/create', [UserController::class, 'createStaff'])->name('petugas.create');
     Route::post('/petugas', [UserController::class, 'storeStaff'])->name('petugas.store');
+    Route::get('/petugas/{user}', [UserController::class, 'showStaff'])->whereNumber('user')->name('petugas.show');
+    Route::patch('/petugas/{user}/nonaktifkan', [UserController::class, 'deactivateStaff'])->whereNumber('user')->name('petugas.deactivate');
+    Route::patch('/petugas/{user}/aktifkan', [UserController::class, 'activateStaff'])->whereNumber('user')->name('petugas.activate');
 
     // ----- Fasilitas -----
     Route::get('/fasilitas', [AdminFacilityController::class, 'index'])->name('fasilitas.index');
