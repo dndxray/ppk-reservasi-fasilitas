@@ -6,25 +6,14 @@
 
             {{-- tombol back & judul --}}
             <div class="flex items-center mb-6">
-                @if(request('from') === 'beranda' || url()->previous() === route('beranda'))
-                    <a href="{{ route('beranda') }}" class="mr-4 text-[#47201B] hover:text-[#CA734D] transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </a>
-                @elseif(auth()->user()->role === 'petugas')
-                    <a href="{{ route('reports.antrian') }}" class="mr-4 text-[#47201B] hover:text-[#CA734D] transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </a>
-                @else
-                    <a href="{{ route('reports.index') }}" class="mr-4 text-[#47201B] hover:text-[#CA734D] transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </a>
-                @endif
+                @php
+                    $fallbackUrl = auth()->user()->role === 'petugas' ? route('petugas.dashboard') : route('reports.index');
+                @endphp
+                <a href="{{ $fallbackUrl }}" onclick="if (document.referrer && document.referrer !== window.location.href) { history.back(); return false; }" class="mr-4 text-[#47201B] hover:text-[#CA734D] transition p-1.5 rounded-lg hover:bg-white/60" title="Kembali">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </a>
                 <h1 class="text-2xl font-bold text-[#47201B]">
                     Detail Laporan
                 </h1>
