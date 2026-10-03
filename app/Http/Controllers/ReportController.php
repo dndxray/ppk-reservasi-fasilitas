@@ -116,7 +116,11 @@ class ReportController extends Controller
 
         // Filter tanggal
         if ($request->filled('tanggal')) {
-            $query->whereDate('tanggal_ditemukan', $request->tanggal);
+            $tanggal = $request->tanggal;
+            $query->where(function ($q) use ($tanggal) {
+                $q->whereDate('tanggal_ditemukan', $tanggal)
+                  ->orWhereDate('created_at', $tanggal);
+            });
         }
 
         $reports = $query
@@ -224,7 +228,11 @@ class ReportController extends Controller
 
         // Filter tanggal
         if ($request->filled('tanggal')) {
-            $query->whereDate('tanggal_ditemukan', $request->tanggal);
+            $tanggal = $request->tanggal;
+            $query->where(function ($q) use ($tanggal) {
+                $q->whereDate('tanggal_ditemukan', $tanggal)
+                  ->orWhereDate('created_at', $tanggal);
+            });
         }
 
         $reports = $query->latest()->get();

@@ -150,7 +150,7 @@
 
                                         {{-- tanggal laporan --}}
                                         <td class="px-6 py-5 text-gray-700 font-medium">
-                                            {{ $report->created_at?->format('d M Y') }}
+                                            {{ $report->tanggal_ditemukan ? \Carbon\Carbon::parse($report->tanggal_ditemukan)->format('d M Y') : $report->created_at?->format('d M Y') }}
                                         </td>
 
                                         {{-- status & warna badge --}}
