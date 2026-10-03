@@ -74,7 +74,7 @@
                     <p class="text-sm font-semibold text-slate-800">Laporan Kerusakan per Hari (14 Hari Terakhir)</p>
                     <span class="text-xs text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 font-medium">💡 Klik batang diagram untuk memfilter tabel & total</span>
                 </div>
-                <canvas id="grafikLaporanHarian" height="180" class="cursor-pointer"></canvas>
+                <canvas id="grafikLaporanHarian" height="100" class="cursor-pointer"></canvas>
             </div>
         </div>
 
