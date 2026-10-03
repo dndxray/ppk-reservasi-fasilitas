@@ -160,7 +160,7 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        function initRekapChart() {
             const chartCanvas = document.getElementById('grafikLaporanHarian');
             if (!chartCanvas) return;
 
@@ -182,13 +182,6 @@
                     animation: {
                         duration: 1600,
                         easing: 'easeOutQuart',
-                        delay: (context) => {
-                            let delay = 0;
-                            if (context.type === 'data' && context.mode === 'default') {
-                                delay = context.dataIndex * 70;
-                            }
-                            return delay;
-                        }
                     },
                     onClick: (event, elements) => {
                         if (elements.length > 0) {
@@ -218,7 +211,13 @@
                     }
                 }
             });
-        });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initRekapChart);
+        } else {
+            initRekapChart();
+        }
     </script>
     @endpush
 
