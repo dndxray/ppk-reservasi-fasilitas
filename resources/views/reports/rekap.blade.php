@@ -4,16 +4,30 @@
 
         <div x-data="rekapFilterData()" @filter-date.window="selectDate($event.detail)" class="px-4 sm:px-8 py-6 sm:py-8 max-w-7xl mx-auto space-y-6">
 
-            {{-- Header Judul & Tombol Kembali --}}
-            <div class="flex items-center gap-3 mb-2">
-                <a href="{{ route('petugas.dashboard') }}" class="text-[#47201B] hover:text-[#CA734D] p-1.5 rounded-lg hover:bg-white/60 transition" title="Kembali ke Dashboard">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                    </svg>
-                </a>
-                <h1 class="text-2xl font-bold text-[#47201B]" style="font-family: 'Plus Jakarta Sans', sans-serif;">
-                    Rekap Fasilitas & Kerusakan
-                </h1>
+            {{-- Header Judul, Tombol Kembali & Export Buttons --}}
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+                <div class="flex items-center gap-3">
+                    <a href="{{ route('petugas.dashboard') }}" class="text-[#47201B] hover:text-[#CA734D] p-1.5 rounded-lg hover:bg-white/60 transition" title="Kembali ke Dashboard">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </a>
+                    <h1 class="text-2xl font-bold text-[#47201B]" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                        Rekap Fasilitas & Kerusakan
+                    </h1>
+                </div>
+
+                {{-- Export Buttons --}}
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('reports.rekap.export.excel') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold border border-emerald-300 text-emerald-800 bg-emerald-50/90 hover:bg-emerald-100 rounded-xl px-4 py-2.5 transition shadow-xs">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Export Excel
+                    </a>
+                    <a href="{{ route('reports.rekap.export.pdf') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold border border-rose-300 text-rose-800 bg-rose-50/90 hover:bg-rose-100 rounded-xl px-4 py-2.5 transition shadow-xs">
+                        <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        Export PDF
+                    </a>
+                </div>
             </div>
 
         {{-- Active Filter Notification Banner --}}
