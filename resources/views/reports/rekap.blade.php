@@ -43,7 +43,28 @@
         </div>
 
         {{-- Card Ringkasan --}}
-        <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+
+            {{-- Card: Total Fasilitas Direservasi --}}
+            <div class="rounded-2xl border border-rose-100 bg-gradient-to-br from-rose-50 to-white p-5 flex items-start justify-between shadow-xs">
+                <div class="flex gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-rose-800 flex items-center justify-center shrink-0 shadow-xs">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M4 21V9l8-6 8 6v12M9 21v-6h6v6"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-bold text-slate-800">Total Fasilitas Direservasi</p>
+                        <p class="text-xs text-stone-500 mt-1 max-w-xs">Jumlah fasilitas yang pernah direservasi di sistem.</p>
+                        <p class="text-3xl font-extrabold text-rose-900 mt-3">{{ $totalFasilitasDireservasi }}</p>
+                    </div>
+                </div>
+                <span class="text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1 whitespace-nowrap
+                    {{ $selisihFasilitas >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700' }}">
+                    {{ $selisihFasilitas >= 0 ? '↑' : '↓' }} {{ $selisihFasilitas >= 0 ? '+' : '' }}{{ $selisihFasilitas }}
+                    <span class="font-normal">dari bulan lalu</span>
+                </span>
+            </div>
 
             {{-- Card: Total Laporan Kerusakan --}}
             <div class="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-5 flex items-start justify-between shadow-xs">
@@ -68,13 +89,19 @@
         </div>
 
         {{-- Grafik Batang --}}
-        <div class="grid grid-cols-1 gap-4 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+
+            <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-xs">
+                <p class="text-sm font-semibold text-slate-800 mb-3">Fasilitas Direservasi per Hari (14 Hari Terakhir)</p>
+                <canvas id="grafikFasilitasHarian" height="180"></canvas>
+            </div>
+
             <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-xs">
                 <div class="flex justify-between items-center mb-3">
                     <p class="text-sm font-semibold text-slate-800">Laporan Kerusakan per Hari (14 Hari Terakhir)</p>
-                    <span class="text-xs text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 font-medium">💡 Klik batang diagram untuk memfilter tabel & total</span>
+                    <span class="text-xs text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 font-medium">💡 Klik diagram</span>
                 </div>
-                <canvas id="grafikLaporanHarian" height="100" class="cursor-pointer"></canvas>
+                <canvas id="grafikLaporanHarian" height="180" class="cursor-pointer"></canvas>
             </div>
         </div>
 
@@ -86,6 +113,7 @@
                         <th class="text-left px-4 py-3.5">Fasilitas</th>
                         <th class="text-left px-4 py-3.5">Lokasi</th>
                         <th class="text-left px-4 py-3.5">Status</th>
+                        <th class="text-center px-4 py-3.5">Total Reservasi</th>
                         <th class="text-center px-4 py-3.5">Total Laporan Kerusakan</th>
                     </tr>
                 </thead>
@@ -100,6 +128,7 @@
                                     {{ ucfirst(str_replace('_', ' ', $facility->status)) }}
                                 </span>
                             </td>
+                            <td class="px-4 py-3.5 text-center font-bold text-slate-800">{{ $facility->total_reservasi }}</td>
                             <td class="px-4 py-3.5 text-center font-bold text-slate-900" x-text="getFacilityCount({{ $facility->id }})"></td>
                         </tr>
                     @endforeach
@@ -111,6 +140,7 @@
     @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        const rawReservasiData = @json($reservasiPerHari);
         const rawLaporanData = @json($laporanPerHari);
         const rawDetailTanggal = @json($detailTanggal ?? []);
         const rawDefaultFacilityTotals = @json(array_column($rekap, 'total_laporan', 'id'));
@@ -161,56 +191,89 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const chartCanvas = document.getElementById('grafikLaporanHarian');
-            if (!chartCanvas) return;
+            const chartReservasiCanvas = document.getElementById('grafikFasilitasHarian');
+            const chartLaporanCanvas = document.getElementById('grafikLaporanHarian');
 
-            new Chart(chartCanvas, {
-                type: 'bar',
-                data: {
-                    labels: buatLabelTanggal(rawLaporanData),
-                    datasets: [{
-                        label: 'Laporan Kerusakan',
-                        data: Object.values(rawLaporanData),
-                        backgroundColor: '#BA3D34',
-                        hoverBackgroundColor: '#9E3129',
-                        borderRadius: 8,
-                        borderSkipped: false
-                    }]
+            const staggeredAnimation = {
+                duration: 1600,
+                easing: 'easeOutQuart',
+                delay: (context) => {
+                    let delay = 0;
+                    if (context.type === 'data' && context.mode === 'default') {
+                        delay = context.dataIndex * 70;
+                    }
+                    return delay;
+                }
+            };
+
+            const opsiBase = {
+                responsive: true,
+                animation: staggeredAnimation,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#511E1D',
+                        padding: 10,
+                        cornerRadius: 8,
+                        displayColors: false
+                    }
                 },
-                options: {
-                    responsive: true,
-                    animation: {
-                        duration: 1600,
-                        easing: 'easeOutQuart',
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 },
+                        grid: { color: 'rgba(0, 0, 0, 0.05)' }
                     },
-                    onClick: (event, elements) => {
-                        if (elements.length > 0) {
-                            const index = elements[0].index;
-                            const targetDate = datesList[index];
-                            window.dispatchEvent(new CustomEvent('filter-date', { detail: targetDate }));
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: '#511E1D',
-                            padding: 10,
-                            cornerRadius: 8,
-                            displayColors: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { precision: 0 },
-                            grid: { color: 'rgba(0, 0, 0, 0.05)' }
-                        },
-                        x: {
-                            grid: { display: false }
-                        }
+                    x: {
+                        grid: { display: false }
                     }
                 }
-            });
+            };
+
+            if (chartReservasiCanvas) {
+                new Chart(chartReservasiCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: buatLabelTanggal(rawReservasiData),
+                        datasets: [{
+                            label: 'Fasilitas Direservasi',
+                            data: Object.values(rawReservasiData),
+                            backgroundColor: '#BA3D34',
+                            hoverBackgroundColor: '#9E3129',
+                            borderRadius: 8,
+                            borderSkipped: false
+                        }]
+                    },
+                    options: opsiBase
+                });
+            }
+
+            if (chartLaporanCanvas) {
+                new Chart(chartLaporanCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: buatLabelTanggal(rawLaporanData),
+                        datasets: [{
+                            label: 'Laporan Kerusakan',
+                            data: Object.values(rawLaporanData),
+                            backgroundColor: '#BA3D34',
+                            hoverBackgroundColor: '#9E3129',
+                            borderRadius: 8,
+                            borderSkipped: false
+                        }]
+                    },
+                    options: {
+                        ...opsiBase,
+                        onClick: (event, elements) => {
+                            if (elements.length > 0) {
+                                const index = elements[0].index;
+                                const targetDate = datesList[index];
+                                window.dispatchEvent(new CustomEvent('filter-date', { detail: targetDate }));
+                            }
+                        }
+                    }
+                });
+            }
         });
     </script>
     @endpush
