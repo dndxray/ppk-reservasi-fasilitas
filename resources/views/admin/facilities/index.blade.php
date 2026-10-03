@@ -3,12 +3,37 @@
         <h2 class="font-semibold text-xl text-gray-800">Kelola Fasilitas</h2>
     </x-slot>
 
+    @php
+        $pesanSukses = session('success') ?? session('status');
+    @endphp
+
     <div class="py-8 max-w-6xl mx-auto px-4">
 
-        @if (session('status'))
-            <div class="bg-emerald-50 text-emerald-700 text-sm rounded-md px-4 py-2 mb-4">
-                {{ session('status') }}
+        @if ($pesanSukses)
+            <div id="banner-sukses"
+                 role="status"
+                 class="mb-5 flex items-center justify-between gap-4 rounded-lg border border-[#166534] bg-[#DCFCE7] px-6 py-4 text-base font-semibold text-[#166534] transition-opacity duration-500">
+                <span>{{ $pesanSukses }}</span>
+
+                <button type="button"
+                        onclick="document.getElementById('banner-sukses').remove()"
+                        class="text-[#166534] hover:text-[#14532D]"
+                        aria-label="Tutup">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18" />
+                    </svg>
+                </button>
             </div>
+
+            <script>
+                // Hilang otomatis setelah 4 detik
+                setTimeout(function () {
+                    const el = document.getElementById('banner-sukses');
+                    if (!el) return;
+                    el.classList.add('opacity-0');
+                    setTimeout(function () { el.remove(); }, 500);
+                }, 4000);
+            </script>
         @endif
 
         {{-- search + filter + tambah --}}
@@ -38,77 +63,120 @@
             </a>
         </div>
 
+        {{-- kartu tabel utama --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead class="bg-[#F5EBE8]">
-                        <tr>
-                            <th class="text-left px-6 py-5 font-bold text-[#A83B32]">Fasilitas</th>
-                            <th class="text-left px-6 py-5 font-bold text-[#A83B32]">Tipe</th>
-                            <th class="text-left px-6 py-5 font-bold text-[#A83B32]">Kapasitas</th>
-                            <th class="text-left px-6 py-5 font-bold text-[#A83B32]">Status</th>
-                            <th class="text-left px-6 py-5 font-bold text-[#A83B32]">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        @foreach ($facilities as $facility)
-                            {{-- baris bisa diklik -> halaman detail --}}
-                            <tr class="hover:bg-slate-50 transition cursor-pointer"
-                                onclick="window.location='{{ route('admin.facilities.show', $facility) }}'">
-                                <td class="px-6 py-5">
-                                    <p class="font-medium text-gray-900">{{ $facility->nama_fasilitas }}</p>
-                                    <p class="text-xs text-gray-400">{{ $facility->lokasi }}</p>
-                                </td>
-                                <td class="px-6 py-5 text-gray-700">{{ $facility->tipeLabel() }}</td>
-                                <td class="px-6 py-5 text-gray-700">{{ $facility->kapasitas ?? '-' }}</td>
-                                <td class="px-6 py-5">
-                                    @if ($facility->status === 'aktif')
-                                        <span class="inline-flex items-center gap-2 font-semibold text-green-500">
-                                            <span class="w-2 h-2 rounded-full bg-green-500"></span>Tersedia
-                                        </span>
-                                    @elseif ($facility->status === 'dalam_perbaikan')
-                                        <span class="inline-flex items-center gap-2 font-semibold text-yellow-500">
-                                            <span class="w-2 h-2 rounded-full bg-yellow-400"></span>Dalam Perbaikan
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center gap-2 font-semibold text-gray-500">
-                                            <span class="w-2 h-2 rounded-full bg-gray-400"></span>Nonaktif
-                                        </span>
-                                    @endif
-                                </td>
-                                {{-- sel aksi: klik tombol tidak ikut membuka detail --}}
-                                <td class="px-6 py-5" onclick="event.stopPropagation()">
-                                    <div class="flex items-center gap-2">
-                                        <a href="{{ route('admin.facilities.edit', $facility) }}"
-                                           class="px-3 py-2 rounded-lg bg-gray-100 text-slate-700 text-xs font-semibold hover:bg-gray-200 transition">
-                                            Edit
-                                        </a>
 
-                                        @if ($facility->status !== 'nonaktif')
-                                            <form action="{{ route('admin.facilities.deactivate', $facility) }}" method="POST"
-                                                  onsubmit="return confirm('Nonaktifkan {{ $facility->nama_fasilitas }}?')">
-                                                @csrf @method('PATCH')
-                                                <button class="px-3 py-2 rounded-lg bg-red-100 text-red-600 text-xs font-semibold hover:bg-red-200 transition">
-                                                    Nonaktifkan
-                                                </button>
-                                            </form>
-                                        @else
-                                            <form action="{{ route('admin.facilities.activate', $facility) }}" method="POST">
-                                                @csrf @method('PATCH')
-                                                <button class="px-3 py-2 rounded-lg bg-green-100 text-green-600 text-xs font-semibold hover:bg-green-200 transition">
-                                                    Aktifkan
-                                                </button>
-                                            </form>
-                                        @endif
-                                    </div>
-                                </td>
+            @if ($facilities->count() > 0)
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-[#F5EBE9]">
+                            <tr>
+                                <th class="px-6 py-4 text-left font-bold text-[#A94438]">No</th>
+                                <th class="px-6 py-4 text-left font-bold text-[#A94438]">Fasilitas</th>
+                                <th class="px-6 py-4 text-left font-bold text-[#A94438]">Tipe</th>
+                                <th class="px-6 py-4 text-left font-bold text-[#A94438]">Kapasitas</th>
+                                <th class="px-6 py-4 text-left font-bold text-[#A94438]">Status</th>
+                                <th class="px-6 py-4 text-center font-bold text-[#A94438]">Aksi</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                        </thead>
 
-        <div class="mt-6">{{ $facilities->links() }}</div>
+                        <tbody class="divide-y divide-gray-100">
+                            @foreach ($facilities as $facility)
+                                <tr class="hover:bg-gray-50 transition">
+
+                                    {{-- no --}}
+                                    <td class="px-6 py-5 text-gray-700 font-medium">
+                                        {{ $facilities->firstItem() + $loop->index }}.
+                                    </td>
+
+                                    {{-- nama & lokasi --}}
+                                    <td class="px-6 py-5">
+                                        <p class="font-medium text-gray-900">{{ $facility->nama_fasilitas }}</p>
+                                        <p class="text-xs text-gray-400 mt-0.5">{{ $facility->lokasi }}</p>
+                                    </td>
+
+                                    {{-- tipe --}}
+                                    <td class="px-6 py-5 text-gray-700 font-medium">
+                                        {{ $facility->tipeLabel() }}
+                                    </td>
+
+                                    {{-- kapasitas --}}
+                                    <td class="px-6 py-5 text-gray-700 font-medium">
+                                        {{ $facility->kapasitas ?? '-' }}
+                                    </td>
+
+                                    {{-- status & warna --}}
+                                    <td class="px-6 py-5">
+                                        @php
+                                            $statusText  = 'Nonaktif';
+                                            $statusColor = 'text-gray-500';
+                                            $dotColor    = 'bg-gray-400';
+
+                                            if ($facility->status === 'aktif') {
+                                                $statusText  = 'Tersedia';
+                                                $statusColor = 'text-green-600';
+                                                $dotColor    = 'bg-green-500';
+                                            } elseif ($facility->status === 'dalam_perbaikan') {
+                                                $statusText  = 'Dalam Perbaikan';
+                                                $statusColor = 'text-yellow-600';
+                                                $dotColor    = 'bg-yellow-500';
+                                            }
+                                        @endphp
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-2 h-2 rounded-full {{ $dotColor }}"></div>
+                                            <span class="text-sm font-medium {{ $statusColor }}">{{ $statusText }}</span>
+                                        </div>
+                                    </td>
+
+                                    {{-- tombol aksi: lihat detail (outline ghost) --}}
+                                    <td class="px-6 py-5 text-center">
+                                        <a href="{{ route('admin.facilities.show', $facility) }}"
+                                           class="group inline-flex items-center justify-center gap-1.5 px-4 py-2 border border-[#A94438] text-[#A94438] hover:bg-[#A94438] hover:text-white active:bg-[#8F352B] active:border-[#8F352B] text-xs font-semibold rounded-xl shadow-xs hover:shadow transition duration-150 ease-in-out whitespace-nowrap">
+                                            <span>Lihat Detail</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 transition-transform duration-150 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </a>
+                                    </td>
+
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                {{-- jumlah data + nomor halaman --}}
+                @include('partials.pagination-tabel', ['paginator' => $facilities])
+
+            @else
+
+                {{-- tampilan kalau datanya kosong / pencarian tidak cocok --}}
+                <div class="px-6 py-16 text-center">
+                    <div class="mx-auto w-14 h-14 flex items-center justify-center rounded-full bg-[#F5EBE9] mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-[#A94438]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h4m2-10h.01M5 5h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"/>
+                        </svg>
+                    </div>
+
+                    @if (filled($search))
+                        <h3 class="text-base font-semibold text-gray-800">Fasilitas Tidak Ditemukan</h3>
+                        <p class="mt-1 text-sm text-gray-500">
+                            Tidak ada fasilitas yang sesuai dengan kata kunci pencarian Anda.
+                        </p>
+                        <a href="{{ route('admin.fasilitas.index') }}"
+                           class="inline-flex mt-5 px-5 py-2.5 bg-[#4a1a24] text-white text-sm font-semibold rounded-lg hover:bg-[#3a141c] transition">
+                            Reset Pencarian
+                        </a>
+                    @else
+                        <h3 class="text-base font-semibold text-gray-800">Belum Ada Fasilitas</h3>
+                        <p class="mt-1 text-sm text-gray-500">
+                            Belum ada fasilitas yang ditambahkan.
+                        </p>
+                    @endif
+                </div>
+
+            @endif
+        </div>
     </div>
 </x-app-layout>

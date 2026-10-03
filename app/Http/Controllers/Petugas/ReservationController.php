@@ -20,44 +20,36 @@ class ReservationController extends Controller
             'facility'
         ]);
 
-        if($request->status){
-
-            $query->where(
-                'status',
-                $request->status
-            );
-
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
         }
 
-
-        if($request->search){
-
-            $query->whereHas(
-                'user',
-                function($q) use ($request){
-
-                    $q->where(
-                        'name',
-                        'like',
-                        '%'.$request->search.'%'
-                    );
-
-                }
-            );
-
+        if ($request->filled('tanggal')) {
+            $query->whereDate('tanggal', $request->tanggal);
         }
 
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($qu) use ($search) {
+                    $qu->where('name', 'like', '%' . $search . '%')
+                      ->orWhere('email', 'like', '%' . $search . '%');
+                })->orWhereHas('facility', function ($qf) use ($search) {
+                    $qf->where('nama_fasilitas', 'like', '%' . $search . '%')
+                      ->orWhere('lokasi', 'like', '%' . $search . '%');
+                });
+            });
+        }
 
         $reservations = $query
             ->latest()
-            ->get();
-
+            ->paginate(10)
+            ->withQueryString();
 
         return view(
             'petugas.reservations.index',
             compact('reservations')
         );
-
     }
     /*
     |--------------------------------------------------------------------------
@@ -144,9 +136,10 @@ class ReservationController extends Controller
     )
     {
         $request->validate([
-            'alasan_pembatalan'
-            =>
-            'required|string|max:255'
+            'alasan_pembatalan' => 'required|string|max:255'
+        ], [
+            'alasan_pembatalan.required' => 'Alasan pembatalan wajib diisi.',
+            'alasan_pembatalan.max' => 'Alasan pembatalan maksimal 255 karakter.'
         ]);
 
         if($reservation->status !== 'disetujui')

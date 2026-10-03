@@ -84,9 +84,13 @@
                 <h2 class="font-semibold text-gray-800 mb-3">Aktivitas Terbaru</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
 
-                    @if($aktivitasReservasi)
-                        <a href="{{ route('reservations.show', $aktivitasReservasi) }}"
-                           class="flex items-center justify-between bg-white shadow-sm rounded-xl p-4 hover:bg-gray-50 transition">
+                    @if($aktivitasReservasi) 
+                        @php 
+                            $reservasiUrl = route('reservations.show', [$aktivitasReservasi->id, 'from' => 'beranda']); 
+                        @endphp 
+                    
+                        <a href="{{ $reservasiUrl }}" 
+                        class="flex items-center justify-between bg-white shadow-sm rounded-xl p-4 hover:bg-gray-50 transition">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center flex-shrink-0">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,22 +115,15 @@
                     @if($aktivitasLaporan)
                         @php
                             $lapStatus = $aktivitasLaporan->status;
-                            if ($lapStatus === 'selesai') {
-                                $targetStatus = 'selesai';
-                                $lapBg = 'bg-emerald-500';
-                            } elseif ($lapStatus === 'ditolak') {
-                                $targetStatus = 'ditolak';
-                                $lapBg = 'bg-rose-500';
-                            } elseif ($lapStatus === 'diproses') {
-                                $targetStatus = 'diproses';
-                                $lapBg = 'bg-blue-500';
-                            } else {
-                                $targetStatus = 'menunggu';
-                                $lapBg = 'bg-amber-500';
-                            }
-                            $lapUrl = route('reports.index', ['status' => $targetStatus]);
+                            $lapBg = match($lapStatus) {
+                                'selesai'  => 'bg-emerald-500',
+                                'ditolak'  => 'bg-red-500',
+                                'diproses' => 'bg-blue-500',
+                                default    => 'bg-yellow-500',
+                            };
                         @endphp
-                        <a href="{{ $lapUrl }}"
+
+                        <a href="{{ route('reports.show', $aktivitasLaporan) }}"
                            class="flex items-center justify-between bg-white shadow-sm rounded-xl p-4 hover:bg-gray-50 transition">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full {{ $lapBg }} text-white flex items-center justify-center flex-shrink-0">
@@ -162,12 +159,12 @@
                 </div>
             @endif
         @endauth
-        <!--  Fasilitas paling banyak direservasi -->
+        <!-- Fasilitas Terakhir Dilihat -->
         <div class="flex justify-between items-center mb-3">
             <h2 class="font-semibold text-gray-800" style="font-family: 'Plus Jakarta Sans', sans-serif;">
-                Fasilitas Paling Banyak Direservasi
+                Fasilitas Terakhir Dilihat
             </h2>
-            <a href="{{ route('fasilitas.index') }}" class="text-sm text-[#B23A2E] font-medium hover:underline">
+            <a href="{{ route('fasilitas.index', ['from' => 'beranda']) }}" class="text-sm text-[#B23A2E] font-medium hover:underline">
                 Lihat Semua
             </a>
         </div>
@@ -208,7 +205,7 @@
                         </div>
                         <div class="p-3 flex items-center justify-between">
                             <span class="text-xs text-gray-500">Kapasitas {{ $fasilitas->kapasitas ?? '-' }} orang</span>
-                            <a href="{{ route('fasilitas.show', $fasilitas) }}"
+                            <a href="{{ route('fasilitas.show', [$fasilitas->id, 'from' => 'beranda']) }}"
                                class="text-xs font-medium px-3 py-1.5 bg-[#4a1a24] text-white rounded-full hover:bg-[#3a141c]">
                                 Lihat Detail →
                             </a>
