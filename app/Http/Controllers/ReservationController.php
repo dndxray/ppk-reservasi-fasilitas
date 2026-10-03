@@ -10,11 +10,7 @@ use Carbon\Carbon;
 
 class ReservationController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | US 3 - Menampilkan Form Reservasi
-    |--------------------------------------------------------------------------
-    */
+
     public function create(Request $request)
     {
         $facilities = Facility::where('status', 'aktif')
@@ -81,11 +77,7 @@ class ReservationController extends Controller
         $waktuMulai = substr($request->waktu_mulai, 0, 5);
         $waktuSelesai = substr($request->waktu_selesai, 0, 5);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Validasi slot 30 menit & Jam Operasional (07:00 - 20:00)
-        |--------------------------------------------------------------------------
-        */
+ 
         if (!in_array($waktuMulai, $allowedSlots) || !in_array($waktuSelesai, $allowedSlots)) {
             return back()->withErrors('Waktu harus menggunakan slot 30 menit pada jam operasional (07.00 - 20.00).')->withInput();
         }
@@ -94,20 +86,20 @@ class ReservationController extends Controller
             return back()->withErrors('Reservasi hanya dapat dilakukan pukul 07.00 - 20.00.')->withInput();
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Validasi waktu selesai harus lebih besar dari waktu mulai
-        |--------------------------------------------------------------------------
-        */
+
         if ($waktuSelesai <= $waktuMulai) {
             return back()->withErrors('Waktu selesai harus lebih besar dari waktu mulai.')->withInput();
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Cek bentrok reservasi
-        |--------------------------------------------------------------------------
-        */
+  
+        $zonaWaktu = 'Asia/Jakarta';
+        $waktuMulaiLengkap = Carbon::parse($request->tanggal . ' ' . $waktuMulai, $zonaWaktu);
+
+        if ($waktuMulaiLengkap->lte(Carbon::now($zonaWaktu))) {
+            return back()->withErrors('Waktu mulai sudah lewat. Silakan pilih jam berikutnya.')->withInput();
+        }
+
+        
         $bentrok = Reservation::where('facility_id', $request->facility_id)
             ->where('tanggal', $request->tanggal)
             ->whereIn('status', ['menunggu', 'disetujui'])
@@ -121,11 +113,7 @@ class ReservationController extends Controller
             return back()->withErrors('Fasilitas sudah digunakan pada waktu tersebut.')->withInput();
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Simpan Reservasi
-        |--------------------------------------------------------------------------
-        */
+  
         Reservation::create([
             'user_id' => Auth::id(),
             'facility_id' => $request->facility_id,
@@ -141,11 +129,7 @@ class ReservationController extends Controller
             ->with('success', 'Reservasi berhasil diajukan.');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Riwayat Reservasi Pengguna
-    |--------------------------------------------------------------------------
-    */
+  
 
     public function history(Request $request)
 {
@@ -209,11 +193,7 @@ class ReservationController extends Controller
 
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Pengguna Membatalkan Reservasi
-    |--------------------------------------------------------------------------
-    */
+
 
     public function cancel(
         Reservation $reservation
@@ -267,11 +247,7 @@ class ReservationController extends Controller
 
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Detail Reservasi
-    |--------------------------------------------------------------------------
-    */
+
     public function show(
         Reservation $reservation
     )

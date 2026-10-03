@@ -100,6 +100,7 @@
             </div>
         </div>
 
+        @if($fasilitas->sedangAktif())
         <h2 class="font-semibold text-gray-800">Jadwal Ketersediaan</h2>
         <p class="text-sm text-[#B23A2E] mb-4">Lihat jadwal yang tersedia untuk fasilitas ini.</p>
 
@@ -178,6 +179,34 @@
                 get slotTerisi() {
                     return this.slots.filter(s => s.terisi);
                 },
+                get hariIni() {
+                    return this.fmt(new Date());
+                },
+                slotLewat(slot) {
+                    if (this.selectedDate !== this.hariIni) return false;
+                    const n = new Date();
+                    const sekarang = String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0');
+                    return slot <= sekarang;
+                },
+                pilihanMulai() {
+                    return this.slots
+                        .filter(s => !s.terisi && !this.slotLewat(s.mulai))
+                        .map(s => s.mulai);
+                },
+                pilihanSelesai() {
+                    const mulaiIndex = this.slots.findIndex(s => s.mulai === this.cekMulai);
+
+                    if (mulaiIndex < 0) return [];
+
+                    const daftar = [];
+
+                    for (let i = mulaiIndex; i < this.slots.length; i++) {
+                        if (this.slots[i].terisi) break;
+                        daftar.push(this.slots[i].selesai);
+                    }
+
+                    return daftar;
+                },
                 get selectedLabel() {
                     const d = new Date(this.selectedDate + 'T00:00:00');
                     return this.dayNames[d.getDay()] + ', ' + d.getDate() + ' ' + this.monthNames[d.getMonth()] + ' ' + d.getFullYear();
@@ -187,6 +216,7 @@
                 },
                 checkAvailability() {
                     if (!this.cekMulai || !this.cekSelesai) { this.hasilCek = null; return; }
+                    if (this.cekSelesai <= this.cekMulai) { this.hasilCek = 'urutan'; return; }
                     const bentrok = this.slotTerisi.some(s => this.cekMulai < s.selesai && this.cekSelesai > s.mulai);
                     this.hasilCek = bentrok ? 'bentrok' : 'tersedia';
                 }
@@ -251,10 +281,20 @@
                     <h3 class="font-semibold text-gray-800">Cek Ketersediaan</h3>
                     <p class="text-sm text-gray-500 mb-3">Masukkan estimasi waktu yang Anda inginkan.</p>
 
-                    <div class="flex items-center gap-2">
-                        <input type="time" x-model="cekMulai" step="1800" class="rounded-lg border-gray-300 text-sm">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select x-model="cekMulai" @change="cekSelesai = ''" class="rounded-lg border-gray-300 text-sm">
+                            <option value="">Jam mulai</option>
+                            <template x-for="slot in pilihanMulai()" :key="slot">
+                                <option :value="slot" x-text="slot"></option>
+                            </template>
+                        </select>
                         <span class="text-gray-400">—</span>
-                        <input type="time" x-model="cekSelesai" step="1800" class="rounded-lg border-gray-300 text-sm">
+                        <select x-model="cekSelesai" class="rounded-lg border-gray-300 text-sm">
+                            <option value="">Jam selesai</option>
+                            <template x-for="slot in pilihanSelesai()" :key="slot">
+                                <option :value="slot" x-text="slot"></option>
+                            </template>
+                        </select>
                         <button type="button" @click="checkAvailability()"
                                 class="px-4 py-2 bg-[#4a1a24] text-white text-sm font-medium rounded-lg hover:bg-[#3a141c] whitespace-nowrap">
                             Cek
@@ -266,6 +306,11 @@
                             <span x-text="'Slot ' + cekMulai + '–' + cekSelesai + ' tersedia.'"></span>
                         </p>
                     </template>
+                    <template x-if="hasilCek === 'urutan'">
+                        <p class="mt-3 text-sm font-medium text-red-700 bg-red-50 px-3 py-2 rounded-lg">
+                            <span>Jam selesai harus lebih besar dari jam mulai.</span>
+                        </p>
+                    </template>
                     <template x-if="hasilCek === 'bentrok'">
                         <p class="mt-3 text-sm font-medium text-red-700 bg-red-50 px-3 py-2 rounded-lg">
                             <span x-text="'Slot ' + cekMulai + '–' + cekSelesai + ' bentrok dengan reservasi lain.'"></span>
@@ -275,5 +320,6 @@
             </div>
 
         </div>
+        @endif
     </div>
 </x-app-layout>

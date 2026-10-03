@@ -121,13 +121,6 @@
                 $currentFacilityId = old('facility_id', $selectedFacilityId ?? null);
                 $oldMulai = old('waktu_mulai');
                 $oldSelesai = old('waktu_selesai');
-                $mulaiSlots = [
-                    '07:00', '07:30', '08:00', '08:30', '09:00', '09:30',
-                    '10:00', '10:30', '11:00', '11:30', '12:00', '12:30',
-                    '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
-                    '16:00', '16:30', '17:00', '17:30', '18:00', '18:30',
-                    '19:00', '19:30'
-                ];
             @endphp
 
             {{-- NAMA FASILITAS --}}
@@ -147,7 +140,7 @@
                     name="facility_id"
                     id="facility_id"
                     required
-                    onchange="updateLokasi()"
+                    onchange="updateLokasi(); refreshSlots()"
                     class="
                     w-full
                     h-12
@@ -311,15 +304,9 @@
                             id="menu_waktu_mulai"
                             class="hidden absolute left-0 right-0 top-14 z-30 max-h-48 overflow-y-auto bg-white border border-[#D5C6BD] rounded-xl shadow-lg p-1.5 space-y-1"
                         >
-                            @foreach($mulaiSlots as $slot)
-                                <button
-                                    type="button"
-                                    onclick="selectWaktuMulai('{{ $slot }}')"
-                                    class="w-full text-left px-3 py-2 rounded-lg text-sm transition hover:bg-[#F5F0ED] text-black"
-                                >
-                                    {{ $slot }}
-                                </button>
-                            @endforeach
+                            <div class="px-3 py-2 text-sm text-gray-400">
+                                Pilih fasilitas dan tanggal terlebih dahulu
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -417,7 +404,7 @@
             ">
                 <button
                     type="reset"
-                    onclick="setTimeout(() => { updateLokasi(); resetWaktuMulai(); resetWaktuSelesai(); }, 50)"
+                    onclick="setTimeout(() => { updateLokasi(); resetWaktuMulai(); resetWaktuSelesai(); refreshSlots(); }, 50)"
                     class="
                     font-semibold
                     text-black
@@ -789,6 +776,97 @@ function resetWaktuMulai() {
     label.classList.add('text-gray-500');
 }
 
+let slotTerisi = [];
+
+function fmtTanggal(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function jamSekarang() {
+    const n = new Date();
+    return String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0');
+}
+
+function slotLewat(slot) {
+    return document.getElementById('tanggal').value === fmtTanggal(new Date()) && slot <= jamSekarang();
+}
+
+function terisiMap() {
+    const map = {};
+    slotTerisi.forEach(s => { map[s.mulai] = true; });
+    return map;
+}
+
+function jamSelesaiTersedia(mulai) {
+    const terisi = terisiMap();
+    const daftar = [];
+    const mulaiIndex = allTimeSlots.indexOf(mulai);
+
+    if (mulaiIndex < 0) return daftar;
+
+    for (let i = mulaiIndex; i < allTimeSlots.length - 1; i++) {
+        if (terisi[allTimeSlots[i]]) break;
+        daftar.push(allTimeSlots[i + 1]);
+    }
+
+    return daftar;
+}
+
+async function refreshSlots() {
+    const facilityId = document.getElementById('facility_id').value;
+    const tanggal = document.getElementById('tanggal').value;
+
+    slotTerisi = [];
+
+    if (facilityId && tanggal) {
+        try {
+            const res = await fetch("{{ url('/fasilitas') }}/" + facilityId + "/slots?tanggal=" + tanggal);
+            const data = await res.json();
+            slotTerisi = data.slots.filter(s => s.terisi);
+        } catch (e) {
+            slotTerisi = [];
+        }
+    }
+
+    renderMulaiMenu();
+    updateWaktuSelesaiMenu();
+}
+
+function renderMulaiMenu() {
+    const menu = document.getElementById('menu_waktu_mulai');
+    if (!menu) return;
+
+    const facilityId = document.getElementById('facility_id').value;
+    const tanggal = document.getElementById('tanggal').value;
+
+    if (!facilityId || !tanggal) {
+        menu.innerHTML = '<div class="px-3 py-2 text-sm text-gray-400">Pilih fasilitas dan tanggal terlebih dahulu</div>';
+        return;
+    }
+
+    const terisi = terisiMap();
+    const daftarSlot = allTimeSlots.filter(slot => slot !== '20:00' && !terisi[slot] && !slotLewat(slot));
+
+    if (daftarSlot.length === 0) {
+        menu.innerHTML = '<div class="px-3 py-2 text-sm text-gray-400">Tidak ada jam tersedia pada tanggal ini</div>';
+        return;
+    }
+
+    const terpilih = document.getElementById('waktu_mulai').value;
+
+    menu.innerHTML = '';
+
+    daftarSlot.forEach(slot => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.onclick = function() { selectWaktuMulai(slot); };
+        btn.className = 'w-full text-left px-3 py-2 rounded-lg text-sm transition hover:bg-[#F5F0ED] text-black ' +
+            (terpilih === slot ? 'bg-[#BE433E] text-white font-semibold hover:bg-[#BE433E]' : '');
+        btn.innerText = slot;
+        menu.appendChild(btn);
+    });
+}
+
 function updateWaktuSelesaiMenu(preferredSelesai = null) {
     const menu = document.getElementById('menu_waktu_selesai');
     if (!menu) return;
@@ -803,11 +881,16 @@ function updateWaktuSelesaiMenu(preferredSelesai = null) {
         return;
     }
 
-    const availableEndSlots = allTimeSlots.filter(slot => slot > selectedMulai);
+    const availableEndSlots = jamSelesaiTersedia(selectedMulai);
 
     if (availableEndSlots.length === 0) {
+        resetWaktuSelesai();
         menu.innerHTML = '<div class="px-3 py-2 text-sm text-gray-400">Tidak ada slot selesai tersedia</div>';
         return;
+    }
+
+    if (currentSelesai && !availableEndSlots.includes(currentSelesai)) {
+        resetWaktuSelesai();
     }
 
     availableEndSlots.forEach(slot => {
@@ -931,6 +1014,7 @@ function selectDate() {
         year: 'numeric'
     });
 
+    refreshSlots();
     closeCalendar();
 }
 
@@ -970,7 +1054,7 @@ document.addEventListener('click', function(event) {
     }
 });
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     updateLokasi();
 
     const dateVal = document.getElementById('tanggal').value;
@@ -988,6 +1072,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const initialMulai = "{{ substr($oldMulai ?? '', 0, 5) }}";
     const initialSelesai = "{{ substr($oldSelesai ?? '', 0, 5) }}";
+
+    await refreshSlots();
 
     if (initialMulai) {
         selectWaktuMulai(initialMulai);
