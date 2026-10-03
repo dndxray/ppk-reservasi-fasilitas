@@ -8,6 +8,7 @@ use App\Models\Facility;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
 {
@@ -116,7 +117,11 @@ class ReportController extends Controller
 
         // Filter tanggal
         if ($request->filled('tanggal')) {
-            $query->whereDate('tanggal_ditemukan', $request->tanggal);
+            $tanggal = $request->tanggal;
+            $query->where(function ($q) use ($tanggal) {
+                $q->whereDate('tanggal_ditemukan', $tanggal)
+                  ->orWhereDate('created_at', $tanggal);
+            });
         }
 
         $reports = $query
@@ -224,7 +229,11 @@ class ReportController extends Controller
 
         // Filter tanggal
         if ($request->filled('tanggal')) {
-            $query->whereDate('tanggal_ditemukan', $request->tanggal);
+            $tanggal = $request->tanggal;
+            $query->where(function ($q) use ($tanggal) {
+                $q->whereDate('tanggal_ditemukan', $tanggal)
+                  ->orWhereDate('created_at', $tanggal);
+            });
         }
 
         $reports = $query->latest()->get();
@@ -306,5 +315,129 @@ class ReportController extends Controller
             'detailTanggal',
             'selisihLaporan'
         ));
+    }
+
+    // ekspor rekap laporan kerusakan ke Excel (.xls)
+    public function exportExcel()
+    {
+        if (Auth::user()->role !== 'petugas') {
+            abort(403);
+        }
+
+        $fasilitas = Facility::all();
+        $laporan = Report::selectRaw('facility_id, COUNT(*) as jumlah')
+            ->groupBy('facility_id')
+            ->pluck('jumlah', 'facility_id');
+
+        $filename = 'rekap-laporan-kerusakan.xls';
+
+        $html = '
+            <html>
+            <head>
+                <meta charset="UTF-8">
+            </head>
+            <body>
+                <table border="1">
+                    <tr style="background-color: #511E1D; color: white;">
+                        <th>Nama Fasilitas</th>
+                        <th>Tipe</th>
+                        <th>Lokasi</th>
+                        <th>Status</th>
+                        <th>Total Laporan Kerusakan</th>
+                    </tr>
+        ';
+
+        foreach ($fasilitas as $facility) {
+            $html .= '
+                    <tr>
+                        <td>' . htmlspecialchars($facility->nama_fasilitas) . '</td>
+                        <td>' . htmlspecialchars($facility->tipe) . '</td>
+                        <td>' . htmlspecialchars($facility->lokasi) . '</td>
+                        <td>' . ucfirst(str_replace('_', ' ', $facility->status)) . '</td>
+                        <td>' . ($laporan[$facility->id] ?? 0) . '</td>
+                    </tr>
+            ';
+        }
+
+        $html .= '
+                </table>
+            </body>
+            </html>
+        ';
+
+        return response($html, 200, [
+            'Content-Type' => 'application/vnd.ms-excel',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
+    }
+
+    // ekspor rekap laporan kerusakan ke PDF (.pdf)
+    public function exportPdf()
+    {
+        if (Auth::user()->role !== 'petugas') {
+            abort(403);
+        }
+
+        $fasilitas = Facility::all();
+        $laporan = Report::selectRaw('facility_id, COUNT(*) as jumlah')
+            ->groupBy('facility_id')
+            ->pluck('jumlah', 'facility_id');
+
+        $html = '
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    body { font-family: sans-serif; font-size: 11px; color: #333; }
+                    h2 { text-align: center; margin-bottom: 4px; color: #511E1D; }
+                    .subtitle { text-align: center; color: #666; margin-bottom: 20px; font-size: 10px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                    th { background-color: #511E1D; color: white; padding: 8px; text-align: left; font-size: 10px; text-transform: uppercase; }
+                    td { border: 1px solid #e2e8f0; padding: 7px; }
+                    .center { text-align: center; }
+                    .badge { padding: 3px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; display: inline-block; }
+                    .badge-aktif { background-color: #d1fae5; color: #047857; }
+                    .badge-perbaikan { background-color: #fef3c7; color: #b45309; }
+                </style>
+            </head>
+            <body>
+                <h2>REKAP LAPORAN KERUSAKAN FASILITAS</h2>
+                <div class="subtitle">Laporan Rekapitulasi Kerusakan Fasilitas oleh Petugas | Tanggal Cetak: ' . date('d M Y') . '</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nama Fasilitas</th>
+                            <th>Tipe</th>
+                            <th>Lokasi</th>
+                            <th>Status Fasilitas</th>
+                            <th style="text-align: center;">Total Laporan Kerusakan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        ';
+
+        foreach ($fasilitas as $facility) {
+            $badgeClass = $facility->status === 'aktif' ? 'badge-aktif' : 'badge-perbaikan';
+            $html .= '
+                        <tr>
+                            <td><strong>' . htmlspecialchars($facility->nama_fasilitas) . '</strong></td>
+                            <td>' . htmlspecialchars($facility->tipe) . '</td>
+                            <td>' . htmlspecialchars($facility->lokasi) . '</td>
+                            <td><span class="badge ' . $badgeClass . '">' . ucfirst(str_replace('_', ' ', $facility->status)) . '</span></td>
+                            <td class="center"><strong>' . ($laporan[$facility->id] ?? 0) . '</strong></td>
+                        </tr>
+            ';
+        }
+
+        $html .= '
+                    </tbody>
+                </table>
+            </body>
+            </html>
+        ';
+
+        return Pdf::loadHTML($html)
+            ->setPaper('a4', 'portrait')
+            ->download('rekap-laporan-kerusakan.pdf');
     }
 }
