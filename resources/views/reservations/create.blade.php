@@ -68,7 +68,7 @@
                 <div class="mb-5">
                     <label class="block text-[17px] font-bold text-black mb-2">Nama Fasilitas</label>
 
-                    <select name="facility_id" id="facility_id" required onchange="updateLokasi()"
+                    <select name="facility_id" id="facility_id" required onchange="updateLokasi(); refreshSlots()"
                             class="w-full h-12 rounded-lg bg-[#F5F0ED] border border-[#D5C6BD] px-4 text-black focus:ring-0 focus:border-[#BE433E]">
                         <option value="">Pilih fasilitas</option>
 
@@ -266,22 +266,80 @@ function isSlotPassed(slot) {
 }
 
 /* =========================
+   SLOT YANG SUDAH DIPESAN
+========================= */
+let slotTerisi = [];
+
+function terisiMap() {
+    const map = {};
+    slotTerisi.forEach(s => { map[s.mulai] = true; });
+    return map;
+}
+
+// Daftar jam selesai yang masih boleh dipilih, berhenti di jam yang sudah dipesan
+function jamSelesaiTersedia(mulai) {
+    const terisi = terisiMap();
+    const daftar = [];
+    const mulaiIndex = allTimeSlots.indexOf(mulai);
+
+    if (mulaiIndex < 0) return daftar;
+
+    for (let i = mulaiIndex; i < allTimeSlots.length - 1; i++) {
+        if (terisi[allTimeSlots[i]]) break;
+        daftar.push(allTimeSlots[i + 1]);
+    }
+
+    return daftar;
+}
+
+async function refreshSlots() {
+    const facilityId = document.getElementById('facility_id').value;
+    const tanggal = document.getElementById('tanggal').value;
+
+    slotTerisi = [];
+
+    if (facilityId && tanggal) {
+        try {
+            const res = await fetch("{{ url('/fasilitas') }}/" + facilityId + "/slots?tanggal=" + tanggal);
+            const data = await res.json();
+            slotTerisi = data.slots.filter(s => s.terisi);
+        } catch (e) {
+            slotTerisi = [];
+        }
+    }
+
+    renderMulaiMenu();
+    updateWaktuSelesaiMenu();
+}
+
+/* =========================
    DROPDOWN WAKTU MULAI
 ========================= */
 function renderMulaiMenu() {
     const menu = document.getElementById('menu_waktu_mulai');
     if (!menu) return;
 
+    const facilityId = document.getElementById('facility_id').value;
+    const tanggal = document.getElementById('tanggal').value;
+
+    if (!facilityId || !tanggal) {
+        menu.innerHTML = '<div class="px-3 py-2 text-sm text-gray-400">Pilih fasilitas dan tanggal terlebih dahulu</div>';
+        return;
+    }
+
     const current = document.getElementById('waktu_mulai').value;
+    const terisi = terisiMap();
     menu.innerHTML = '';
 
-    const available = startSlots.filter(s => !isSlotPassed(s));
+    const available = startSlots.filter(s => !isSlotPassed(s) && !terisi[s]);
     if (available.length === 0) {
         menu.innerHTML = '<div class="px-3 py-2 text-sm text-gray-400">Tidak ada slot tersedia di tanggal ini</div>';
         return;
     }
 
     startSlots.forEach(slot => {
+        if (terisi[slot]) return;
+
         const passed = isSlotPassed(slot);
         const btn = document.createElement('button');
         btn.type = 'button';
@@ -392,11 +450,16 @@ function updateWaktuSelesaiMenu(preferredSelesai = null) {
         return;
     }
 
-    const availableEndSlots = allTimeSlots.filter(slot => slot > selectedMulai);
+    const availableEndSlots = jamSelesaiTersedia(selectedMulai);
 
     if (availableEndSlots.length === 0) {
+        resetWaktuSelesai();
         menu.innerHTML = '<div class="px-3 py-2 text-sm text-gray-400">Tidak ada slot selesai tersedia</div>';
         return;
+    }
+
+    if (currentSelesai && !availableEndSlots.includes(currentSelesai)) {
+        resetWaktuSelesai();
     }
 
     availableEndSlots.forEach(slot => {
@@ -421,8 +484,7 @@ function refreshWaktuByDate() {
         resetWaktuSelesai();
     }
 
-    renderMulaiMenu();
-    updateWaktuSelesaiMenu();
+    refreshSlots();
 }
 
 /* =========================
@@ -554,6 +616,7 @@ function validateForm() {
 
     if (!mulai) return 'Pilih waktu mulai.';
     if (isSlotPassed(mulai)) return 'Waktu mulai sudah lewat. Pilih waktu yang masih tersedia.';
+    if (terisiMap()[mulai]) return 'Waktu mulai sudah dipesan. Pilih waktu lain.';
     if (!selesai) return 'Pilih waktu selesai.';
     if (selesai <= mulai) return 'Waktu selesai harus setelah waktu mulai.';
     if (!document.getElementById('tujuan_penggunaan').value.trim()) return 'Isi tujuan penggunaan.';
@@ -608,8 +671,7 @@ function resetForm() {
     updateLokasi();
     resetWaktuMulai();
     resetWaktuSelesai();
-    renderMulaiMenu();
-    updateWaktuSelesaiMenu();
+    refreshSlots();
 }
 
 document.addEventListener('click', function (event) {
@@ -620,7 +682,7 @@ document.addEventListener('click', function (event) {
     if (wrapSelesai && !wrapSelesai.contains(event.target)) closeMenuSelesai();
 });
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
     updateLokasi();
 
     const dateVal = document.getElementById('tanggal').value;
@@ -645,7 +707,7 @@ document.addEventListener('DOMContentLoaded', function () {
         resetWaktuSelesai();
     }
 
-    renderMulaiMenu();
+    await refreshSlots();
     updateWaktuSelesaiMenu(initialSelesai);
 });
 </script>
