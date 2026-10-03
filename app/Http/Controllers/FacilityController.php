@@ -28,8 +28,14 @@ class FacilityController extends Controller
                 $q->where('lokasi', 'like', '%' . $lokasi . '%');
             }
 
+            // Kapasitas minimal (orang) - untuk ruangan, aula, dll
             if ($request->filled('kapasitas_minimal')) {
-                $q->where('kapasitas', '>=', $request->kapasitas_minimal);
+                $q->where('kapasitas', '>=', (int) $request->kapasitas_minimal);
+            }
+
+            // Kuantitas minimal (unit) - untuk tipe alat
+            if ($request->filled('kuantitas_minimal')) {
+                $q->where('kuantitas', '>=', (int) $request->kuantitas_minimal);
             }
 
             if ($request->filled('cari')) {

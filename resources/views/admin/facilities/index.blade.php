@@ -76,6 +76,7 @@
                                 <th class="px-6 py-4 text-left font-bold text-[#A94438]">Fasilitas</th>
                                 <th class="px-6 py-4 text-left font-bold text-[#A94438]">Tipe</th>
                                 <th class="px-6 py-4 text-left font-bold text-[#A94438]">Kapasitas</th>
+                                <th class="px-6 py-4 text-left font-bold text-[#A94438]">Kuantitas</th>
                                 <th class="px-6 py-4 text-left font-bold text-[#A94438]">Status</th>
                                 <th class="px-6 py-4 text-center font-bold text-[#A94438]">Aksi</th>
                             </tr>
@@ -103,7 +104,12 @@
 
                                     {{-- kapasitas --}}
                                     <td class="px-6 py-5 text-gray-700 font-medium">
-                                        {{ $facility->kapasitas ?? '-' }}
+                                        {{ $facility->kapasitas ? $facility->kapasitas . ' Orang' : '-' }}
+                                    </td>
+
+                                    {{-- kuantitas --}}
+                                    <td class="px-6 py-5 text-gray-700 font-medium">
+                                        {{ $facility->kuantitas ? $facility->kuantitas . ' Unit' : '-' }}
                                     </td>
 
                                     {{-- status & warna --}}

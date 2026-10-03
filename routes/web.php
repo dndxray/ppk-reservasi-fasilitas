@@ -177,8 +177,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::post('/fasilitas', [AdminFacilityController::class, 'store'])->name('facilities.store');
     Route::get('/fasilitas/{facility}/edit', [AdminFacilityController::class, 'edit'])->name('facilities.edit');
     Route::put('/fasilitas/{facility}', [AdminFacilityController::class, 'update'])->name('facilities.update');
-    Route::patch('/fasilitas/{facility}/nonaktifkan', [AdminFacilityController::class, 'deactivate'])->name('facilities.deactivate');
-    Route::patch('/fasilitas/{facility}/aktifkan', [AdminFacilityController::class, 'activate'])->name('facilities.activate');
+    Route::patch('/fasilitas/{facility}/status', [AdminFacilityController::class, 'updateStatus'])->name('facilities.status');
 
     // ----- Rekap -----
     Route::get('/rekap', [AdminReportController::class, 'index'])->name('rekap.index');
