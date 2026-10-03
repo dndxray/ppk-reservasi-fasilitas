@@ -115,15 +115,23 @@
                     @if($aktivitasLaporan)
                         @php
                             $lapStatus = $aktivitasLaporan->status;
-                            $lapBg = match($lapStatus) {
-                                'selesai'  => 'bg-emerald-500',
-                                'ditolak'  => 'bg-red-500',
-                                'diproses' => 'bg-blue-500',
-                                default    => 'bg-yellow-500',
-                            };
+                            if ($lapStatus === 'selesai') {
+                                $targetStatus = 'selesai';
+                                $lapBg = 'bg-emerald-500';
+                            } elseif ($lapStatus === 'ditolak') {
+                                $targetStatus = 'ditolak';
+                                $lapBg = 'bg-rose-500';
+                            } elseif ($lapStatus === 'diproses') {
+                                $targetStatus = 'diproses';
+                                $lapBg = 'bg-blue-500';
+                            } else {
+                                $targetStatus = 'menunggu';
+                                $lapBg = 'bg-amber-500';
+                            }
+                            $lapUrl = route('reports.index', ['status' => $targetStatus]);
                         @endphp
 
-                        <a href="{{ route('reports.show', $aktivitasLaporan) }}"
+                        <a href="{{ $lapUrl }}"
                            class="flex items-center justify-between bg-white shadow-sm rounded-xl p-4 hover:bg-gray-50 transition">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full {{ $lapBg }} text-white flex items-center justify-center flex-shrink-0">
