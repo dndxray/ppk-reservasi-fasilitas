@@ -4,7 +4,11 @@
         $modeHasil = request()->filled('cari')
             || request()->filled('tipe')
             || request()->filled('lokasi')
-            || request()->filled('kapasitas_minimal');
+            || request()->filled('kapasitas_minimal')
+            || request()->filled('kuantitas_minimal');
+
+        // Pastikan tipe "alat" selalu ada di pilihan filter, walau belum ada datanya
+        $tipeFilter = collect($daftarTipe)->push('alat')->unique()->values();
     @endphp
 
     <div class="py-8 px-6 lg:px-10" x-data="{ showFilter: false }">
@@ -44,6 +48,7 @@
                     <input type="hidden" name="tipe" value="{{ request('tipe') }}">
                     <input type="hidden" name="lokasi" value="{{ request('lokasi') }}">
                     <input type="hidden" name="kapasitas_minimal" value="{{ request('kapasitas_minimal') }}">
+                    <input type="hidden" name="kuantitas_minimal" value="{{ request('kuantitas_minimal') }}">
                     @if(request('from'))
                         <input type="hidden" name="from" value="{{ request('from') }}">
                     @endif
@@ -146,9 +151,17 @@
                                             <span class="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
                                                 {{ ucfirst(str_replace('_', ' ', $fasilitas->tipe)) }}
                                             </span>
-                                            <span class="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
-                                                Kapasitas {{ $fasilitas->kapasitas ?? '-' }} Orang
-                                            </span>
+
+                                            {{-- alat: kuantitas (unit) | tipe lain: kapasitas (orang) --}}
+                                            @if($fasilitas->tipe === 'alat')
+                                                <span class="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
+                                                    Kuantitas {{ $fasilitas->kuantitas ?? '-' }} Unit
+                                                </span>
+                                            @else
+                                                <span class="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
+                                                    Kapasitas {{ $fasilitas->kapasitas ?? '-' }} Orang
+                                                </span>
+                                            @endif
                                             {{-- TODO: tag tambahan (AC, LCD, dll) kalau ada relasi/kolomnya --}}
                                         </div>
                                         <a href="{{ route('fasilitas.show', $fasilitas) }}"
@@ -190,7 +203,7 @@
                                 <label class="block text-sm text-gray-700 mb-1">Tipe</label>
                                 <select name="tipe" class="w-full rounded-lg border-gray-300 text-sm">
                                     <option value="">Semua Tipe</option>
-                                    @foreach($daftarTipe as $t)
+                                    @foreach($tipeFilter as $t)
                                         <option value="{{ $t }}" @selected($tipe == $t)>
                                             {{ ucfirst(str_replace('_', ' ', $t)) }}
                                         </option>
@@ -211,9 +224,16 @@
                             </div>
 
                             <div>
-                                <label class="block text-sm text-gray-700 mb-1">Kapasitas Minimal</label>
+                                <label class="block text-sm text-gray-700 mb-1">Kapasitas Minimal (Orang)</label>
                                 <input type="number" name="kapasitas_minimal" value="{{ request('kapasitas_minimal') }}"
                                        min="1" placeholder="Contoh: 30" class="w-full rounded-lg border-gray-300 text-sm">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm text-gray-700 mb-1">Kuantitas Minimal (Unit)</label>
+                                <input type="number" name="kuantitas_minimal" value="{{ request('kuantitas_minimal') }}"
+                                       min="1" placeholder="Contoh: 5" class="w-full rounded-lg border-gray-300 text-sm">
+                                <p class="mt-1 text-[11px] text-gray-400">Berlaku untuk fasilitas bertipe Alat.</p>
                             </div>
 
                             <div class="flex gap-2">
