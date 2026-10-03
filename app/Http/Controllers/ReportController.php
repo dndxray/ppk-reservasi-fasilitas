@@ -255,11 +255,6 @@ class ReportController extends Controller
             abort(403);
         }
 
-        $okupansi = Reservation::where('status', 'disetujui')
-            ->selectRaw('facility_id, COUNT(*) as jumlah_reservasi')
-            ->groupBy('facility_id')
-            ->get();
-
         $kerusakan = Report::selectRaw('facility_id, COUNT(*) as jumlah_laporan')
             ->groupBy('facility_id')
             ->get();
@@ -269,34 +264,16 @@ class ReportController extends Controller
         $rekap = [];
 
         foreach ($fasilitas as $facility) {
-            $jumlahReservasi = $okupansi->where('facility_id', $facility->id)->first();
             $jumlahLaporan = $kerusakan->where('facility_id', $facility->id)->first();
-
-            $facility->total_reservasi = $jumlahReservasi ? $jumlahReservasi->jumlah_reservasi : 0;
             $facility->total_laporan = $jumlahLaporan ? $jumlahLaporan->jumlah_laporan : 0;
 
             $rekap[] = $facility;
         }
 
-        $totalFasilitasDireservasi = $okupansi->count();
         $totalLaporanKerusakan = $kerusakan->sum('jumlah_laporan');
 
         $mulaiTanggal = now()->subDays(13)->startOfDay();
 
-        // Reservasi per hari (14 hari terakhir)
-        $reservasiHarianRaw = Reservation::where('status', 'disetujui')
-            ->where('created_at', '>=', $mulaiTanggal)
-            ->selectRaw('DATE(created_at) as tanggal, COUNT(*) as jumlah')
-            ->groupByRaw('DATE(created_at)')
-            ->pluck('jumlah', 'tanggal');
-
-        $reservasiPerHari = [];
-        for ($i = 13; $i >= 0; $i--) {
-            $tanggal = now()->subDays($i)->format('Y-m-d');
-            $reservasiPerHari[$tanggal] = $reservasiHarianRaw[$tanggal] ?? 0;
-        }
-
-        // Laporan per hari (14 hari terakhir)
         $laporanHarianRaw = Report::where('created_at', '>=', $mulaiTanggal)
             ->selectRaw('DATE(created_at) as tanggal, COUNT(*) as jumlah')
             ->groupByRaw('DATE(created_at)')
@@ -307,21 +284,6 @@ class ReportController extends Controller
             $tanggal = now()->subDays($i)->format('Y-m-d');
             $laporanPerHari[$tanggal] = $laporanHarianRaw[$tanggal] ?? 0;
         }
-
-        // Selisih bulan ini vs bulan lalu
-        $fasilitasDireservasiBulanIni = Reservation::where('status', 'disetujui')
-            ->whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
-            ->distinct('facility_id')
-            ->count('facility_id');
-
-        $fasilitasDireservasiBulanLalu = Reservation::where('status', 'disetujui')
-            ->whereMonth('created_at', now()->subMonth()->month)
-            ->whereYear('created_at', now()->subMonth()->year)
-            ->distinct('facility_id')
-            ->count('facility_id');
-
-        $selisihFasilitas = $fasilitasDireservasiBulanIni - $fasilitasDireservasiBulanLalu;
 
         $laporanBulanIni = Report::whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
@@ -348,12 +310,9 @@ class ReportController extends Controller
 
         return view('reports.rekap', compact(
             'rekap',
-            'totalFasilitasDireservasi',
             'totalLaporanKerusakan',
-            'reservasiPerHari',
             'laporanPerHari',
             'detailTanggal',
-            'selisihFasilitas',
             'selisihLaporan'
         ));
     }
