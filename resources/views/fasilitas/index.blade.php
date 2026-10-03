@@ -11,9 +11,18 @@
 
         {{-- judul + tombol tambah reservasi --}}
         <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900">Reservasi Fasilitas</h1>
-                <p class="text-[#B23A2E] text-sm mt-1">Temukan Fasilitas yang ingin Anda reservasi.</p>
+            <div class="flex items-center gap-3">
+                @if(request('from') === 'beranda' || url()->previous() === route('beranda'))
+                    <a href="{{ route('beranda') }}" class="text-[#4a1a24] hover:opacity-70 transition" aria-label="Kembali ke Beranda">
+                        <svg class="w-6 h-6 font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </a>
+                @endif
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">Reservasi Fasilitas</h1>
+                    <p class="text-[#B23A2E] text-sm mt-1">Temukan Fasilitas yang ingin Anda reservasi.</p>
+                </div>
             </div>
 
             <a href="{{ route('reservations.create') }}"
@@ -35,6 +44,9 @@
                     <input type="hidden" name="tipe" value="{{ request('tipe') }}">
                     <input type="hidden" name="lokasi" value="{{ request('lokasi') }}">
                     <input type="hidden" name="kapasitas_minimal" value="{{ request('kapasitas_minimal') }}">
+                    @if(request('from'))
+                        <input type="hidden" name="from" value="{{ request('from') }}">
+                    @endif
                     <input type="text" name="cari" value="{{ request('cari') }}"
                            placeholder="Cari Fasilitas..."
                            class="w-full px-4 py-3 bg-[#F5EFE9] border-0 rounded-lg text-sm focus:ring-2 focus:ring-[#511E1D]">
@@ -59,8 +71,8 @@
 
                     @else
 
-                        {{-- ===== MODE NORMAL: paling banyak direservasi ===== --}}
-                        <h2 class="font-semibold text-gray-800 mb-3">Paling Banyak Direservasi</h2>
+                        {{-- ===== MODE NORMAL: terakhir dilihat ===== --}}
+                        <h2 class="font-semibold text-gray-800 mb-3">Terakhir Dilihat</h2>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
                             @foreach($fasilitasPopuler as $fasilitas)
                                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">

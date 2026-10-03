@@ -84,9 +84,13 @@
                 <h2 class="font-semibold text-gray-800 mb-3">Aktivitas Terbaru</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
 
-                    @if($aktivitasReservasi)
-                        <a href="{{ route('reservations.show', $aktivitasReservasi) }}"
-                           class="flex items-center justify-between bg-white shadow-sm rounded-xl p-4 hover:bg-gray-50 transition">
+                    @if($aktivitasReservasi) 
+                        @php 
+                            $reservasiUrl = route('reservations.show', [$aktivitasReservasi->id, 'from' => 'beranda']); 
+                        @endphp 
+                    
+                        <a href="{{ $reservasiUrl }}" 
+                        class="flex items-center justify-between bg-white shadow-sm rounded-xl p-4 hover:bg-gray-50 transition">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center flex-shrink-0">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -109,23 +113,43 @@
                     @endif
 
                     @if($aktivitasLaporan)
+                        @php
+                            $lapStatus = $aktivitasLaporan->status;
+                            $lapBg = match($lapStatus) {
+                                'selesai'  => 'bg-emerald-500',
+                                'ditolak'  => 'bg-red-500',
+                                'diproses' => 'bg-blue-500',
+                                default    => 'bg-yellow-500',
+                            };
+                        @endphp
+
                         <a href="{{ route('reports.show', $aktivitasLaporan) }}"
                            class="flex items-center justify-between bg-white shadow-sm rounded-xl p-4 hover:bg-gray-50 transition">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-amber-500 text-white flex items-center justify-center flex-shrink-0">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
+                                <div class="w-10 h-10 rounded-full {{ $lapBg }} text-white flex items-center justify-center flex-shrink-0">
+                                    @if($lapStatus === 'ditolak')
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    @elseif($lapStatus === 'selesai')
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    @else
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                    @endif
                                 </div>
                                 <div>
                                     <div class="font-semibold text-gray-800 text-sm">
-                                        @if($aktivitasLaporan->status === 'selesai') Laporan telah selesai ditangani
-                                        @elseif($aktivitasLaporan->status === 'ditolak') Laporan ditolak
-                                        @elseif($aktivitasLaporan->status === 'diproses') Laporan sedang diproses
-                                        @else Laporan baru menunggu diproses
+                                        @if($lapStatus === 'selesai') Laporan telah selesai ditangani
+                                        @elseif($lapStatus === 'ditolak') Laporan ditolak
+                                        @elseif($lapStatus === 'diproses') Laporan sedang diproses
+                                        @else Laporan menunggu diproses
                                         @endif
                                     </div>
-                                    <div class="text-xs text-gray-500">Lihat detail laporan Anda</div>
+                                    <div class="text-xs text-gray-500">Lihat riwayat laporan Anda</div>
                                 </div>
                             </div>
                             <span class="text-gray-400">›</span>
@@ -135,12 +159,12 @@
                 </div>
             @endif
         @endauth
-        <!--  Fasilitas paling banyak direservasi -->
+        <!-- Fasilitas Terakhir Dilihat -->
         <div class="flex justify-between items-center mb-3">
             <h2 class="font-semibold text-gray-800" style="font-family: 'Plus Jakarta Sans', sans-serif;">
-                Fasilitas Paling Banyak Direservasi
+                Fasilitas Terakhir Dilihat
             </h2>
-            <a href="{{ route('fasilitas.index') }}" class="text-sm text-[#B23A2E] font-medium hover:underline">
+            <a href="{{ route('fasilitas.index', ['from' => 'beranda']) }}" class="text-sm text-[#B23A2E] font-medium hover:underline">
                 Lihat Semua
             </a>
         </div>
@@ -181,7 +205,7 @@
                         </div>
                         <div class="p-3 flex items-center justify-between">
                             <span class="text-xs text-gray-500">Kapasitas {{ $fasilitas->kapasitas ?? '-' }} orang</span>
-                            <a href="{{ route('fasilitas.show', $fasilitas) }}"
+                            <a href="{{ route('fasilitas.show', [$fasilitas->id, 'from' => 'beranda']) }}"
                                class="text-xs font-medium px-3 py-1.5 bg-[#4a1a24] text-white rounded-full hover:bg-[#3a141c]">
                                 Lihat Detail →
                             </a>

@@ -7,7 +7,7 @@
             {{-- tombol back & judul --}}
             <div class="mb-8">
                 <div class="flex items-center gap-3">
-                    <a href="{{ route('reports.antrian') }}" class="text-[#47201B] hover:text-[#CA734D] transition">
+                    <a href="{{ route('petugas.dashboard') }}" class="text-[#47201B] hover:text-[#CA734D] transition" title="Kembali ke Dashboard">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                         </svg>
@@ -18,18 +18,85 @@
                 </div>
             </div>
 
-            {{-- search & tombol filter --}}
-            <form method="GET" action="{{ route('reports.antrian') }}" class="flex flex-col sm:flex-row items-center gap-4 mb-8">
-                <div class="w-full sm:flex-1 relative">
-                    <input type="text" name="cari" value="{{ request('cari') }}" placeholder="Cari Nama Fasilitas" class="w-full bg-[#F5EBE9] border-0 rounded-xl px-5 py-3.5 text-sm focus:ring-[#A94438] placeholder-gray-500">
+            {{-- search + filter button with popover --}}
+            <div x-data="{ showFilter: false }" class="mb-8 relative">
+                <div class="flex items-center gap-3">
+                    {{-- Search Input Form --}}
+                    <form method="GET" action="{{ route('reports.antrian') }}" class="flex-1">
+                        <input type="hidden" name="status" value="{{ request('status') }}">
+                        <input type="hidden" name="kategori" value="{{ request('kategori') }}">
+                        <input type="hidden" name="tanggal" value="{{ request('tanggal') }}">
+                        <input type="text" name="cari" value="{{ request('cari') }}"
+                               placeholder="Cari fasilitas, pelapor, atau kategori..."
+                               class="w-full px-4 py-3 bg-[#F5EFE9] border-0 rounded-lg text-sm focus:ring-2 focus:ring-[#511E1D]">
+                    </form>
+
+                    {{-- Tombol Filter + Popover Floating --}}
+                    <div class="relative">
+                        <button type="button" @click="showFilter = !showFilter"
+                                class="inline-flex items-center gap-2 px-5 py-3 bg-[#4a1a24] text-white text-sm font-medium rounded-lg hover:bg-[#3a141c] transition whitespace-nowrap">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M3 4h18M6 8h12M9 12h6M11 16h2" />
+                            </svg>
+                            Filter
+                            @if(request()->filled('status') || request()->filled('kategori') || request()->filled('tanggal'))
+                                <span class="w-2 h-2 bg-amber-400 rounded-full"></span>
+                            @endif
+                        </button>
+
+                        {{-- Floating Popover Card --}}
+                        <div x-show="showFilter" x-transition x-cloak @click.outside="showFilter = false"
+                             class="absolute right-0 top-full mt-2 z-30 w-72 sm:w-80 bg-white shadow-2xl rounded-2xl p-5 border border-gray-100">
+                            <form method="GET" action="{{ route('reports.antrian') }}" class="space-y-4">
+                                <input type="hidden" name="cari" value="{{ request('cari') }}">
+
+                                {{-- Status Proses --}}
+                                <div>
+                                    <label class="block text-sm text-gray-700 mb-1 font-medium">Status</label>
+                                    <select name="status" class="w-full rounded-lg border-gray-300 text-sm focus:ring-2 focus:ring-[#511E1D] focus:border-[#511E1D]">
+                                        <option value="">Semua Status</option>
+                                        <option value="menunggu" @selected(request('status') === 'menunggu' || request('status') === 'baru')>Menunggu</option>
+                                        <option value="selesai" @selected(request('status') === 'selesai')>Selesai</option>
+                                        <option value="diproses" @selected(request('status') === 'diproses')>Diproses</option>
+                                        <option value="ditolak" @selected(request('status') === 'ditolak')>Ditolak</option>
+                                    </select>
+                                </div>
+
+                                {{-- Kategori --}}
+                                <div>
+                                    <label class="block text-sm text-gray-700 mb-1 font-medium">Kategori</label>
+                                    <select name="kategori" class="w-full rounded-lg border-gray-300 text-sm focus:ring-2 focus:ring-[#511E1D] focus:border-[#511E1D]">
+                                        <option value="">Semua Kategori</option>
+                                        @foreach(($daftarKategori ?? []) as $kat)
+                                            <option value="{{ $kat }}" @selected(request('kategori') === $kat)>
+                                                {{ $kat }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                {{-- Tanggal Ditemukan --}}
+                                <div>
+                                    <label class="block text-sm text-gray-700 mb-1 font-medium">Tanggal Ditemukan</label>
+                                    <input type="date" name="tanggal" value="{{ request('tanggal') }}"
+                                           class="w-full rounded-lg border-gray-300 text-sm focus:ring-2 focus:ring-[#511E1D] focus:border-[#511E1D]">
+                                </div>
+
+                                {{-- Tombol Aksi --}}
+                                <div class="flex items-center gap-2 pt-1">
+                                    <button type="submit" class="px-5 py-2.5 bg-[#4a1a24] text-white text-sm font-medium rounded-xl hover:bg-[#3a141c] transition">
+                                        Terapkan
+                                    </button>
+                                    <a href="{{ route('reports.antrian') }}" class="px-5 py-2.5 border border-gray-300 text-sm font-medium rounded-xl hover:bg-gray-50 transition text-gray-700">
+                                        Reset
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
-                <button type="submit" class="w-full sm:w-auto bg-[#511E1D] hover:bg-[#3B1514] transition text-white px-8 py-3.5 rounded-xl font-medium flex items-center justify-center gap-2 text-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                    </svg>
-                    Filter
-                </button>
-            </form>
+            </div>
 
             {{-- kartu tabel utama --}}
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -89,61 +156,39 @@
                                         {{-- status & warna badge --}}
                                         <td class="px-6 py-5">
                                             @php
-                                                // status default
                                                 $statusText = 'Menunggu';
-                                                $statusColor = 'text-yellow-500';
+                                                $statusColor = 'text-yellow-600';
                                                 $dotColor = 'bg-yellow-500';
 
-                                                // status kalau selesai atau ditolak
-                                                if ($report->status === 'selesai') {
+                                                if ($report->status === 'diproses') {
+                                                    $statusText = 'Diproses';
+                                                    $statusColor = 'text-blue-600';
+                                                    $dotColor = 'bg-blue-500';
+                                                } elseif ($report->status === 'selesai') {
                                                     $statusText = 'Selesai';
-                                                    $statusColor = 'text-green-500';
+                                                    $statusColor = 'text-green-600';
                                                     $dotColor = 'bg-green-500';
                                                 } elseif ($report->status === 'ditolak') {
                                                     $statusText = 'Ditolak';
-                                                    $statusColor = 'text-red-500';
+                                                    $statusColor = 'text-red-600';
                                                     $dotColor = 'bg-red-500';
                                                 }
                                             @endphp
                                             <div class="flex items-center gap-2">
-                                                 <div class="w-2 h-2 rounded-full {{ $dotColor }}"></div>
+                                                <div class="w-2 h-2 rounded-full {{ $dotColor }}"></div>
                                                 <span class="text-sm font-medium {{ $statusColor }}">{{ $statusText }}</span>
                                             </div>
                                         </td>
 
-                                        {{-- tombol aksi --}}
-                                        <td class="px-6 py-5">
-                                            <div class="flex items-center justify-center gap-2">
-                                                
-                                                @if(in_array($report->status, ['baru', 'diproses']))
-                                                    {{-- tombol terima --}}
-                                                    <a href="{{ route('reports.show', $report) }}" class="w-8 h-8 flex items-center justify-center rounded bg-green-100 text-green-600 hover:bg-green-200 transition" title="Terima / Proses Laporan">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                                        </svg>
-                                                    </a>
-                                                    {{-- tombol tolak --}}
-                                                    <a href="{{ route('reports.show', $report) }}" class="w-8 h-8 flex items-center justify-center rounded bg-red-100 text-red-600 hover:bg-red-200 transition" title="Tolak Laporan">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                                        </svg>
-                                                    </a>
-                                                @else
-                                                    {{-- tombol hapus --}}
-                                                    <a href="{{ route('reports.show', $report) }}" class="w-8 h-8 flex items-center justify-center rounded bg-red-50 text-red-400 hover:bg-red-100 transition" title="Hapus Laporan">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                    </a>
-                                                @endif
-                                                
-                                                {{-- tombol detail --}}
-                                                <a href="{{ route('reports.show', $report) }}" class="w-8 h-8 flex items-center justify-center rounded text-gray-400 hover:bg-gray-100 transition" title="Lihat Detail">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                                                    </svg>
-                                                </a>
-                                            </div>
+                                        {{-- tombol aksi: lihat detail (outline ghost) --}}
+                                        <td class="px-6 py-5 text-center">
+                                            <a href="{{ route('reports.show', $report) }}"
+                                               class="group inline-flex items-center justify-center gap-1.5 px-4 py-2 border border-[#A94438] text-[#A94438] hover:bg-[#A94438] hover:text-white active:bg-[#8F352B] active:border-[#8F352B] text-xs font-semibold rounded-xl shadow-xs hover:shadow transition duration-150 ease-in-out whitespace-nowrap">
+                                                <span>Lihat Detail</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 transition-transform duration-150 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                                </svg>
+                                            </a>
                                         </td>
 
                                     </tr>
@@ -152,34 +197,64 @@
                         </table>
                         
                         {{-- nomor halaman --}}
+                        @php
+                            $perPage = 10;
+                            $totalData = $reports->count();
+                            $totalPages = max(1, (int) ceil($totalData / $perPage));
+                        @endphp
                         <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between text-sm text-[#A94438]">
-                            <p>Menampilkan {{ $reports->count() }} dari {{ $reports->count() }} data</p>
+                            <p>Menampilkan {{ $totalData }} dari {{ $totalData }} data</p>
                             
                             <div class="flex items-center gap-2">
-                                <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-gray-600">&lt;</button>
-                                <button class="w-7 h-7 flex items-center justify-center rounded bg-[#8A3B3B] text-white">1</button>
-                                <button class="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded">2</button>
-                                <button class="w-7 h-7 flex items-center justify-center text-gray-500 hover:bg-gray-100 rounded">3</button>
-                                <button class="w-7 h-7 flex items-center justify-center text-gray-400 hover:text-gray-600">&gt;</button>
+                                <button type="button" disabled class="w-7 h-7 flex items-center justify-center text-gray-300 cursor-not-allowed select-none">&lt;</button>
+                                <button type="button" class="w-7 h-7 flex items-center justify-center rounded bg-[#A94438] text-white font-medium cursor-default">1</button>
+                                @if($totalPages >= 2)
+                                    <button type="button" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded cursor-pointer transition">2</button>
+                                @else
+                                    <button type="button" disabled class="w-7 h-7 flex items-center justify-center text-gray-300 cursor-not-allowed select-none">2</button>
+                                @endif
+                                @if($totalPages >= 3)
+                                    <button type="button" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded cursor-pointer transition">3</button>
+                                @else
+                                    <button type="button" disabled class="w-7 h-7 flex items-center justify-center text-gray-300 cursor-not-allowed select-none">3</button>
+                                @endif
+                                @if($totalPages > 1)
+                                    <button type="button" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded cursor-pointer transition">&gt;</button>
+                                @else
+                                    <button type="button" disabled class="w-7 h-7 flex items-center justify-center text-gray-300 cursor-not-allowed select-none">&gt;</button>
+                                @endif
                             </div>
                         </div>
                     </div>
 
                 @else
 
-                    {{-- tampilan kalau datanya kosong --}}
+                    {{-- tampilan kalau datanya kosong / filter tidak cocok --}}
                     <div class="px-6 py-16 text-center">
                         <div class="mx-auto w-14 h-14 flex items-center justify-center rounded-full bg-[#F5EBE9] mb-4">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-[#A94438]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h4m2-10h.01M5 5h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"/>
                             </svg>
                         </div>
-                        <h3 class="text-base font-semibold text-gray-800">
-                            Belum Ada Laporan
-                        </h3>
-                        <p class="mt-1 text-sm text-gray-500">
-                            Belum ada laporan kerusakan yang masuk.
-                        </p>
+                        @if(request()->hasAny(['cari', 'status', 'kategori', 'tanggal']))
+                            <h3 class="text-base font-semibold text-gray-800">
+                                Laporan Tidak Ditemukan
+                            </h3>
+                            <p class="mt-1 text-sm text-gray-500">
+                                Tidak ada laporan kerusakan yang sesuai dengan kriteria filter pencarian Anda.
+                            </p>
+                            <a href="{{ route('reports.antrian') }}"
+                               class="inline-flex mt-5 px-5 py-2.5 bg-[#4a1a24] text-white text-sm font-semibold rounded-lg hover:bg-[#3a141c] transition">
+                                Reset Filter
+                            </a>
+                        @else
+                            <h3 class="text-base font-semibold text-gray-800">
+                                Belum Ada Laporan
+                            </h3>
+                            <p class="mt-1 text-sm text-gray-500">
+                                Belum ada laporan kerusakan yang masuk.
+                            </p>
+                        @endif
                     </div>
 
                 @endif

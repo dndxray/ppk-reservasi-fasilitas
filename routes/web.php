@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\FacilityController as AdminFacilityController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\FacilityController;
+use App\Http\Controllers\Petugas\DashboardController as PetugasDashboardController;
 use App\Http\Controllers\Petugas\ReservationController as PetugasReservationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportController;
@@ -25,10 +26,18 @@ Route::get('/', function () {
         return redirect()->route('dashboard');
     }
 
-    $daftarFasilitas = Facility::where('status', 'aktif')
-        ->orderBy('nama_fasilitas')
-        ->take(6)
-        ->get();
+    $recentlyViewed = session('recently_viewed_facilities', []);
+    if (!empty($recentlyViewed)) {
+        $daftarFasilitas = Facility::whereIn('id', $recentlyViewed)
+            ->where('status', 'aktif')
+            ->get()
+            ->sortBy(fn($item) => array_search($item->id, $recentlyViewed));
+    } else {
+        $daftarFasilitas = Facility::where('status', 'aktif')
+            ->orderBy('nama_fasilitas')
+            ->take(6)
+            ->get();
+    }
 
     return view('beranda', compact('daftarFasilitas'))
         ->with('aktivitasReservasi', null)
@@ -46,10 +55,18 @@ Route::get('/dashboard', function () {
         return redirect()->route('petugas.dashboard');
     }
 
-    $daftarFasilitas = Facility::where('status', 'aktif')
-        ->orderBy('nama_fasilitas')
-        ->take(6)
-        ->get();
+    $recentlyViewed = session('recently_viewed_facilities', []);
+    if (!empty($recentlyViewed)) {
+        $daftarFasilitas = Facility::whereIn('id', $recentlyViewed)
+            ->where('status', 'aktif')
+            ->get()
+            ->sortBy(fn($item) => array_search($item->id, $recentlyViewed));
+    } else {
+        $daftarFasilitas = Facility::where('status', 'aktif')
+            ->orderBy('nama_fasilitas')
+            ->take(6)
+            ->get();
+    }
 
     $aktivitasReservasi = Reservation::where('user_id', $user->id)->latest()->first();
     $aktivitasLaporan   = Report::where('user_id', $user->id)->latest()->first();
@@ -109,7 +126,7 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware('auth')->prefix('petugas')->name('petugas.')->group(function () {
 
-    Route::get('/dashboard', fn () => view('petugas.dashboard'))->name('dashboard');
+    Route::get('/dashboard', [PetugasDashboardController::class, 'index'])->name('dashboard');
 
     // ----- Reservasi -----
     Route::get('/reservations/queue', [PetugasReservationController::class, 'index'])->name('reservations.queue');

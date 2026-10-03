@@ -9,7 +9,12 @@
     <div class="py-6 px-6 lg:px-10" x-data="{ showLoginModal: false }">
 
         <div class="-mx-6 lg:-mx-10 -mt-6 px-6 lg:px-10 py-5 bg-[#F5F0ED] flex items-center gap-3 mb-6">
-            <a href="{{ route('fasilitas.index') }}" class="text-[#4a1a24] hover:opacity-70">
+            @php
+                $backUrl = (request('from') === 'beranda' || url()->previous() === route('beranda'))
+                    ? route('beranda')
+                    : route('fasilitas.index');
+            @endphp
+            <a href="{{ $backUrl }}" class="text-[#4a1a24] hover:opacity-70" aria-label="Kembali">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
