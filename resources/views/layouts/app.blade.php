@@ -38,13 +38,19 @@
             justify-content: center !important;
         }
 
-        /* Transisi konten halaman halus tanpa loncatan vertikal */
+        /* Transisi konten halaman halus & seamless */
         .page-transition {
-            animation: fadeIn 0.15s ease-out forwards;
+            animation: pageSmoothFade 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to   { opacity: 1; }
+        @keyframes pageSmoothFade {
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>

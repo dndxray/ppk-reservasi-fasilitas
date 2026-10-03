@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Reservation;
 use App\Models\Report;
 use App\Models\Facility;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
@@ -235,5 +237,74 @@ class ReportController extends Controller
             ->values();
 
         return view('reports.antrian', compact('reports', 'daftarKategori'));
+    }
+
+    // rekap laporan kerusakan untuk petugas
+    public function rekap()
+    {
+        if (Auth::user()->role !== 'petugas') {
+            abort(403);
+        }
+
+        $kerusakan = Report::selectRaw('facility_id, COUNT(*) as jumlah_laporan')
+            ->groupBy('facility_id')
+            ->get();
+
+        $fasilitas = Facility::all();
+
+        $rekap = [];
+
+        foreach ($fasilitas as $facility) {
+            $jumlahLaporan = $kerusakan->where('facility_id', $facility->id)->first();
+            $facility->total_laporan = $jumlahLaporan ? $jumlahLaporan->jumlah_laporan : 0;
+
+            $rekap[] = $facility;
+        }
+
+        $totalLaporanKerusakan = $kerusakan->sum('jumlah_laporan');
+
+        $mulaiTanggal = now()->subDays(13)->startOfDay();
+
+        $laporanHarianRaw = Report::where('created_at', '>=', $mulaiTanggal)
+            ->selectRaw('DATE(created_at) as tanggal, COUNT(*) as jumlah')
+            ->groupByRaw('DATE(created_at)')
+            ->pluck('jumlah', 'tanggal');
+
+        $laporanPerHari = [];
+        for ($i = 13; $i >= 0; $i--) {
+            $tanggal = now()->subDays($i)->format('Y-m-d');
+            $laporanPerHari[$tanggal] = $laporanHarianRaw[$tanggal] ?? 0;
+        }
+
+        $laporanBulanIni = Report::whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+
+        $laporanBulanLalu = Report::whereMonth('created_at', now()->subMonth()->month)
+            ->whereYear('created_at', now()->subMonth()->year)
+            ->count();
+
+        $selisihLaporan = $laporanBulanIni - $laporanBulanLalu;
+
+        $laporanDetailPerTanggal = Report::selectRaw('facility_id, DATE(created_at) as tanggal, COUNT(*) as jumlah')
+            ->groupBy('facility_id', DB::raw('DATE(created_at)'))
+            ->get();
+
+        $detailTanggal = [];
+        foreach ($laporanDetailPerTanggal as $item) {
+            $tgl = $item->tanggal;
+            if (!isset($detailTanggal[$tgl])) {
+                $detailTanggal[$tgl] = [];
+            }
+            $detailTanggal[$tgl][$item->facility_id] = (int) $item->jumlah;
+        }
+
+        return view('reports.rekap', compact(
+            'rekap',
+            'totalLaporanKerusakan',
+            'laporanPerHari',
+            'detailTanggal',
+            'selisihLaporan'
+        ));
     }
 }

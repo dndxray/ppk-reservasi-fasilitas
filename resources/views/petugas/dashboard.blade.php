@@ -21,7 +21,7 @@
                 </div>
             </div>
 
-            {{-- 2 Kartu Utama: Reservasi & Laporan Kerusakan --}}
+            {{-- Kartu Utama: Reservasi & Laporan Kerusakan --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-7">
 
                 {{-- KARTU 1: RESERVASI --}}
@@ -217,7 +217,69 @@
 
             </div>
 
-        </div>
+            {{-- KARTU 3: TABEL RANGKUMAN REKAP LAPORAN --}}
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-7 mt-6 sm:mt-7 flex flex-col hover:shadow-md transition">
+                
+                {{-- Header Kartu --}}
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-4">
+                        <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-[#511E1D] flex items-center justify-center shrink-0 shadow-xs">
+                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                      d="M9 17v1a3 3 0 106 0v-1m-6 0a3 3 0 006 0m-6 0h6m-6-5h6m-6-5h6M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-lg sm:text-xl font-bold text-[#47201B] tracking-tight"
+                                style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                                Rangkuman Rekap Fasilitas & Laporan
+                            </h2>
+                            <p class="text-xs sm:text-sm text-gray-500 mt-0.5">
+                                Pratinjau data fasilitas dengan reservasi dan laporan terbanyak.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    {{-- Tombol Lihat Semua --}}
+                    <div>
+                        <a href="{{ route('reports.rekap') }}"
+                           class="px-6 py-2.5 bg-[#BA3D34] hover:bg-[#9E3129] active:bg-[#782c23] text-white text-sm font-semibold rounded-xl transition duration-150 shadow-xs hover:shadow flex items-center gap-2">
+                            <span>Lihat Semua</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                        </a>
+                    </div>
+                </div>
+
+                {{-- Tabel --}}
+                <div class="overflow-x-auto rounded-xl border border-gray-100">
+                    <table class="w-full text-sm text-left text-gray-600">
+                        <thead class="bg-[#511E1D] text-white text-xs uppercase font-semibold">
+                            <tr>
+                                <th class="px-5 py-3 rounded-tl-xl">Fasilitas</th>
+                                <th class="px-5 py-3">Lokasi</th>
+                                <th class="px-5 py-3 text-center rounded-tr-xl">Total Laporan Kerusakan</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @foreach ($rekapDashboard as $facility)
+                                <tr class="hover:bg-gray-50/50 transition">
+                                    <td class="px-5 py-3.5 font-medium text-gray-900">{{ $facility->nama_fasilitas }}</td>
+                                    <td class="px-5 py-3.5">{{ $facility->lokasi }}</td>
+                                    <td class="px-5 py-3.5 text-center font-semibold text-gray-800">
+                                        {{ $facility->total_laporan }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                            @if(count($rekapDashboard) === 0)
+                                <tr>
+                                    <td colspan="3" class="px-5 py-8 text-center text-gray-500">Belum ada data fasilitas.</td>
+                                </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
 
     </div>
 

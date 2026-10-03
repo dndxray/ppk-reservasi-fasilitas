@@ -96,6 +96,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
     // ----- Pelaporan kerusakan (petugas) -----
+    Route::get('/reports/rekap', [ReportController::class, 'rekap'])->name('reports.rekap');
     Route::get('/reports/antrian', [ReportController::class, 'antrian'])->name('reports.antrian'); // sebelum {report}
     Route::get('/reports/{report}', [ReportController::class, 'show'])->name('reports.show');
     Route::patch('/reports/{report}', [ReportController::class, 'updateStatus'])->name('reports.updateStatus');
