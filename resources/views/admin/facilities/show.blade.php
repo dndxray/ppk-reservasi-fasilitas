@@ -1,7 +1,15 @@
 <x-app-layout>
     @php
-        $nonaktif    = $facility->status === 'nonaktif';
         $pesanSukses = session('success') ?? session('status');
+
+        // Tipe "alat" memakai kuantitas (unit); tipe lain memakai kapasitas (orang)
+        $isAlat = $facility->tipe === 'alat';
+
+        $opsiStatus = [
+            'aktif'           => 'Aktif',
+            'dalam_perbaikan' => 'Dalam Perbaikan',
+            'nonaktif'        => 'Nonaktif',
+        ];
     @endphp
 
     <div class="min-h-screen bg-[#F8F7F7]">
@@ -89,12 +97,24 @@
                             </svg>
                             {{ $facility->lokasi }}
                         </p>
-                        <p class="flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                            {{ $facility->kapasitas ?? '-' }} Orang
-                        </p>
+
+                        {{-- alat: kuantitas (unit) | tipe lain: kapasitas (orang) --}}
+                        @if ($isAlat)
+                            <p class="flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                                <span>Kuantitas: {{ $facility->kuantitas ?? '-' }} Unit</span>
+                            </p>
+                        @else
+                            <p class="flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                <span>Kapasitas: {{ $facility->kapasitas ?? '-' }} Orang</span>
+                            </p>
+                        @endif
+
                         <p class="text-xs text-gray-500">Tipe: {{ $facility->tipeLabel() }}</p>
                     </div>
 
@@ -104,45 +124,38 @@
                 </div>
             </div>
 
-            {{-- pengaturan fasilitas: aktifkan / nonaktifkan --}}
+            {{-- pengaturan fasilitas: ubah status lewat dropdown --}}
             <div class="rounded-2xl bg-white p-6 sm:p-8 shadow-sm border border-gray-100">
-                <h2 class="mb-4 text-lg font-bold text-[#47201B]">Pengaturan Fasilitas</h2>
+                <h2 class="text-lg font-bold text-[#47201B]">Status Fasilitas</h2>
+                <p class="mt-1 mb-6 text-sm text-gray-500">
+                    Pilih status baru lalu klik "Perbarui Status". Data fasilitas tidak dihapus saat status diubah.
+                </p>
 
-                @if ($nonaktif)
-                    <h3 class="text-xl font-medium text-gray-900">Aktifkan Fasilitas</h3>
-                    <p class="mt-2 mb-6 text-base text-gray-500">
-                        Fasilitas ini sedang nonaktif, sehingga tidak dapat dipesan.
-                        Aktifkan kembali agar fasilitas dapat dipesan lagi.
-                    </p>
+                <form id="form-status" action="{{ route('admin.facilities.status', $facility) }}" method="POST"
+                      class="flex flex-col sm:flex-row sm:items-end gap-4">
+                    @csrf
+                    @method('PATCH')
 
-                    <form id="form-aktifkan" action="{{ route('admin.facilities.activate', $facility) }}" method="POST" class="hidden">
-                        @csrf
-                        @method('PATCH')
-                    </form>
+                    <div class="w-full sm:max-w-xs">
+                        <label for="status-select" class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                        <select id="status-select" name="status" data-awal="{{ $facility->status }}"
+                                class="w-full rounded-xl border border-[#E6D6CE] bg-[#F5EFE9] px-4 py-3 text-base text-gray-900 focus:border-[#511E1D] focus:ring-2 focus:ring-[#511E1D]">
+                            @foreach ($opsiStatus as $nilai => $label)
+                                <option value="{{ $nilai }}" @selected($facility->status === $nilai)>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        @error('status')
+                            <p class="mt-2 text-sm font-medium text-[#9B0000]">{{ $message }}</p>
+                        @enderror
+                    </div>
 
-                    <button type="button"
-                            data-modal-open="modal-aktifkan"
-                            class="rounded-xl bg-[#166534] px-6 py-3 text-base font-semibold text-white hover:bg-[#14532D] transition">
-                        Aktifkan Fasilitas
+                    <button type="button" id="btn-ubah-status" disabled
+                            class="rounded-xl bg-[#C0453F] px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-[#A83B32] transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#C0453F]">
+                        Perbarui Status
                     </button>
-                @else
-                    <h3 class="text-xl font-medium text-gray-900">Nonaktifkan Fasilitas</h3>
-                    <p class="mt-2 mb-6 text-base text-gray-500">
-                        Fasilitas tidak akan bisa dipesan selama nonaktif.
-                        Data fasilitas tidak dihapus dan bisa diaktifkan kembali kapan saja.
-                    </p>
+                </form>
 
-                    <form id="form-nonaktif" action="{{ route('admin.facilities.deactivate', $facility) }}" method="POST" class="hidden">
-                        @csrf
-                        @method('PATCH')
-                    </form>
-
-                    <button type="button"
-                            data-modal-open="modal-nonaktif"
-                            class="rounded-xl bg-[#B91C1C] px-6 py-3 text-base font-semibold text-white hover:bg-[#991B1B] transition">
-                        Nonaktifkan Fasilitas
-                    </button>
-                @endif
+                <p id="keterangan-status" class="mt-4 text-sm text-gray-500"></p>
             </div>
 
             {{-- riwayat reservasi fasilitas ini --}}
@@ -246,123 +259,107 @@
         </div>
     </div>
 
-    @if ($nonaktif)
-        {{-- Popup konfirmasi aktifkan --}}
-        <div id="modal-aktifkan" data-modal data-form="form-aktifkan"
-             class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4"
-             role="dialog" aria-modal="true" aria-labelledby="judul-aktifkan">
+    {{-- Popup konfirmasi ubah status --}}
+    <div id="modal-status"
+         class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4"
+         role="dialog" aria-modal="true" aria-labelledby="judul-status">
 
-            <div class="relative w-full max-w-md rounded-3xl bg-white px-8 pt-16 pb-8 shadow-2xl">
-                <button type="button" data-modal-close
-                        class="absolute top-5 right-5 text-black hover:text-[#7B1E1E] transition"
-                        aria-label="Tutup">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18" />
-                    </svg>
+        <div class="relative w-full max-w-md rounded-3xl bg-white px-8 pt-16 pb-8 shadow-2xl">
+            <button type="button" id="modal-tutup"
+                    class="absolute top-5 right-5 text-black hover:text-[#7B1E1E] transition"
+                    aria-label="Tutup">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18" />
+                </svg>
+            </button>
+
+            <h2 id="judul-status" class="text-center text-2xl font-bold leading-snug text-black">
+                Anda yakin ingin mengubah status fasilitas ini?
+            </h2>
+
+            <p class="mt-3 text-center text-sm text-gray-500">
+                Status {{ $facility->nama_fasilitas }} akan diubah menjadi
+                <span id="modal-status-label" class="font-semibold text-gray-800"></span>.
+            </p>
+
+            <div class="mt-8 grid grid-cols-2 gap-4">
+                <button type="button" id="modal-batal"
+                        class="h-14 rounded-2xl bg-[#7B3A36] text-base font-bold text-white shadow-md hover:bg-[#5F1717] transition">
+                    Batal
                 </button>
 
-                <h2 id="judul-aktifkan" class="text-center text-2xl font-bold leading-snug text-black">
-                    Anda yakin ingin mengaktifkan fasilitas ini?
-                </h2>
-
-                <p class="mt-3 text-center text-sm text-gray-500">
-                    {{ $facility->nama_fasilitas }} akan dapat dipesan kembali setelah diaktifkan.
-                </p>
-
-                <div class="mt-8 grid grid-cols-2 gap-4">
-                    <button type="button" data-modal-close
-                            class="h-14 rounded-2xl bg-[#7B3A36] text-base font-bold text-white shadow-md hover:bg-[#5F1717] transition">
-                        Batal
-                    </button>
-
-                    <button type="button" data-modal-confirm
-                            class="h-14 rounded-2xl bg-[#F5F0F7] text-base font-bold text-black shadow-md hover:bg-[#EAE0EE] transition">
-                        Ya, Aktifkan
-                    </button>
-                </div>
-            </div>
-        </div>
-    @else
-        {{-- Popup konfirmasi nonaktifkan --}}
-        <div id="modal-nonaktif" data-modal data-form="form-nonaktif"
-             class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4"
-             role="dialog" aria-modal="true" aria-labelledby="judul-nonaktif">
-
-            <div class="relative w-full max-w-md rounded-3xl bg-white px-8 pt-16 pb-8 shadow-2xl">
-                <button type="button" data-modal-close
-                        class="absolute top-5 right-5 text-black hover:text-[#7B1E1E] transition"
-                        aria-label="Tutup">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18" />
-                    </svg>
+                <button type="button" id="modal-ya"
+                        class="h-14 rounded-2xl bg-[#F5F0F7] text-base font-bold text-black shadow-md hover:bg-[#EAE0EE] transition">
+                    Ya, Ubah
                 </button>
-
-                <h2 id="judul-nonaktif" class="text-center text-2xl font-bold leading-snug text-black">
-                    Anda yakin ingin menonaktifkan fasilitas ini?
-                </h2>
-
-                <p class="mt-3 text-center text-sm text-gray-500">
-                    {{ $facility->nama_fasilitas }} tidak akan bisa dipesan sampai diaktifkan kembali.
-                </p>
-
-                <div class="mt-8 grid grid-cols-2 gap-4">
-                    <button type="button" data-modal-close
-                            class="h-14 rounded-2xl bg-[#7B3A36] text-base font-bold text-white shadow-md hover:bg-[#5F1717] transition">
-                        Batal
-                    </button>
-
-                    <button type="button" data-modal-confirm
-                            class="h-14 rounded-2xl bg-[#F5F0F7] text-base font-bold text-black shadow-md hover:bg-[#EAE0EE] transition">
-                        Ya, Nonaktifkan
-                    </button>
-                </div>
             </div>
         </div>
-    @endif
+    </div>
 
     <script>
         (function () {
-            function buka(modal) {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                // Fokus ke tombol Batal (tombol tutup terakhir di dalam popup)
-                const tombolTutup = modal.querySelectorAll('[data-modal-close]');
-                if (tombolTutup.length) tombolTutup[tombolTutup.length - 1].focus();
+            const form      = document.getElementById('form-status');
+            const select    = document.getElementById('status-select');
+            const btnUbah   = document.getElementById('btn-ubah-status');
+            const modal     = document.getElementById('modal-status');
+            const labelBaru = document.getElementById('modal-status-label');
+            const btnYa     = document.getElementById('modal-ya');
+            const catatan   = document.getElementById('keterangan-status');
+            const awal      = select.dataset.awal;
+
+            const keterangan = {
+                aktif:           'Fasilitas tampil dan dapat dipesan oleh pengguna.',
+                dalam_perbaikan: 'Fasilitas sedang diperbaiki dan tidak dapat dipesan.',
+                nonaktif:        'Fasilitas dinonaktifkan dan tidak dapat dipesan.'
+            };
+
+            function perbarui() {
+                btnUbah.disabled = (select.value === awal);
+                catatan.textContent = keterangan[select.value] || '';
             }
 
-            function tutup(modal) {
+            function buka() {
+                labelBaru.textContent = select.options[select.selectedIndex].text;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.getElementById('modal-batal').focus();
+            }
+
+            function tutup() {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
             }
 
-            document.querySelectorAll('[data-modal-open]').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    const modal = document.getElementById(btn.dataset.modalOpen);
-                    if (modal) buka(modal);
-                });
+            select.addEventListener('change', perbarui);
+            btnUbah.addEventListener('click', buka);
+            document.getElementById('modal-batal').addEventListener('click', tutup);
+            document.getElementById('modal-tutup').addEventListener('click', tutup);
+
+            btnYa.addEventListener('click', function () {
+                this.disabled = true;
+                this.textContent = 'Memproses...';
+                form.submit();
             });
 
-            document.querySelectorAll('[data-modal]').forEach(function (modal) {
-                modal.querySelectorAll('[data-modal-close]').forEach(function (btn) {
-                    btn.addEventListener('click', function () { tutup(modal); });
-                });
-
-                modal.querySelector('[data-modal-confirm]').addEventListener('click', function () {
-                    this.disabled = true;
-                    this.textContent = 'Memproses...';
-                    document.getElementById(modal.dataset.form).submit();
-                });
-
-                // Klik area gelap di luar kartu = tutup
-                modal.addEventListener('click', function (e) {
-                    if (e.target === modal) tutup(modal);
-                });
+            // Klik area gelap di luar kartu = tutup
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) tutup();
             });
 
             document.addEventListener('keydown', function (e) {
-                if (e.key !== 'Escape') return;
-                document.querySelectorAll('[data-modal]').forEach(tutup);
+                if (e.key === 'Escape' && !modal.classList.contains('hidden')) tutup();
             });
+
+            // Kalau kembali lewat tombol "Kembali" browser, pulihkan kondisi awal
+            window.addEventListener('pageshow', function () {
+                select.value = awal;
+                btnYa.disabled = false;
+                btnYa.textContent = 'Ya, Ubah';
+                tutup();
+                perbarui();
+            });
+
+            perbarui();
         })();
     </script>
 </x-app-layout>
