@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -116,15 +117,25 @@ class UserController extends Controller
             ->route('admin.petugas.show', $user)
             ->with('success', 'Akun petugas berhasil diaktifkan kembali.');
     }
-    
+
     // Mendaftarkan petugas
-// Mendaftarkan petugas
-public function storeStaff(Request $request)
+    public function storeStaff(Request $request)
     {
+        // Samakan format nomor telepon sebelum divalidasi
+        // (0812..., 62812..., +62812... -> 0812...)
+        $request->merge([
+            'no_telepon' => User::normalisasiTelepon($request->input('no_telepon')),
+        ]);
+
         $validated = $request->validate([
             'name'       => 'required|string|min:3|max:255',
             'email'      => 'required|email|max:255|unique:users,email',
-            'no_telepon' => ['required', 'string', 'max:20', 'regex:/^(\+62|62|0)8[1-9][0-9]{7,10}$/'],
+            'no_telepon' => [
+                'required',
+                'string',
+                'regex:/^08[1-9][0-9]{7,10}$/',
+                Rule::unique('users', 'no_telepon'),
+            ],
             'password'   => 'required|string|min:8|confirmed',
         ], [
             'name.required'       => 'Nama lengkap wajib diisi.',
@@ -134,6 +145,7 @@ public function storeStaff(Request $request)
             'email.unique'        => 'Email sudah terdaftar.',
             'no_telepon.required' => 'Nomor telepon wajib diisi.',
             'no_telepon.regex'    => 'Nomor telepon tidak valid. Gunakan format 08xxxxxxxxxx.',
+            'no_telepon.unique'   => 'Nomor telepon ini sudah terdaftar.',
             'password.required'   => 'Password wajib diisi.',
             'password.min'        => 'Password minimal 8 karakter.',
             'password.confirmed'  => 'Konfirmasi password tidak sama dengan password.',
@@ -163,6 +175,12 @@ public function storeStaff(Request $request)
 
     public function storeUser(Request $request)
     {
+        // Samakan format nomor telepon sebelum divalidasi
+        // (0812..., 62812..., +62812... -> 0812...)
+        $request->merge([
+            'no_telepon' => User::normalisasiTelepon($request->input('no_telepon')),
+        ]);
+
         $validated = $request->validate([
             'name' => 'required|string|min:3|max:255',
             'email' => 'required|email|max:255|unique:users,email',
@@ -171,8 +189,8 @@ public function storeStaff(Request $request)
             'no_telepon' => [
                 'required',
                 'string',
-                'max:20',
-                'regex:/^(\+62|62|0)8[1-9][0-9]{7,10}$/',
+                'regex:/^08[1-9][0-9]{7,10}$/',
+                Rule::unique('users', 'no_telepon'),
             ],
             'password' => 'required|string|min:8|confirmed',
         ], [
@@ -186,6 +204,7 @@ public function storeStaff(Request $request)
             'nim_nip.max' => 'Nomor identitas maksimal 50 karakter.',
             'no_telepon.required' => 'Nomor telepon wajib diisi.',
             'no_telepon.regex' => 'Nomor telepon tidak valid. Gunakan format 08xxxxxxxxxx.',
+            'no_telepon.unique' => 'Nomor telepon ini sudah terdaftar.',
             'password.required' => 'Password wajib diisi.',
             'password.min' => 'Password minimal 8 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak sama dengan password.',
