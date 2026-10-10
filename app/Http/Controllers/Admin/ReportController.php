@@ -81,8 +81,9 @@ class ReportController extends Controller
 
         [$rekap, $okupansi, $kerusakan] = $this->hitungRekap($bulan, $tahun);
 
-        $totalFasilitasDireservasi = $okupansi->count();
-        $totalLaporanKerusakan     = $kerusakan->sum('jumlah_laporan');
+        // Total seluruh reservasi (bukan jumlah fasilitas unik)
+        $totalReservasi        = $okupansi->sum('jumlah_reservasi');
+        $totalLaporanKerusakan = $kerusakan->sum('jumlah_laporan');
 
         // ---- Data grafik harian ----
         if ($bulan && $tahun) {
@@ -138,19 +139,17 @@ class ReportController extends Controller
         // ---- Perbandingan dengan bulan lalu ----
         $bulanLalu = now()->subMonthNoOverflow();
 
-        $fasilitasBulanIni = Reservation::where('status', 'disetujui')
+        $reservasiBulanIni = Reservation::where('status', 'disetujui')
             ->whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
-            ->distinct()
-            ->count('facility_id');
+            ->count();
 
-        $fasilitasBulanLalu = Reservation::where('status', 'disetujui')
+        $reservasiBulanLalu = Reservation::where('status', 'disetujui')
             ->whereMonth('created_at', $bulanLalu->month)
             ->whereYear('created_at', $bulanLalu->year)
-            ->distinct()
-            ->count('facility_id');
+            ->count();
 
-        $selisihFasilitas = $fasilitasBulanIni - $fasilitasBulanLalu;
+        $selisihReservasi = $reservasiBulanIni - $reservasiBulanLalu;
 
         $laporanBulanIni = Report::whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
@@ -186,12 +185,12 @@ class ReportController extends Controller
 
         return view('admin.rekap.index', compact(
             'rekap',
-            'totalFasilitasDireservasi',
+            'totalReservasi',
             'totalLaporanKerusakan',
             'reservasiPerHari',
             'laporanPerHari',
             'judulGrafik',
-            'selisihFasilitas',
+            'selisihReservasi',
             'selisihLaporan',
             'bulan',
             'tahun',

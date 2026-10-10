@@ -67,7 +67,7 @@
         {{-- Card Ringkasan --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
 
-            {{-- Card: Total Fasilitas Direservasi --}}
+            {{-- Card: Total Reservasi --}}
             <div class="rounded-2xl border border-rose-100 bg-gradient-to-br from-rose-50 to-white p-5 flex items-start justify-between">
                 <div class="flex gap-4">
                     <div class="w-12 h-12 rounded-xl bg-rose-800 flex items-center justify-center shrink-0">
@@ -76,14 +76,14 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="font-bold text-slate-800">Total Fasilitas Direservasi</p>
-                        <p class="text-xs text-stone-500 mt-1 max-w-xs">Jumlah fasilitas yang pernah direservasi di sistem.</p>
-                        <p class="text-3xl font-extrabold text-rose-900 mt-3">{{ $totalFasilitasDireservasi }}</p>
+                        <p class="font-bold text-slate-800">Total Reservasi</p>
+                        <p class="text-xs text-stone-500 mt-1 max-w-xs">Jumlah reservasi yang tercatat di sistem.</p>
+                        <p class="text-3xl font-extrabold text-rose-900 mt-3">{{ $totalReservasi }}</p>
                     </div>
                 </div>
                 <span class="text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1 whitespace-nowrap
-                    {{ $selisihFasilitas >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700' }}">
-                    {{ $selisihFasilitas >= 0 ? '↑' : '↓' }} {{ $selisihFasilitas >= 0 ? '+' : '' }}{{ $selisihFasilitas }}
+                    {{ $selisihReservasi >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700' }}">
+                    {{ $selisihReservasi >= 0 ? '↑' : '↓' }} {{ $selisihReservasi >= 0 ? '+' : '' }}{{ $selisihReservasi }}
                     <span class="font-normal">dari bulan lalu</span>
                 </span>
             </div>
@@ -113,7 +113,7 @@
         {{-- Grafik Batang --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div class="bg-white border border-stone-200 rounded-2xl p-5">
-                <p class="text-sm font-semibold text-slate-800 mb-3">Fasilitas Direservasi per Hari ({{ $judulGrafik }})</p>
+                <p class="text-sm font-semibold text-slate-800 mb-3">Reservasi per Hari ({{ $judulGrafik }})</p>
                 <canvas id="grafikFasilitasHarian" height="180"></canvas>
             </div>
 
@@ -247,7 +247,7 @@
             });
         }
 
-        buatGrafikBatang('grafikFasilitasHarian', 'Fasilitas Direservasi', @json($reservasiPerHari));
+        buatGrafikBatang('grafikFasilitasHarian', 'Reservasi', @json($reservasiPerHari));
         buatGrafikBatang('grafikLaporanHarian', 'Laporan Kerusakan', @json($laporanPerHari));
     </script>
     @endpush
