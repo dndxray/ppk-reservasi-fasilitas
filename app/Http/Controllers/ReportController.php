@@ -127,7 +127,8 @@ class ReportController extends Controller
 
         $reports = $query
             ->latest()
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         $daftarKategori = Report::distinct()
             ->whereNotNull('kategori')
@@ -242,7 +243,7 @@ class ReportController extends Controller
             });
         }
 
-        $reports = $query->latest()->get();
+        $reports = $query->latest()->paginate(10)->withQueryString();
 
         $daftarKategori = Report::distinct()
             ->whereNotNull('kategori')

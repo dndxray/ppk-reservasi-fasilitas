@@ -194,7 +194,7 @@
 
                                         {{-- no --}}
                                         <td class="px-6 py-5 text-gray-700 font-medium">
-                                            {{ $loop->iteration }}.
+                                            {{ $reports->firstItem() + $loop->index }}.
                                         </td>
 
                                         {{-- nama fasilitas --}}
@@ -268,34 +268,36 @@
 
                         </table>
 
-                        {{-- nomor halaman --}}
-                        @php
-                            $perPage = 10;
-                            $totalData = $reports->count();
-                            $totalPages = max(1, (int) ceil($totalData / $perPage));
-                        @endphp
-                        <div class="px-6 py-4 border-t border-gray-100 flex items-center justify-between text-sm text-[#A94438]">
-                            <p>Menampilkan {{ $totalData }} dari {{ $totalData }} data</p>
+                        {{-- nomor halaman / pagination dinamis dengan desain awal --}}
+                        <div class="px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between text-sm text-[#A94438] gap-3">
+                            <p>Menampilkan {{ $reports->firstItem() ?? 0 }} - {{ $reports->lastItem() ?? 0 }} dari {{ $reports->total() }} data</p>
                             
-                            <div class="flex items-center gap-2">
-                                <button type="button" disabled class="w-7 h-7 flex items-center justify-center text-gray-300 cursor-not-allowed select-none">&lt;</button>
-                                <button type="button" class="w-7 h-7 flex items-center justify-center rounded bg-[#A94438] text-white font-medium cursor-default">1</button>
-                                @if($totalPages >= 2)
-                                    <button type="button" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded cursor-pointer transition">2</button>
-                                @else
-                                    <button type="button" disabled class="w-7 h-7 flex items-center justify-center text-gray-300 cursor-not-allowed select-none">2</button>
-                                @endif
-                                @if($totalPages >= 3)
-                                    <button type="button" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded cursor-pointer transition">3</button>
-                                @else
-                                    <button type="button" disabled class="w-7 h-7 flex items-center justify-center text-gray-300 cursor-not-allowed select-none">3</button>
-                                @endif
-                                @if($totalPages > 1)
-                                    <button type="button" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded cursor-pointer transition">&gt;</button>
-                                @else
-                                    <button type="button" disabled class="w-7 h-7 flex items-center justify-center text-gray-300 cursor-not-allowed select-none">&gt;</button>
-                                @endif
-                            </div>
+                            @if($reports->hasPages())
+                                <div class="flex items-center gap-1.5">
+                                    {{-- Previous Page Link --}}
+                                    @if ($reports->onFirstPage())
+                                        <span class="w-7 h-7 flex items-center justify-center text-gray-300 cursor-not-allowed select-none">&lt;</span>
+                                    @else
+                                        <a href="{{ $reports->previousPageUrl() }}" class="w-7 h-7 flex items-center justify-center text-[#A94438] hover:bg-[#F5EBE9] rounded font-medium transition">&lt;</a>
+                                    @endif
+
+                                    {{-- Pagination Elements --}}
+                                    @foreach ($reports->getUrlRange(1, $reports->lastPage()) as $page => $url)
+                                        @if ($page == $reports->currentPage())
+                                            <span class="w-7 h-7 flex items-center justify-center rounded bg-[#A94438] text-white font-medium cursor-default">{{ $page }}</span>
+                                        @else
+                                            <a href="{{ $url }}" class="w-7 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded cursor-pointer transition font-medium">{{ $page }}</a>
+                                        @endif
+                                    @endforeach
+
+                                    {{-- Next Page Link --}}
+                                    @if ($reports->hasMorePages())
+                                        <a href="{{ $reports->nextPageUrl() }}" class="w-7 h-7 flex items-center justify-center text-[#A94438] hover:bg-[#F5EBE9] rounded font-medium transition">&gt;</a>
+                                    @else
+                                        <span class="w-7 h-7 flex items-center justify-center text-gray-300 cursor-not-allowed select-none">&gt;</span>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
                     </div>
 
@@ -324,7 +326,7 @@
                             <div class="p-5 hover:bg-gray-50 transition">
                                 <div class="flex items-start justify-between gap-4">
                                     <div>
-                                        <p class="text-xs text-gray-400 mb-1">Laporan #{{ $loop->iteration }}</p>
+                                        <p class="text-xs text-gray-400 mb-1">Laporan #{{ $reports->firstItem() + $loop->index }}</p>
                                         <h3 class="font-semibold text-gray-900">
                                             {{ $report->facility->nama_fasilitas ?? 'Fasilitas' }}
                                         </h3>
