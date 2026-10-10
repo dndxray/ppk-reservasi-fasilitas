@@ -5,7 +5,10 @@
             || request()->filled('tipe')
             || request()->filled('lokasi')
             || request()->filled('kapasitas_minimal')
-            || request()->filled('kuantitas_minimal');
+            || request()->filled('kuantitas_minimal')
+            || request()->filled('tanggal')
+            || request()->filled('waktu_mulai')
+            || request()->filled('waktu_selesai');
 
         // Pastikan tipe "alat" selalu ada di pilihan filter, walau belum ada datanya
         $tipeFilter = collect($daftarTipe)->push('alat')->unique()->values();
@@ -42,13 +45,15 @@
 
             {{-- ================= KOLOM KIRI ================= --}}
             <div class="lg:col-span-2">
-
                 {{-- search --}}
                 <form method="GET" action="{{ route('fasilitas.index') }}" class="mb-6">
                     <input type="hidden" name="tipe" value="{{ request('tipe') }}">
                     <input type="hidden" name="lokasi" value="{{ request('lokasi') }}">
                     <input type="hidden" name="kapasitas_minimal" value="{{ request('kapasitas_minimal') }}">
                     <input type="hidden" name="kuantitas_minimal" value="{{ request('kuantitas_minimal') }}">
+                    <input type="hidden" name="tanggal" value="{{ request('tanggal') }}">
+                    <input type="hidden" name="waktu_mulai" value="{{ request('waktu_mulai') }}">
+                    <input type="hidden" name="waktu_selesai" value="{{ request('waktu_selesai') }}">
                     @if(request('from'))
                         <input type="hidden" name="from" value="{{ request('from') }}">
                     @endif
@@ -56,6 +61,13 @@
                            placeholder="Cari Fasilitas..."
                            class="w-full px-4 py-3 bg-[#F5EFE9] border-0 rounded-lg text-sm focus:ring-2 focus:ring-[#511E1D]">
                 </form>
+
+                {{-- pesan error tanggal / jam --}}
+                @if(!empty($errorWaktu))
+                    <div class="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+                        {{ $errorWaktu }}
+                    </div>
+                @endif
 
                 @if($daftarFasilitas->isEmpty())
                     <div class="bg-white p-6 shadow-sm rounded-lg text-gray-600">
@@ -198,6 +210,9 @@
                          class="absolute left-0 top-full mt-2 z-20 w-72 bg-white shadow-lg rounded-lg p-4">
                         <form method="GET" action="{{ route('fasilitas.index') }}" class="space-y-3">
                             <input type="hidden" name="cari" value="{{ request('cari') }}">
+                            <input type="hidden" name="tanggal" value="{{ request('tanggal') }}">
+                            <input type="hidden" name="waktu_mulai" value="{{ request('waktu_mulai') }}">
+                            <input type="hidden" name="waktu_selesai" value="{{ request('waktu_selesai') }}">
 
                             <div>
                                 <label class="block text-sm text-gray-700 mb-1">Tipe</label>
@@ -213,7 +228,7 @@
 
                             <div>
                                 <label class="block text-sm text-gray-700 mb-1">Lokasi</label>
-                                <input type="text" name="lokasi" value="{{ request('lokasi') }}"
+                                <input type="text" name="lokasi" value="{{ $lokasi }}"
                                        list="daftarLokasi" placeholder="Contoh: Gedung A"
                                        class="w-full rounded-lg border-gray-300 text-sm">
                                 <datalist id="daftarLokasi">
@@ -240,7 +255,7 @@
                                 <button type="submit" class="px-4 py-2 bg-[#4a1a24] text-white text-sm rounded-lg hover:bg-[#3a141c]">
                                     Terapkan
                                 </button>
-                                <a href="{{ route('fasilitas.index') }}" class="px-4 py-2 border border-gray-300 text-sm rounded-lg hover:bg-gray-50">
+                                <a href="{{ route('fasilitas.index', ['reset' => 1]) }}" class="px-4 py-2 border border-gray-300 text-sm rounded-lg hover:bg-gray-50">
                                     Reset
                                 </a>
                             </div>
@@ -248,7 +263,8 @@
                     </div>
                 </div>
 
-                {{-- riwayat reservasi --}}
+                {{-- riwayat reservasi (hanya untuk yang sudah login) --}}
+                @auth
                 <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
                     <div class="flex items-center justify-between mb-3">
                         <h2 class="flex items-center gap-2 font-semibold text-gray-800 text-sm">
@@ -302,6 +318,7 @@
                         @endforelse
                     </div>
                 </div>
+                @endauth
             </div>
 
         </div>
