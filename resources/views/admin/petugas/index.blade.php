@@ -1,15 +1,15 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800">
-            Kelola Petugas
-        </h2>
-    </x-slot>
 
     @php
         $jumlahFilter = collect([$status, $tanggal])->filter()->count();
     @endphp
 
-    <div class="py-8 max-w-6xl mx-auto px-4">
+    <div class="max-w-6xl mx-auto px-4 pt-2 pb-8">
+
+        {{-- Judul halaman (di dalam konten, tanpa header putih + garis) --}}
+        <h2 class="font-semibold text-xl text-gray-800 mb-4">
+            Kelola Petugas
+        </h2>
 
         @if (session('success'))
             <div id="banner-sukses"

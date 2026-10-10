@@ -1,8 +1,4 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800">Rekap & Ekspor</h2>
-    </x-slot>
-
     <div x-data="{
             currentPage: 1,
             perPage: 10,
@@ -11,7 +7,10 @@
             get shown() { return Math.min(this.currentPage * this.perPage, this.total) - (this.currentPage - 1) * this.perPage },
             isInPage(i) { return i >= (this.currentPage - 1) * this.perPage && i < this.currentPage * this.perPage }
         }"
-        class="py-8 max-w-6xl mx-auto px-4">
+        class="max-w-6xl mx-auto px-4 pt-2 pb-8">
+
+        {{-- Judul halaman (di dalam konten, tanpa header putih + garis) --}}
+        <h2 class="font-semibold text-xl text-gray-800 mb-4">Rekap & Ekspor</h2>
 
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             {{-- Filter Periode Bulan & Tahun --}}
