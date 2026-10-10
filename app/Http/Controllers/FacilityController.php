@@ -14,11 +14,11 @@ class FacilityController extends Controller
 {
     public function index(Request $request)
     {
-    // Filter hanya dari URL. Tidak ada fallback cookie.
+        // Filter hanya dari URL. Tidak ada fallback cookie.
         $tipe   = $request->input('tipe');
         $lokasi = $request->input('lokasi');
 
-        //  Filter ketersediaan (tanggal + jam) ----
+        // ---- Filter ketersediaan (tanggal + jam) ----
         [$hanyaAktif, $idTerpakai, $errorWaktu] = $this->filterKetersediaan($request);
 
         $terapkanFilter = function ($q) use ($request, $tipe, $lokasi, $hanyaAktif, $idTerpakai) {
@@ -28,62 +28,74 @@ class FacilityController extends Controller
             if ($lokasi) {
                 $q->where('lokasi', 'like', '%' . $lokasi . '%');
             }
+
+            // Kapasitas minimal (orang) - untuk ruangan, aula, dll
             if ($request->filled('kapasitas_minimal')) {
                 $q->where('kapasitas', '>=', (int) $request->kapasitas_minimal);
             }
+
+            // Kuantitas minimal (unit) - untuk tipe alat
             if ($request->filled('kuantitas_minimal')) {
                 $q->where('kuantitas', '>=', (int) $request->kuantitas_minimal);
             }
+
+            // Cari: cocokkan nama fasilitas ATAU lokasi
             if ($request->filled('cari')) {
                 $kata = $request->cari;
                 $q->where(function ($w) use ($kata) {
                     $w->where('nama_fasilitas', 'like', '%' . $kata . '%')
-                    ->orWhere('lokasi', 'like', '%' . $kata . '%');
+                      ->orWhere('lokasi', 'like', '%' . $kata . '%');
                 });
             }
+
+            // Ada tanggal valid -> hanya fasilitas aktif
             if ($hanyaAktif) {
                 $q->where('status', 'aktif');
             }
+
+            // Ada tanggal + jam valid -> buang yang sudah dipesan di rentang itu
             if (!empty($idTerpakai)) {
                 $q->whereNotIn('id', $idTerpakai);
             }
         };
 
+        // Daftar utama
         $daftarFasilitas = Facility::query()
-        ->tap($terapkanFilter)
-        ->orderBy('nama_fasilitas')
-        ->paginate(12)
-        ->withQueryString();
+            ->tap($terapkanFilter)
+            ->orderBy('nama_fasilitas')
+            ->paginate(12)
+            ->withQueryString();
 
-        // recently viewed...
+        // 3 fasilitas terakhir dilihat (jika belum ada, fallback 3 fasilitas aktif)
         $recentlyViewed = session('recently_viewed_facilities', []);
         if (!empty($recentlyViewed)) {
-        $fasilitasPopuler = Facility::query()
-            ->tap($terapkanFilter)
-            ->whereIn('id', $recentlyViewed)
-            ->where('status', 'aktif')
-            ->get()
-            ->sortBy(fn($item) => array_search($item->id, $recentlyViewed))
-            ->take(3);
+            $fasilitasPopuler = Facility::query()
+                ->tap($terapkanFilter)
+                ->whereIn('id', $recentlyViewed)
+                ->where('status', 'aktif')
+                ->get()
+                ->sortBy(fn($item) => array_search($item->id, $recentlyViewed))
+                ->take(3);
         } else {
-        $fasilitasPopuler = Facility::query()
-            ->tap($terapkanFilter)
-            ->where('status', 'aktif')
-            ->orderBy('nama_fasilitas')
-            ->take(3)
-            ->get();
+            $fasilitasPopuler = Facility::query()
+                ->tap($terapkanFilter)
+                ->where('status', 'aktif')
+                ->orderBy('nama_fasilitas')
+                ->take(3)
+                ->get();
         }
 
         $daftarTipe   = Facility::select('tipe')->distinct()->pluck('tipe');
         $daftarLokasi = Facility::select('lokasi')->distinct()->pluck('lokasi');
 
+        // 5 reservasi terakhir milik user yang login (tamu tidak punya riwayat)
         $riwayatReservasi = auth()->check()
-        ? Reservation::with('facility')
-            ->where('user_id', auth()->id())
-            ->latest()
-            ->take(5)
-            ->get()
-        : collect();
+            ? Reservation::with('facility')
+                ->where('user_id', auth()->id())
+                ->latest()
+                ->take(5)
+                ->get()
+            : collect();
 
         return view('fasilitas.index', compact(
             'daftarFasilitas',

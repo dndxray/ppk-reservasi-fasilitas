@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\FacilityController as AdminFacilityController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\Petugas\DashboardController as PetugasDashboardController;
@@ -112,6 +113,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
     // ----- Pelaporan kerusakan (petugas) -----
+    Route::get('/reports/rekap', [ReportController::class, 'rekap'])->name('reports.rekap');
+    Route::get('/reports/rekap/export/excel', [ReportController::class, 'exportExcel'])->name('reports.rekap.export.excel');
+    Route::get('/reports/rekap/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.rekap.export.pdf');
     Route::get('/reports/antrian', [ReportController::class, 'antrian'])->name('reports.antrian'); // sebelum {report}
     Route::get('/reports/{report}', [ReportController::class, 'show'])->name('reports.show');
     Route::patch('/reports/{report}', [ReportController::class, 'updateStatus'])->name('reports.updateStatus');
@@ -146,7 +150,7 @@ Route::middleware('auth')->prefix('petugas')->name('petugas.')->group(function (
 
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
-    Route::get('/dashboard', fn () => view('admin.dashboard'))->name('dashboard');
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     // ----- Pengguna -----
     Route::get('/pengguna', [UserController::class, 'indexUsers'])->name('pengguna.index');
@@ -154,11 +158,17 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::post('/pengguna', [UserController::class, 'storeUser'])->name('pengguna.store');
     Route::patch('/pengguna/{user}/verifikasi', [UserController::class, 'verify'])->name('pengguna.verify');
     Route::patch('/pengguna/{user}/tolak', [UserController::class, 'reject'])->name('pengguna.reject');
+    Route::get('/pengguna/{user}', [UserController::class, 'showUser'])->whereNumber('user')->name('pengguna.show');
+    Route::patch('/pengguna/{user}/nonaktifkan', [UserController::class, 'deactivateUser'])->whereNumber('user')->name('pengguna.deactivate');
+    Route::patch('/pengguna/{user}/aktifkan', [UserController::class, 'activateUser'])->whereNumber('user')->name('pengguna.activate');
 
     // ----- Petugas -----
     Route::get('/petugas', [UserController::class, 'indexStaff'])->name('petugas.index');
     Route::get('/petugas/create', [UserController::class, 'createStaff'])->name('petugas.create');
     Route::post('/petugas', [UserController::class, 'storeStaff'])->name('petugas.store');
+    Route::get('/petugas/{user}', [UserController::class, 'showStaff'])->whereNumber('user')->name('petugas.show');
+    Route::patch('/petugas/{user}/nonaktifkan', [UserController::class, 'deactivateStaff'])->whereNumber('user')->name('petugas.deactivate');
+    Route::patch('/petugas/{user}/aktifkan', [UserController::class, 'activateStaff'])->whereNumber('user')->name('petugas.activate');
 
     // ----- Fasilitas -----
     Route::get('/fasilitas', [AdminFacilityController::class, 'index'])->name('fasilitas.index');
@@ -167,8 +177,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::post('/fasilitas', [AdminFacilityController::class, 'store'])->name('facilities.store');
     Route::get('/fasilitas/{facility}/edit', [AdminFacilityController::class, 'edit'])->name('facilities.edit');
     Route::put('/fasilitas/{facility}', [AdminFacilityController::class, 'update'])->name('facilities.update');
-    Route::patch('/fasilitas/{facility}/nonaktifkan', [AdminFacilityController::class, 'deactivate'])->name('facilities.deactivate');
-    Route::patch('/fasilitas/{facility}/aktifkan', [AdminFacilityController::class, 'activate'])->name('facilities.activate');
+    Route::patch('/fasilitas/{facility}/status', [AdminFacilityController::class, 'updateStatus'])->name('facilities.status');
 
     // ----- Rekap -----
     Route::get('/rekap', [AdminReportController::class, 'index'])->name('rekap.index');

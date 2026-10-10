@@ -113,9 +113,28 @@
 
         const opsiChartDasar = {
             responsive: true,
-            plugins: { legend: { display: false } },
+            animation: {
+                duration: 1600,
+                easing: 'easeOutQuart',
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#511E1D',
+                    padding: 10,
+                    cornerRadius: 8,
+                    displayColors: false
+                }
+            },
             scales: {
-                y: { beginAtZero: true, ticks: { precision: 0 } }
+                y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 },
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                },
+                x: {
+                    grid: { display: false }
+                }
             }
         };
 
@@ -128,8 +147,10 @@
                 datasets: [{
                     label: 'Fasilitas Direservasi',
                     data: Object.values(dataFasilitas),
-                    backgroundColor: '#be123c',
-                    borderRadius: 4,
+                    backgroundColor: '#BA3D34',
+                    hoverBackgroundColor: '#9E3129',
+                    borderRadius: 8,
+                    borderSkipped: false
                 }]
             },
             options: opsiChartDasar
@@ -144,8 +165,10 @@
                 datasets: [{
                     label: 'Laporan Kerusakan',
                     data: Object.values(dataLaporan),
-                    backgroundColor: '#be123c',
-                    borderRadius: 4,
+                    backgroundColor: '#BA3D34',
+                    hoverBackgroundColor: '#9E3129',
+                    borderRadius: 8,
+                    borderSkipped: false
                 }]
             },
             options: opsiChartDasar
