@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Petugas;
 
 use App\Http\Controllers\Controller;
 use App\Models\Reservation;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 
@@ -146,6 +147,13 @@ class ReservationController extends Controller
         {
             return back()->withErrors(
                 'Hanya reservasi yang sudah disetujui yang dapat dibatalkan.'
+            );
+        }
+
+        if(Carbon::today()->gt(Carbon::parse($reservation->tanggal)))
+        {
+            return back()->withErrors(
+                'Tidak dapat membatalkan reservasi yang tanggal penggunaannya sudah terlewat.'
             );
         }
 
