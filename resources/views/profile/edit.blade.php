@@ -1,5 +1,26 @@
 <x-app-layout>
 
+    @php
+        // Label kolom identitas menyesuaikan peran / jenis pengguna
+        $jenis = strtolower(trim($user->jenis_pengguna ?? ''));
+
+        $labelIdentitas = match ($jenis) {
+            'mahasiswa'                          => 'NIM',
+            'dosen'                              => 'NIP',
+            'staf', 'staff', 'pegawai', 'tendik' => 'NIK Pegawai',
+            default                              => 'NIM/NIP/NIK Pegawai',
+        };
+
+        // Admin & petugas tidak punya NIM/NIP/NIK, jadi kolomnya disembunyikan
+        $tampilIdentitas = ! ($user->isAdmin() || $user->isPetugas());
+
+        $jenisText = match ($jenis) {
+            'mahasiswa'                          => 'Mahasiswa',
+            'dosen'                              => 'Dosen',
+            'staf', 'staff', 'pegawai', 'tendik' => 'Staf',
+            default                              => null,
+        };
+    @endphp
 
     <div class="py-6">
         <div class="max-w-none space-y-6">
@@ -15,7 +36,7 @@
                         <div class="text-sm text-gray-500">
                             @if($user->isAdmin()) Admin
                             @elseif($user->isPetugas()) Petugas
-                            @else Pengguna
+                            @else {{ $jenisText ?? 'Pengguna' }}
                             @endif
                         </div>
                     </div>
@@ -43,12 +64,14 @@
                                 <x-input-error class="mt-2" :messages="$errors->get('name')" />
                             </div>
 
-                            <div>
-                                <x-input-label for="nim_nip" value="NIM" />
-                                <x-text-input id="nim_nip" name="nim_nip" type="text" class="mt-1 block w-full bg-[#F5EFE9] border-0"
-                                              :value="old('nim_nip', $user->nim_nip)" />
-                                <x-input-error class="mt-2" :messages="$errors->get('nim_nip')" />
-                            </div>
+                            @if ($tampilIdentitas)
+                                <div>
+                                    <x-input-label for="nim_nip" :value="$labelIdentitas" />
+                                    <x-text-input id="nim_nip" name="nim_nip" type="text" class="mt-1 block w-full bg-[#F5EFE9] border-0"
+                                                  :value="old('nim_nip', $user->nim_nip)" />
+                                    <x-input-error class="mt-2" :messages="$errors->get('nim_nip')" />
+                                </div>
+                            @endif
 
                             <div>
                                 <x-input-label for="email" value="Email" />
