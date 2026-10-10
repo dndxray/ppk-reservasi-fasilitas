@@ -4,12 +4,12 @@
 
         <div class="px-6 py-8 max-w-7xl mx-auto">
 
-            {{-- tombol back & judul --}}
+            {{-- tombol kembali dan judul --}}
             <div class="flex items-center mb-6">
                 @php
-                    $fallbackUrl = auth()->user()->role === 'petugas' ? route('petugas.dashboard') : route('reports.index');
+                    $fallbackUrl = auth()->user()->role === 'petugas' ? route('reports.antrian') : route('reports.index');
                 @endphp
-                <a href="{{ $fallbackUrl }}" onclick="if (document.referrer && document.referrer !== window.location.href) { history.back(); return false; }" class="mr-4 text-[#47201B] hover:text-[#CA734D] transition p-1.5 rounded-lg hover:bg-white/60" title="Kembali">
+                <a href="{{ $fallbackUrl }}" class="mr-4 text-[#47201B] hover:text-[#CA734D] transition p-1.5 rounded-lg hover:bg-white/60" title="Kembali ke Daftar Laporan">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                     </svg>
@@ -19,7 +19,7 @@
                 </h1>
             </div>
 
-            {{-- alert sukses --}}
+            {{-- pesan sukses --}}
             @if (session('success'))
                 <div class="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor">
@@ -29,11 +29,23 @@
                 </div>
             @endif
 
+            {{-- pesan error --}}
+            @if ($errors->any())
+                <div class="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <p class="text-sm font-medium flex items-center gap-2">
+                            <svg class="w-4 h-4 shrink-0 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            {{ $error }}
+                        </p>
+                    @endforeach
+                </div>
+            @endif
+
             @if(auth()->user()->role === 'petugas')
             
                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
                     
-                    {{-- info laporan (kiri) --}}
+                    {{-- bagian info laporan --}}
                     <div class="lg:col-span-3 bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
                         <h2 class="text-xl font-bold text-[#1A1A1A] mb-8">Informasi Laporan</h2>
                         
@@ -136,7 +148,7 @@
                         </div>
                     </div>
 
-                    {{-- update status (kanan) --}}
+                    {{-- bagian update status petugas --}}
                     <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-8 shadow-sm h-fit">
                         <h2 class="text-xl font-bold text-[#1A1A1A] mb-6">Perbarui Status</h2>
                         
@@ -184,16 +196,28 @@
                                     <option value="menunggu" {{ ($report->status === 'menunggu' || $report->status === 'baru') ? 'selected' : '' }}>Menunggu</option>
                                     <option value="diproses" {{ $report->status === 'diproses' ? 'selected' : '' }}>Diproses</option>
                                     <option value="selesai" {{ $report->status === 'selesai' ? 'selected' : '' }}>Selesai</option>
-                                    <option value="ditolak" {{ $report->status === 'ditolak' ? 'selected' : '' }}>Ditolak</option>
+                                    <option value="ditolak" {{ $report->status === 'ditolak' ? 'selected' : '' }} {{ in_array($report->status, ['diproses', 'selesai']) ? 'disabled' : '' }}>
+                                        Ditolak {{ in_array($report->status, ['diproses', 'selesai']) ? '(Tidak dapat ditolak)' : '' }}
+                                    </option>
                                 </select>
+                                @if(in_array($report->status, ['diproses', 'selesai']))
+                                    <p class="text-xs text-amber-600 mt-1 font-medium">Laporan yang sudah diproses atau selesai tidak dapat ditolak.</p>
+                                @endif
                             </div>
                             
                             <div class="mb-5">
-                                <label class="block text-sm font-bold text-[#1A1A1A] mb-2">Catatan</label>
-                                <textarea name="catatan_resolusi" rows="4" placeholder="Ketik Catatan..." class="w-full rounded-xl border-gray-300 bg-[#F8F7F7] focus:border-[#A94438] focus:ring-[#A94438] text-sm p-4">{{ old('catatan_resolusi', $report->catatan_resolusi) }}</textarea>
+                                <label class="block text-sm font-bold text-[#1A1A1A] mb-2">Status Fasilitas (Kerusakan Berat)</label>
+                                <select name="status_fasilitas" class="w-full rounded-xl border-gray-300 bg-[#F8F7F7] focus:border-[#A94438] focus:ring-[#A94438] text-sm py-3 px-4">
+                                    <option value="aktif" {{ (optional($report->facility)->status === 'aktif' || !optional($report->facility)->status) ? 'selected' : '' }}>Aktif (Tersedia untuk reservasi)</option>
+                                    <option value="dalam_perbaikan" {{ optional($report->facility)->status === 'dalam_perbaikan' ? 'selected' : '' }}>Dalam Perbaikan (Kerusakan Berat)</option>
+                                </select>
+                                <p class="text-xs text-gray-500 mt-1">Ubah ke "Dalam Perbaikan" jika terdapat kerusakan berat agar tidak dapat direservasi.</p>
                             </div>
-                            
-                            <input type="hidden" name="status_fasilitas" value="{{ $report->facility?->status ?? 'aktif' }}">
+
+                            <div class="mb-5">
+                                <label class="block text-sm font-bold text-[#1A1A1A] mb-2">Catatan Resolusi Penanganan</label>
+                                <textarea name="catatan_resolusi" rows="4" placeholder="Ketik catatan resolusi penanganan..." class="w-full rounded-xl border-gray-300 bg-[#F8F7F7] focus:border-[#A94438] focus:ring-[#A94438] text-sm p-4">{{ old('catatan_resolusi', $report->catatan_resolusi) }}</textarea>
+                            </div>
                             
                             <button type="submit" class="w-full mt-2 bg-[#C84F4F] hover:bg-[#A94438] text-white py-3.5 rounded-xl font-bold text-sm transition cursor-pointer flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -207,16 +231,16 @@
             
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                    {{-- info laporan pengguna --}}
+                    {{-- bagian info laporan user --}}
                     <div class="lg:col-span-2 space-y-6">
                         
-                        {{-- detail laporan --}}
+                        {{-- detail isi laporan --}}
                         <div class="bg-white rounded-xl border border-gray-200 p-8">
                             
                             <div class="flex justify-between items-center mb-8">
                                 <h2 class="text-xl font-bold text-[#1A1A1A]">Detail Laporan</h2>
                                 
-                                {{-- status badge --}}
+                                {{-- label status laporan --}}
                                 @php
                                     $statusColors = [
                                         'menunggu' => 'bg-yellow-500',
@@ -315,10 +339,10 @@
                         </div>
                     </div>
 
-                    {{-- fasilitas terkait (kanan) --}}
+                    {{-- info fasilitas terkait --}}
                     <div class="space-y-6">
                         
-                        {{-- kartu fasilitas & foto --}}
+                        {{-- foto dan info fasilitas --}}
                         <div class="bg-white rounded-xl border border-gray-200 p-5">
                             
                             @if($report->foto)
@@ -352,20 +376,16 @@
                             </div>
 
                             <div class="mt-4 flex flex-wrap gap-2">
-                                @if($report->facility->status === 'aktif')
+                                @if(optional($report->facility)->tipe)
                                     <span class="inline-flex px-3 py-1 text-xs font-medium rounded-md bg-[#64413E] text-white">
-                                        Fasilitas Aktif
-                                    </span>
-                                @elseif($report->facility->status === 'dalam_perbaikan')
-                                    <span class="inline-flex px-3 py-1 text-xs font-medium rounded-md bg-yellow-100 text-yellow-800">
-                                        Dalam Perbaikan
+                                        {{ $report->facility->tipe }}
                                     </span>
                                 @endif
                             </div>
 
                         </div>
 
-                        {{-- proses status laporan --}}
+                        {{-- form update status petugas --}}
                         @if(auth()->user()->role === 'petugas')
                             
                             <div class="bg-white rounded-xl border border-gray-200 p-6">
@@ -388,11 +408,15 @@
                                         </div>
 
                                         <div>
-                                            <label for="status_fasilitas" class="block text-sm font-medium text-gray-700 mb-1">Status Fasilitas</label>
+                                            <label for="status_fasilitas" class="block text-sm font-medium text-gray-700 mb-1">Status Ketersediaan Fasilitas / Ruangan</label>
                                             <select name="status_fasilitas" id="status_fasilitas" class="w-full rounded-lg border-gray-300 bg-[#F8F7F7] focus:border-[#A94438] focus:ring-[#A94438] text-sm">
-                                                <option value="aktif" {{ $report->facility->status === 'aktif' ? 'selected' : '' }}>Aktif (Tersedia)</option>
-                                                <option value="dalam_perbaikan" {{ $report->facility->status === 'dalam_perbaikan' ? 'selected' : '' }}>Dalam Perbaikan</option>
+                                                <option value="aktif" {{ $report->facility->status === 'aktif' ? 'selected' : '' }}>Aktif (Tersedia Dipinjam)</option>
+                                                <option value="dalam_perbaikan" {{ $report->facility->status === 'dalam_perbaikan' ? 'selected' : '' }}>Dalam Perbaikan (Kunci Ruangan)</option>
                                             </select>
+                                            <p class="text-[11px] text-gray-500 mt-1 leading-snug">
+                                                • Pilih <b>Aktif</b> jika hanya alat di dalam ruangan yang rusak/diperbaiki (ruangan tetap dapat dipinjam dengan catatan info).<br>
+                                                • Pilih <b>Dalam Perbaikan</b> jika seluruh ruangan tidak bisa digunakan.
+                                            </p>
                                         </div>
 
                                         <div>
@@ -432,7 +456,7 @@
 
         </div>
 
-        {{-- Modal Detail Profil Pelapor --}}
+        {{-- pop up profil pelapor --}}
         <div x-show="showProfileModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
             <div @click.away="showProfileModal = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative border border-gray-100">
                 <button type="button" @click="showProfileModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 rounded-lg transition">
@@ -479,7 +503,7 @@
             </div>
         </div>
 
-        {{-- Modal Konfirmasi Perbarui Status --}}
+        {{-- pop up konfirmasi update status --}}
         <div x-show="showConfirmModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
             <div @click.away="showConfirmModal = false" class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-gray-100">
                 <div class="w-14 h-14 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4">
@@ -498,7 +522,7 @@
             </div>
         </div>
 
-        {{-- Lightbox Modal Zoom Foto Kerusakan --}}
+        {{-- pop up foto besar --}}
         <div x-show="zoomImage" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="zoomImage = null">
             <div class="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center justify-center" @click.stop>
                 <button type="button" @click="zoomImage = null" class="absolute -top-12 right-0 text-white hover:text-gray-300 bg-white/10 hover:bg-white/20 p-2 rounded-full transition">

@@ -95,7 +95,7 @@
             {{-- Aksi cepat (dipindah ke atas, tepat di bawah kartu ringkasan) --}}
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <div class="mb-4">
-                    <h2 class="text-lg font-bold text-[#47201B]" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                    <h2 class="text-lg font-bold text-[#47201B]" style="font-family: 'Poppins', sans-serif;">
                         Aksi Cepat
                     </h2>
                     <p class="text-xs text-gray-500 mt-0.5">Tambah data dengan sekali klik</p>
@@ -128,7 +128,7 @@
 
                 {{-- Kondisi fasilitas: tersedia & nonaktif --}}
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                    <h2 class="text-lg font-bold text-[#47201B]" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                    <h2 class="text-lg font-bold text-[#47201B]" style="font-family: 'Poppins', sans-serif;">
                         Kondisi Fasilitas
                     </h2>
                     <p class="text-xs text-gray-500 mt-0.5 mb-5">Perbandingan fasilitas tersedia dan nonaktif</p>
@@ -156,7 +156,7 @@
 
                 {{-- Fasilitas terpopuler --}}
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                    <h2 class="text-lg font-bold text-[#47201B]" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                    <h2 class="text-lg font-bold text-[#47201B]" style="font-family: 'Poppins', sans-serif;">
                         Fasilitas Terpopuler
                     </h2>
                     <p class="text-xs text-gray-500 mt-0.5 mb-5">Berdasarkan jumlah reservasi</p>
@@ -184,7 +184,7 @@
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                 <div class="px-6 pt-6 pb-4 flex items-center justify-between">
                     <div>
-                        <h2 class="text-lg font-bold text-[#47201B]" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                        <h2 class="text-lg font-bold text-[#47201B]" style="font-family: 'Poppins', sans-serif;">
                             Pendaftar Terbaru
                         </h2>
                         <p class="text-xs text-gray-500 mt-0.5">Akun pengguna yang baru dibuat</p>

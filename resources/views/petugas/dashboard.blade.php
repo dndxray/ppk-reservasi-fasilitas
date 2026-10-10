@@ -40,7 +40,7 @@
                             </div>
                             <div>
                                 <h2 class="text-lg sm:text-xl font-bold text-[#47201B] tracking-tight"
-                                    style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                                    style="font-family: 'Poppins', sans-serif;">
                                     Reservasi
                                 </h2>
                                 <p class="text-xs sm:text-sm text-gray-500 mt-0.5">
@@ -134,7 +134,7 @@
                             </div>
                             <div>
                                 <h2 class="text-lg sm:text-xl font-bold text-[#47201B] tracking-tight"
-                                    style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                                    style="font-family: 'Poppins', sans-serif;">
                                     Laporan Kerusakan
                                 </h2>
                                 <p class="text-xs sm:text-sm text-gray-500 mt-0.5">
@@ -231,7 +231,7 @@
                         </div>
                         <div>
                             <h2 class="text-lg sm:text-xl font-bold text-[#47201B] tracking-tight"
-                                style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                                style="font-family: 'Poppins', sans-serif;">
                                 Rangkuman Rekap Fasilitas & Laporan
                             </h2>
                             <p class="text-xs sm:text-sm text-gray-500 mt-0.5">

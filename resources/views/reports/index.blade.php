@@ -67,7 +67,7 @@
                 </div>
             </div>
 
-            {{-- tombol lapor disini buat ke form --}}
+            {{-- tombol ke form lapor --}}
             <a href="{{ route('reports.create') }}"
                class="flex items-center gap-4 bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-8 hover:bg-gray-50/80 transition">
                 <div class="w-11 h-11 rounded-full bg-[#F5EBE9] flex items-center justify-center shrink-0">
@@ -88,10 +88,10 @@
                 Riwayat Laporan Saya
             </h2>
 
-            {{-- search + filter button with popover --}}
+            {{-- form pencarian dan tombol filter --}}
             <div x-data="{ showFilter: false }" class="mb-6 relative">
                 <div class="flex items-center gap-3">
-                    {{-- Search Input Form --}}
+                    {{-- input cari --}}
                     <form method="GET" action="{{ route('reports.index') }}" class="flex-1">
                         <input type="hidden" name="status" value="{{ request('status') }}">
                         <input type="hidden" name="kategori" value="{{ request('kategori') }}">
@@ -101,7 +101,7 @@
                                class="w-full px-4 py-3 bg-[#F5EFE9] border-0 rounded-lg text-sm focus:ring-2 focus:ring-[#511E1D]">
                     </form>
 
-                    {{-- Tombol Filter + Popover Floating --}}
+                    {{-- tombol filter --}}
                     <div class="relative">
                         <button type="button" @click="showFilter = !showFilter"
                                 class="inline-flex items-center gap-2 px-5 py-3 bg-[#4a1a24] text-white text-sm font-medium rounded-lg hover:bg-[#3a141c] transition whitespace-nowrap">
@@ -115,13 +115,13 @@
                             @endif
                         </button>
 
-                        {{-- Floating Popover Card --}}
+                        {{-- menu filter --}}
                         <div x-show="showFilter" x-transition x-cloak @click.outside="showFilter = false"
                              class="absolute right-0 top-full mt-2 z-30 w-72 sm:w-80 bg-white shadow-2xl rounded-2xl p-5 border border-gray-100">
                             <form method="GET" action="{{ route('reports.index') }}" class="space-y-4">
                                 <input type="hidden" name="cari" value="{{ request('cari') }}">
 
-                                {{-- Status Proses --}}
+                                {{-- pilihan status --}}
                                 <div>
                                     <label class="block text-sm text-gray-700 mb-1 font-medium">Status</label>
                                     <select name="status" class="w-full rounded-lg border-gray-300 text-sm focus:ring-2 focus:ring-[#511E1D] focus:border-[#511E1D]">
@@ -133,7 +133,7 @@
                                     </select>
                                 </div>
 
-                                {{-- Kategori --}}
+                                {{-- pilihan kategori --}}
                                 <div>
                                     <label class="block text-sm text-gray-700 mb-1 font-medium">Kategori</label>
                                     <select name="kategori" class="w-full rounded-lg border-gray-300 text-sm focus:ring-2 focus:ring-[#511E1D] focus:border-[#511E1D]">
@@ -146,14 +146,14 @@
                                     </select>
                                 </div>
 
-                                {{-- Tanggal Ditemukan --}}
+                                {{-- pilihan tanggal --}}
                                 <div>
                                     <label class="block text-sm text-gray-700 mb-1 font-medium">Tanggal Ditemukan</label>
                                     <input type="date" name="tanggal" value="{{ request('tanggal') }}"
                                            class="w-full rounded-lg border-gray-300 text-sm focus:ring-2 focus:ring-[#511E1D] focus:border-[#511E1D]">
                                 </div>
 
-                                {{-- Tombol Aksi --}}
+                                {{-- tombol terapkan --}}
                                 <div class="flex items-center gap-2 pt-1">
                                     <button type="submit" class="px-5 py-2.5 bg-[#4a1a24] text-white text-sm font-medium rounded-xl hover:bg-[#3a141c] transition">
                                         Terapkan

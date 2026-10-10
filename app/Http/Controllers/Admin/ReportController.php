@@ -11,75 +11,100 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
 {
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
-        $okupansi = Reservation::where('status', 'disetujui')
-            ->selectRaw('facility_id, COUNT(*) as jumlah_reservasi')
-            ->groupBy('facility_id')
-            ->get();
+        $bulan = $request->input('bulan');
+        $tahun = $request->input('tahun');
 
-        $kerusakan = Report::selectRaw('facility_id, COUNT(*) as jumlah_laporan')
-            ->groupBy('facility_id')
-            ->get();
+        $queryOkupansi = Reservation::where('status', 'disetujui')
+            ->selectRaw('facility_id, COUNT(*) as jumlah_reservasi');
+
+        $queryKerusakan = Report::selectRaw('facility_id, COUNT(*) as jumlah_laporan');
+
+        if ($bulan) {
+            $queryOkupansi->whereMonth('tanggal', $bulan);
+            $queryKerusakan->where(function($q) use ($bulan) {
+                $q->whereMonth('created_at', $bulan)->orWhereMonth('tanggal_ditemukan', $bulan);
+            });
+        }
+
+        if ($tahun) {
+            $queryOkupansi->whereYear('tanggal', $tahun);
+            $queryKerusakan->where(function($q) use ($tahun) {
+                $q->whereYear('created_at', $tahun)->orWhereYear('tanggal_ditemukan', $tahun);
+            });
+        }
+
+        $okupansi = $queryOkupansi->groupBy('facility_id')->get();
+        $kerusakan = $queryKerusakan->groupBy('facility_id')->get();
 
         $fasilitas = Facility::all();
-
         $rekap = [];
 
         foreach ($fasilitas as $facility) {
-            $jumlahReservasi = $okupansi
-                ->where('facility_id', $facility->id)
-                ->first();
+            $jumlahReservasi = $okupansi->where('facility_id', $facility->id)->first();
+            $jumlahLaporan = $kerusakan->where('facility_id', $facility->id)->first();
 
-            $jumlahLaporan = $kerusakan
-                ->where('facility_id', $facility->id)
-                ->first();
-
-            $facility->total_reservasi = $jumlahReservasi
-                ? $jumlahReservasi->jumlah_reservasi
-                : 0;
-
-            $facility->total_laporan = $jumlahLaporan
-                ? $jumlahLaporan->jumlah_laporan
-                : 0;
-
+            $facility->total_reservasi = $jumlahReservasi ? $jumlahReservasi->jumlah_reservasi : 0;
+            $facility->total_laporan = $jumlahLaporan ? $jumlahLaporan->jumlah_laporan : 0;
             $rekap[] = $facility;
         }
 
-        // Total fasilitas yang pernah direservasi 
         $totalFasilitasDireservasi = $okupansi->count();
-
-        // Total laporan kerusakan (seluruh fasilitas)
         $totalLaporanKerusakan = $kerusakan->sum('jumlah_laporan');
 
-        // Data reservasi per hari (14) untuk grafik
-        $mulaiTanggal = now()->subDays(13)->startOfDay();
+        if ($bulan && $tahun) {
+            $daysInMonth = \Carbon\Carbon::createFromDate((int)$tahun, (int)$bulan, 1)->daysInMonth;
+            $reservasiHarianRaw = Reservation::where('status', 'disetujui')
+                ->whereYear('tanggal', $tahun)
+                ->whereMonth('tanggal', $bulan)
+                ->selectRaw('DATE(tanggal) as tgl, COUNT(*) as jumlah')
+                ->groupByRaw('DATE(tanggal)')
+                ->pluck('jumlah', 'tgl');
 
-        $reservasiHarianRaw = Reservation::where('status', 'disetujui')
-            ->where('created_at', '>=', $mulaiTanggal)
-            ->selectRaw('DATE(created_at) as tanggal, COUNT(*) as jumlah')
-            ->groupByRaw('DATE(created_at)')
-            ->pluck('jumlah', 'tanggal');
+            $reservasiPerHari = [];
+            for ($d = 1; $d <= $daysInMonth; $d++) {
+                $t = sprintf('%04d-%02d-%02d', $tahun, $bulan, $d);
+                $reservasiPerHari[$t] = $reservasiHarianRaw[$t] ?? 0;
+            }
 
-        $reservasiPerHari = [];
-        for ($i = 13; $i >= 0; $i--) {
-            $tanggal = now()->subDays($i)->format('Y-m-d');
-            $reservasiPerHari[$tanggal] = $reservasiHarianRaw[$tanggal] ?? 0;
+            $laporanHarianRaw = Report::whereYear('created_at', $tahun)
+                ->whereMonth('created_at', $bulan)
+                ->selectRaw('DATE(created_at) as tgl, COUNT(*) as jumlah')
+                ->groupByRaw('DATE(created_at)')
+                ->pluck('jumlah', 'tgl');
+
+            $laporanPerHari = [];
+            for ($d = 1; $d <= $daysInMonth; $d++) {
+                $t = sprintf('%04d-%02d-%02d', $tahun, $bulan, $d);
+                $laporanPerHari[$t] = $laporanHarianRaw[$t] ?? 0;
+            }
+        } else {
+            $mulaiTanggal = now()->subDays(13)->startOfDay();
+            $reservasiHarianRaw = Reservation::where('status', 'disetujui')
+                ->where('created_at', '>=', $mulaiTanggal)
+                ->selectRaw('DATE(created_at) as tgl, COUNT(*) as jumlah')
+                ->groupByRaw('DATE(created_at)')
+                ->pluck('jumlah', 'tgl');
+
+            $reservasiPerHari = [];
+            for ($i = 13; $i >= 0; $i--) {
+                $t = now()->subDays($i)->format('Y-m-d');
+                $reservasiPerHari[$t] = $reservasiHarianRaw[$t] ?? 0;
+            }
+
+            $laporanHarianRaw = Report::where('created_at', '>=', $mulaiTanggal)
+                ->selectRaw('DATE(created_at) as tgl, COUNT(*) as jumlah')
+                ->groupByRaw('DATE(created_at)')
+                ->pluck('jumlah', 'tgl');
+
+            $laporanPerHari = [];
+            for ($i = 13; $i >= 0; $i--) {
+                $t = now()->subDays($i)->format('Y-m-d');
+                $laporanPerHari[$t] = $laporanHarianRaw[$t] ?? 0;
+            }
         }
 
-        // Laporan kerusakan per hari (14) untuk grafik batang kedua
-        $laporanHarianRaw = Report::where('created_at', '>=', $mulaiTanggal)
-            ->selectRaw('DATE(created_at) as tanggal, COUNT(*) as jumlah')
-            ->groupByRaw('DATE(created_at)')
-            ->pluck('jumlah', 'tanggal');
-
-        $laporanPerHari = [];
-        for ($i = 13; $i >= 0; $i--) {
-            $tanggal = now()->subDays($i)->format('Y-m-d');
-            $laporanPerHari[$tanggal] = $laporanHarianRaw[$tanggal] ?? 0;
-        }
-
-        // Selisih dibanding bulan lalu, untuk badge naik/turun di card
         $fasilitasDireservasiBulanIni = Reservation::where('status', 'disetujui')
             ->whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
@@ -104,6 +129,24 @@ class ReportController extends Controller
 
         $selisihLaporan = $laporanBulanIni - $laporanBulanLalu;
 
+        $daftarTahun = Reservation::selectRaw('YEAR(tanggal) as thn')
+            ->union(Report::selectRaw('YEAR(created_at) as thn'))
+            ->whereNotNull('thn')
+            ->distinct()
+            ->pluck('thn')
+            ->sortDesc()
+            ->values();
+
+        if ($daftarTahun->isEmpty()) {
+            $daftarTahun = collect([now()->year]);
+        }
+
+        $daftarBulan = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+
         return view('admin.rekap.index', compact(
             'rekap',
             'totalFasilitasDireservasi',
@@ -111,7 +154,11 @@ class ReportController extends Controller
             'reservasiPerHari',
             'laporanPerHari',
             'selisihFasilitas',
-            'selisihLaporan'
+            'selisihLaporan',
+            'bulan',
+            'tahun',
+            'daftarBulan',
+            'daftarTahun'
         ));
     }
     public function exportCsv()

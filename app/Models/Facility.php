@@ -31,6 +31,22 @@ class Facility extends Model
     }
 
     /**
+     * Satu fasilitas memiliki banyak laporan kerusakan
+     */
+    public function reports()
+    {
+        return $this->hasMany(Report::class);
+    }
+
+    /**
+     * Laporan kerusakan yang sedang berlangsung (menunggu / diproses)
+     */
+    public function laporanKerusakanAktif()
+    {
+        return $this->reports()->whereIn('status', ['menunggu', 'baru', 'diproses'])->get();
+    }
+
+    /**
      * Mengecek fasilitas aktif
      */
     public function sedangAktif(): bool
