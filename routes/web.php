@@ -114,6 +114,7 @@ Route::middleware('auth')->group(function () {
 
     // ----- Pelaporan kerusakan (petugas) -----
     Route::get('/reports/rekap', [ReportController::class, 'rekap'])->name('reports.rekap');
+    Route::get('/reports/rekap/export/csv', [ReportController::class, 'exportCsv'])->name('reports.rekap.export.csv');
     Route::get('/reports/rekap/export/excel', [ReportController::class, 'exportExcel'])->name('reports.rekap.export.excel');
     Route::get('/reports/rekap/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.rekap.export.pdf');
     Route::get('/reports/antrian', [ReportController::class, 'antrian'])->name('reports.antrian'); // sebelum {report}

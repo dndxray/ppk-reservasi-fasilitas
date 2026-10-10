@@ -98,12 +98,10 @@
                                              class="w-full h-full object-cover">
                                         <span class="absolute top-2 right-2 text-[10px] font-medium px-3 py-0.5 rounded-full
                                             @if($fasilitas->sedangAktif()) bg-emerald-200 text-emerald-800
-                                            @elseif($fasilitas->dalamPerbaikan()) bg-yellow-200 text-yellow-800
-                                            @else bg-gray-300 text-gray-700
+                                            @else bg-yellow-200 text-yellow-800
                                             @endif">
                                             @if($fasilitas->sedangAktif()) Tersedia
-                                            @elseif($fasilitas->dalamPerbaikan()) Diperbaiki
-                                            @else Nonaktif
+                                            @else Dalam Perbaikan
                                             @endif
                                         </span>
                                     </div>
@@ -148,12 +146,10 @@
                                         </div>
                                         <span class="text-[10px] font-medium px-3 py-0.5 rounded-full whitespace-nowrap
                                             @if($fasilitas->sedangAktif()) bg-emerald-200 text-emerald-800
-                                            @elseif($fasilitas->dalamPerbaikan()) bg-yellow-200 text-yellow-800
-                                            @else bg-gray-300 text-gray-700
+                                            @else bg-yellow-200 text-yellow-800
                                             @endif">
                                             @if($fasilitas->sedangAktif()) Tersedia
-                                            @elseif($fasilitas->dalamPerbaikan()) Diperbaiki
-                                            @else Nonaktif
+                                            @else Dalam Perbaikan
                                             @endif
                                         </span>
                                     </div>

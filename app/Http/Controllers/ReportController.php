@@ -12,7 +12,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
 {
-    // buka form buat lapor kerusakan
+    // buka form lapor kerusakan
     public function create(Request $request)
     {
         $facilities = Facility::where('status', 'aktif')
@@ -41,15 +41,16 @@ class ReportController extends Controller
             'kategori_lainnya' => 'required_if:kategori,Lainnya|nullable|string|max:100',
             'tanggal_ditemukan' => 'nullable|date',
             'deskripsi' => 'required|string',
-            'foto' => 'nullable|image|max:2048',
+            'foto' => 'required|image|max:3072',
         ], [
             'facility_id.required' => 'Fasilitas wajib dipilih.',
             'facility_id.exists' => 'Fasilitas yang dipilih tidak valid.',
             'kategori.required' => 'Kategori kerusakan wajib dipilih.',
             'kategori_lainnya.required_if' => 'Mohon sebutkan kategori kerusakan lainnya.',
             'deskripsi.required' => 'Deskripsi kerusakan wajib diisi.',
+            'foto.required' => 'Foto bukti kerusakan wajib diunggah.',
             'foto.image' => 'File foto harus berupa gambar.',
-            'foto.max' => 'Ukuran foto maksimal 2MB.',
+            'foto.max' => 'Ukuran foto maksimal 3MB.',
         ]);
 
         $foto = null;
@@ -76,7 +77,7 @@ class ReportController extends Controller
             ->with('success', 'Laporan berhasil diajukan.');
     }
 
-    // riwayat laporan user (ada fitur search juga)
+    // riwayat laporan user (ada fitur cari juga)
     public function index(Request $request)
     {
         $query = Report::where('user_id', Auth::id())
@@ -98,7 +99,7 @@ class ReportController extends Controller
             });
         }
 
-        // Filter status proses laporan
+        // filter status laporan
         if ($request->filled('status')) {
             $status = $request->status;
             if ($status === 'menunggu' || $status === 'baru') {
@@ -110,12 +111,12 @@ class ReportController extends Controller
             }
         }
 
-        // Filter kategori
+        // filter kategori
         if ($request->filled('kategori')) {
             $query->where('kategori', $request->kategori);
         }
 
-        // Filter tanggal
+        // filter tanggal
         if ($request->filled('tanggal')) {
             $tanggal = $request->tanggal;
             $query->where(function ($q) use ($tanggal) {
@@ -150,11 +151,16 @@ class ReportController extends Controller
         return view('reports.show', compact('report'));
     }
 
-    // update status laporan & fasilitas oleh petugas
+    // update status laporan dan fasilitas dari petugas
     public function updateStatus(Request $request, Report $report)
     {
         if (Auth::user()->role !== 'petugas') {
             abort(403);
+        }
+
+        // laporan yang udah diproses atau selesai ga bisa ditolak lagi
+        if (in_array($report->status, ['diproses', 'selesai']) && $request->status === 'ditolak') {
+            return back()->withErrors(['status' => 'Laporan yang sudah diproses atau selesai tidak dapat ditolak.']);
         }
 
         $request->validate([
@@ -183,10 +189,10 @@ class ReportController extends Controller
 
         return redirect()
             ->route('reports.show', $report)
-            ->with('success', 'Status laporan berhasil diperbarui.');
+            ->with('success', 'Status laporan dan fasilitas berhasil diperbarui.');
     }
 
-    // antrean laporan masuk buat petugas
+    // antrian laporan masuk buat petugas
     public function antrian(Request $request)
     {
         if (Auth::user()->role !== 'petugas') {
@@ -210,7 +216,7 @@ class ReportController extends Controller
             });
         }
 
-        // Filter status proses laporan
+        // filter status laporan
         if ($request->filled('status')) {
             $status = $request->status;
             if ($status === 'menunggu' || $status === 'baru') {
@@ -222,12 +228,12 @@ class ReportController extends Controller
             }
         }
 
-        // Filter kategori
+        // filter kategori
         if ($request->filled('kategori')) {
             $query->where('kategori', $request->kategori);
         }
 
-        // Filter tanggal
+        // filter tanggal
         if ($request->filled('tanggal')) {
             $tanggal = $request->tanggal;
             $query->where(function ($q) use ($tanggal) {
@@ -248,41 +254,67 @@ class ReportController extends Controller
         return view('reports.antrian', compact('reports', 'daftarKategori'));
     }
 
-    // rekap laporan kerusakan untuk petugas
-    public function rekap()
+    // rekap data laporan kerusakan buat petugas
+    public function rekap(Request $request)
     {
         if (Auth::user()->role !== 'petugas') {
             abort(403);
         }
 
-        $kerusakan = Report::selectRaw('facility_id, COUNT(*) as jumlah_laporan')
-            ->groupBy('facility_id')
-            ->get();
+        $bulan = $request->input('bulan');
+        $tahun = $request->input('tahun');
+
+        $queryKerusakan = Report::selectRaw('facility_id, COUNT(*) as jumlah_laporan');
+        if ($bulan) {
+            $queryKerusakan->where(function ($q) use ($bulan) {
+                $q->whereMonth('created_at', $bulan)
+                  ->orWhereMonth('tanggal_ditemukan', $bulan);
+            });
+        }
+        if ($tahun) {
+            $queryKerusakan->where(function ($q) use ($tahun) {
+                $q->whereYear('created_at', $tahun)
+                  ->orWhereYear('tanggal_ditemukan', $tahun);
+            });
+        }
+        $kerusakan = $queryKerusakan->groupBy('facility_id')->get();
 
         $fasilitas = Facility::all();
-
         $rekap = [];
 
         foreach ($fasilitas as $facility) {
             $jumlahLaporan = $kerusakan->where('facility_id', $facility->id)->first();
             $facility->total_laporan = $jumlahLaporan ? $jumlahLaporan->jumlah_laporan : 0;
-
             $rekap[] = $facility;
         }
 
         $totalLaporanKerusakan = $kerusakan->sum('jumlah_laporan');
 
-        $mulaiTanggal = now()->subDays(13)->startOfDay();
+        if ($bulan && $tahun) {
+            $daysInMonth = \Carbon\Carbon::createFromDate((int)$tahun, (int)$bulan, 1)->daysInMonth;
+            $laporanHarianRaw = Report::whereYear('created_at', $tahun)
+                ->whereMonth('created_at', $bulan)
+                ->selectRaw('DATE(created_at) as tanggal, COUNT(*) as jumlah')
+                ->groupByRaw('DATE(created_at)')
+                ->pluck('jumlah', 'tanggal');
 
-        $laporanHarianRaw = Report::where('created_at', '>=', $mulaiTanggal)
-            ->selectRaw('DATE(created_at) as tanggal, COUNT(*) as jumlah')
-            ->groupByRaw('DATE(created_at)')
-            ->pluck('jumlah', 'tanggal');
+            $laporanPerHari = [];
+            for ($d = 1; $d <= $daysInMonth; $d++) {
+                $tanggal = sprintf('%04d-%02d-%02d', $tahun, $bulan, $d);
+                $laporanPerHari[$tanggal] = $laporanHarianRaw[$tanggal] ?? 0;
+            }
+        } else {
+            $mulaiTanggal = now()->subDays(13)->startOfDay();
+            $laporanHarianRaw = Report::where('created_at', '>=', $mulaiTanggal)
+                ->selectRaw('DATE(created_at) as tanggal, COUNT(*) as jumlah')
+                ->groupByRaw('DATE(created_at)')
+                ->pluck('jumlah', 'tanggal');
 
-        $laporanPerHari = [];
-        for ($i = 13; $i >= 0; $i--) {
-            $tanggal = now()->subDays($i)->format('Y-m-d');
-            $laporanPerHari[$tanggal] = $laporanHarianRaw[$tanggal] ?? 0;
+            $laporanPerHari = [];
+            for ($i = 13; $i >= 0; $i--) {
+                $tanggal = now()->subDays($i)->format('Y-m-d');
+                $laporanPerHari[$tanggal] = $laporanHarianRaw[$tanggal] ?? 0;
+            }
         }
 
         $laporanBulanIni = Report::whereMonth('created_at', now()->month)
@@ -308,27 +340,119 @@ class ReportController extends Controller
             $detailTanggal[$tgl][$item->facility_id] = (int) $item->jumlah;
         }
 
+        $daftarTahun = Report::selectRaw('YEAR(created_at) as thn')
+            ->whereNotNull('created_at')
+            ->distinct()
+            ->pluck('thn')
+            ->sortDesc()
+            ->values();
+
+        if ($daftarTahun->isEmpty()) {
+            $daftarTahun = collect([now()->year]);
+        }
+
+        $daftarBulan = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+
         return view('reports.rekap', compact(
             'rekap',
             'totalLaporanKerusakan',
             'laporanPerHari',
             'detailTanggal',
-            'selisihLaporan'
+            'selisihLaporan',
+            'bulan',
+            'tahun',
+            'daftarBulan',
+            'daftarTahun'
         ));
     }
 
-    // ekspor rekap laporan kerusakan ke Excel (.xls)
-    public function exportExcel()
+    // export data rekap ke file csv
+    public function exportCsv(Request $request)
     {
         if (Auth::user()->role !== 'petugas') {
             abort(403);
         }
 
-        $fasilitas = Facility::all();
-        $laporan = Report::selectRaw('facility_id, COUNT(*) as jumlah')
-            ->groupBy('facility_id')
-            ->pluck('jumlah', 'facility_id');
+        $bulan = $request->input('bulan');
+        $tahun = $request->input('tahun');
 
+        $queryKerusakan = Report::selectRaw('facility_id, COUNT(*) as jumlah_laporan');
+        if ($bulan) {
+            $queryKerusakan->where(function ($q) use ($bulan) {
+                $q->whereMonth('created_at', $bulan)
+                  ->orWhereMonth('tanggal_ditemukan', $bulan);
+            });
+        }
+        if ($tahun) {
+            $queryKerusakan->where(function ($q) use ($tahun) {
+                $q->whereYear('created_at', $tahun)
+                  ->orWhereYear('tanggal_ditemukan', $tahun);
+            });
+        }
+        $laporan = $queryKerusakan->groupBy('facility_id')->pluck('jumlah_laporan', 'facility_id');
+
+        $fasilitas = Facility::all();
+        $filename = 'rekap-laporan-kerusakan.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function () use ($fasilitas, $laporan) {
+            $file = fopen('php://output', 'w');
+            fputs($file, "\xEF\xBB\xBF");
+
+            fputcsv($file, ['Nama Fasilitas', 'Tipe', 'Lokasi', 'Status', 'Total Laporan Kerusakan']);
+
+            foreach ($fasilitas as $facility) {
+                $totalLap = $laporan[$facility->id] ?? 0;
+                $statusRekap = $totalLap > 0 ? 'Dalam Perbaikan' : 'Aktif';
+                fputcsv($file, [
+                    $facility->nama_fasilitas,
+                    $facility->tipe,
+                    $facility->lokasi,
+                    $statusRekap,
+                    $totalLap,
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
+    // export data rekap ke file excel
+    public function exportExcel(Request $request)
+    {
+        if (Auth::user()->role !== 'petugas') {
+            abort(403);
+        }
+
+        $bulan = $request->input('bulan');
+        $tahun = $request->input('tahun');
+
+        $queryKerusakan = Report::selectRaw('facility_id, COUNT(*) as jumlah_laporan');
+        if ($bulan) {
+            $queryKerusakan->where(function ($q) use ($bulan) {
+                $q->whereMonth('created_at', $bulan)
+                  ->orWhereMonth('tanggal_ditemukan', $bulan);
+            });
+        }
+        if ($tahun) {
+            $queryKerusakan->where(function ($q) use ($tahun) {
+                $q->whereYear('created_at', $tahun)
+                  ->orWhereYear('tanggal_ditemukan', $tahun);
+            });
+        }
+        $laporan = $queryKerusakan->groupBy('facility_id')->pluck('jumlah_laporan', 'facility_id');
+
+        $fasilitas = Facility::all();
         $filename = 'rekap-laporan-kerusakan.xls';
 
         $html = '
@@ -348,13 +472,15 @@ class ReportController extends Controller
         ';
 
         foreach ($fasilitas as $facility) {
+            $totalLap = $laporan[$facility->id] ?? 0;
+            $statusRekap = $totalLap > 0 ? 'Dalam Perbaikan' : 'Aktif';
             $html .= '
                     <tr>
                         <td>' . htmlspecialchars($facility->nama_fasilitas) . '</td>
                         <td>' . htmlspecialchars($facility->tipe) . '</td>
                         <td>' . htmlspecialchars($facility->lokasi) . '</td>
-                        <td>' . ucfirst(str_replace('_', ' ', $facility->status)) . '</td>
-                        <td>' . ($laporan[$facility->id] ?? 0) . '</td>
+                        <td>' . $statusRekap . '</td>
+                        <td>' . $totalLap . '</td>
                     </tr>
             ';
         }
@@ -371,17 +497,30 @@ class ReportController extends Controller
         ]);
     }
 
-    // ekspor rekap laporan kerusakan ke PDF (.pdf)
-    public function exportPdf()
+    // export data rekap ke file pdf
+    public function exportPdf(Request $request)
     {
         if (Auth::user()->role !== 'petugas') {
             abort(403);
         }
 
-        $fasilitas = Facility::all();
-        $laporan = Report::selectRaw('facility_id, COUNT(*) as jumlah')
-            ->groupBy('facility_id')
-            ->pluck('jumlah', 'facility_id');
+        $bulan = $request->input('bulan');
+        $tahun = $request->input('tahun');
+
+        $queryKerusakan = Report::selectRaw('facility_id, COUNT(*) as jumlah_laporan');
+        if ($bulan) {
+            $queryKerusakan->where(function ($q) use ($bulan) {
+                $q->whereMonth('created_at', $bulan)
+                  ->orWhereMonth('tanggal_ditemukan', $bulan);
+            });
+        }
+        if ($tahun) {
+            $queryKerusakan->where(function ($q) use ($tahun) {
+                $q->whereYear('created_at', $tahun)
+                  ->orWhereYear('tanggal_ditemukan', $tahun);
+            });
+        }
+        $laporan = $queryKerusakan->groupBy('facility_id')->pluck('jumlah_laporan', 'facility_id');
 
         $html = '
             <html>
@@ -417,14 +556,16 @@ class ReportController extends Controller
         ';
 
         foreach ($fasilitas as $facility) {
-            $badgeClass = $facility->status === 'aktif' ? 'badge-aktif' : 'badge-perbaikan';
+            $totalLap = $laporan[$facility->id] ?? 0;
+            $statusRekap = $totalLap > 0 ? 'Dalam Perbaikan' : 'Aktif';
+            $badgeClass = $totalLap > 0 ? 'badge-perbaikan' : 'badge-aktif';
             $html .= '
                         <tr>
                             <td><strong>' . htmlspecialchars($facility->nama_fasilitas) . '</strong></td>
                             <td>' . htmlspecialchars($facility->tipe) . '</td>
                             <td>' . htmlspecialchars($facility->lokasi) . '</td>
-                            <td><span class="badge ' . $badgeClass . '">' . ucfirst(str_replace('_', ' ', $facility->status)) . '</span></td>
-                            <td class="center"><strong>' . ($laporan[$facility->id] ?? 0) . '</strong></td>
+                            <td><span class="badge ' . $badgeClass . '">' . $statusRekap . '</span></td>
+                            <td class="center"><strong>' . $totalLap . '</strong></td>
                         </tr>
             ';
         }

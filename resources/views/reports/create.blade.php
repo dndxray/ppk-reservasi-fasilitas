@@ -371,8 +371,8 @@
                     text-black
                     mb-2
                 ">
-                    Foto Kondisi Kerusakan
-                    <span class="text-sm font-normal text-gray-500">(Opsional, maks. 2MB)</span>
+                    Foto Kondisi Kerusakan <span class="text-[#BE433E]">*</span>
+                    <span class="text-sm font-normal text-gray-500">(Wajib diunggah, maks. 3MB)</span>
                 </label>
 
                 <div
@@ -407,10 +407,10 @@
                         </div>
                         <div>
                             <p class="text-sm font-semibold text-black">
-                                Klik atau seret foto kondisi kerusakan ke sini
+                                Klik atau seret foto kondisi kerusakan ke sini <span class="text-[#BE433E]">*</span>
                             </p>
                             <p class="text-xs text-gray-500 mt-1">
-                                Maksimal 2MB (Format: JPG, JPEG, PNG)
+                                Wajib diunggah, maksimal 3MB (Format: JPG, JPEG, PNG)
                             </p>
                         </div>
                     </div>
@@ -493,6 +493,62 @@
 
     </div>
 
+</div>
+
+{{-- MODAL ALERT PERINGATAN (POPUP CUSTOM) --}}
+<div
+    id="alertModal"
+    class="
+    fixed
+    inset-0
+    bg-black/50
+    hidden
+    items-center
+    justify-center
+    z-[60]
+    "
+>
+    <div class="
+        bg-white
+        w-[400px]
+        max-w-[90vw]
+        rounded-3xl
+        p-7
+        text-center
+        relative
+        shadow-2xl
+    ">
+        <div class="w-14 h-14 rounded-full bg-[#FADBD9] text-[#BE433E] flex items-center justify-center mx-auto mb-4">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+        </div>
+
+        <h3 id="alertModalTitle" class="text-xl font-bold text-black mb-2">
+            Pemberitahuan
+        </h3>
+
+        <p id="alertModalMessage" class="text-sm text-gray-600 mb-6 leading-relaxed">
+            Pesan error akan muncul di sini.
+        </p>
+
+        <button
+            type="button"
+            onclick="closeAlertModal()"
+            class="
+            w-full
+            py-3
+            rounded-xl
+            bg-[#BE433E]
+            text-white
+            font-semibold
+            hover:opacity-90
+            transition
+            "
+        >
+            Mengerti
+        </button>
+    </div>
 </div>
 
 {{-- MODAL KONFIRMASI --}}
@@ -750,6 +806,13 @@ function handlePhotoChange(event) {
     const previewName = document.getElementById('foto_preview_name');
 
     if (file) {
+        if (file.size > 3 * 1024 * 1024) {
+            showAlertModal('Ukuran Foto Terlalu Besar', 'Ukuran foto melebihi batas maksimal 3MB. Silakan pilih foto dengan ukuran yang lebih kecil.');
+            event.target.value = '';
+            removePhoto();
+            return;
+        }
+
         previewName.innerText = file.name;
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -901,14 +964,63 @@ function changeMonth(value) {
     renderCalendar();
 }
 
+function showAlertModal(title, message) {
+    const titleEl = document.getElementById('alertModalTitle');
+    const msgEl = document.getElementById('alertModalMessage');
+    const modal = document.getElementById('alertModal');
+    if (titleEl) titleEl.innerText = title;
+    if (msgEl) msgEl.innerText = message;
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeAlertModal() {
+    const modal = document.getElementById('alertModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
 function openConfirmModal() {
     const form = document.getElementById('reportForm');
-    if (!form.checkValidity()) {
-        form.reportValidity();
+    const facilitySelect = document.getElementById('facility_id');
+    const selectKategori = document.getElementById('kategori');
+    const deskripsi = document.getElementById('deskripsi');
+    const photoInput = document.getElementById('foto');
+
+    if (!facilitySelect || !facilitySelect.value) {
+        showAlertModal('Fasilitas Belum Dipilih', 'Silakan pilih fasilitas yang ingin dilaporkan.');
+        return;
+    }
+
+    if (!selectKategori || !selectKategori.value) {
+        showAlertModal('Kategori Belum Dipilih', 'Silakan pilih kategori kerusakan fasilitas.');
+        return;
+    }
+
+    if (selectKategori.value === 'Lainnya') {
+        const inputLainnya = document.getElementById('kategori_lainnya');
+        if (!inputLainnya || !inputLainnya.value.trim()) {
+            showAlertModal('Kategori Lainnya Kosong', 'Silakan sebutkan jenis kategori kerusakan.');
+            return;
+        }
+    }
+
+    if (!deskripsi || !deskripsi.value.trim()) {
+        showAlertModal('Deskripsi Kerusakan Kosong', 'Silakan isi penjelasan detail kerusakan.');
+        return;
+    }
+
+    if (!photoInput || !photoInput.files || photoInput.files.length === 0) {
+        showAlertModal('Foto Kerusakan Wajib Diunggah', 'Foto kondisi kerusakan wajib diunggah sebelum mengirimkan laporan (maksimal 3MB).');
         return;
     }
 
     closeCalendar();
+    closeAlertModal();
     const modal = document.getElementById('confirmModal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');

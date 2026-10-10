@@ -4,7 +4,7 @@
 
         <div x-data="rekapFilterData()" @filter-date.window="selectDate($event.detail)" class="px-4 sm:px-8 py-6 sm:py-8 max-w-7xl mx-auto space-y-6">
 
-            {{-- Header Judul, Tombol Kembali & Export Buttons --}}
+            {{-- bagian header dan tombol export --}}
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
                 <div class="flex items-center gap-3">
                     <a href="{{ route('petugas.dashboard') }}" class="text-[#47201B] hover:text-[#CA734D] p-1.5 rounded-lg hover:bg-white/60 transition" title="Kembali ke Dashboard">
@@ -12,25 +12,76 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                         </svg>
                     </a>
-                    <h1 class="text-2xl font-bold text-[#47201B]" style="font-family: 'Plus Jakarta Sans', sans-serif;">
+                    <h1 class="text-2xl font-bold text-[#47201B]" style="font-family: 'Poppins', sans-serif;">
                         Rekap Fasilitas & Kerusakan
                     </h1>
                 </div>
 
-                {{-- Export Buttons --}}
+                {{-- tombol export file --}}
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('reports.rekap.export.excel') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold border border-emerald-300 text-emerald-800 bg-emerald-50/90 hover:bg-emerald-100 rounded-xl px-4 py-2.5 transition shadow-xs">
+                    <a href="{{ route('reports.rekap.export.csv', request()->query()) }}" class="inline-flex items-center gap-1.5 text-xs font-semibold border border-blue-300 text-blue-800 bg-blue-50/90 hover:bg-blue-100 rounded-xl px-4 py-2.5 transition shadow-xs">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Export CSV
+                    </a>
+                    <a href="{{ route('reports.rekap.export.excel', request()->query()) }}" class="inline-flex items-center gap-1.5 text-xs font-semibold border border-emerald-300 text-emerald-800 bg-emerald-50/90 hover:bg-emerald-100 rounded-xl px-4 py-2.5 transition shadow-xs">
                         <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         Export Excel
                     </a>
-                    <a href="{{ route('reports.rekap.export.pdf') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold border border-rose-300 text-rose-800 bg-rose-50/90 hover:bg-rose-100 rounded-xl px-4 py-2.5 transition shadow-xs">
+                    <a href="{{ route('reports.rekap.export.pdf', request()->query()) }}" class="inline-flex items-center gap-1.5 text-xs font-semibold border border-rose-300 text-rose-800 bg-rose-50/90 hover:bg-rose-100 rounded-xl px-4 py-2.5 transition shadow-xs">
                         <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                         Export PDF
                     </a>
                 </div>
             </div>
 
-        {{-- Active Filter Notification Banner --}}
+            {{-- filter bulan dan tahun --}}
+            <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-xs mb-2">
+                <form method="GET" action="{{ route('reports.rekap') }}" class="flex flex-col sm:flex-row items-end gap-4">
+                    
+                    {{-- pilihan bulan --}}
+                    <div class="w-full sm:w-56">
+                        <label for="bulan" class="block text-xs font-bold text-gray-700 uppercase mb-1.5">Pilih Bulan</label>
+                        <select name="bulan" id="bulan" class="w-full h-11 rounded-xl bg-[#F5EFE9] border-0 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#511E1D]">
+                            <option value="">Semua Bulan</option>
+                            @foreach(($daftarBulan ?? []) as $num => $namaBulan)
+                                <option value="{{ $num }}" {{ (string)($bulan ?? '') === (string)$num ? 'selected' : '' }}>
+                                    {{ $namaBulan }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- pilihan tahun --}}
+                    <div class="w-full sm:w-44">
+                        <label for="tahun" class="block text-xs font-bold text-gray-700 uppercase mb-1.5">Pilih Tahun</label>
+                        <select name="tahun" id="tahun" class="w-full h-11 rounded-xl bg-[#F5EFE9] border-0 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#511E1D]">
+                            <option value="">Semua Tahun</option>
+                            @foreach(($daftarTahun ?? []) as $thn)
+                                <option value="{{ $thn }}" {{ (string)($tahun ?? '') === (string)$thn ? 'selected' : '' }}>
+                                    {{ $thn }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- tombol filter --}}
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <button type="submit" class="flex-1 sm:flex-initial h-11 px-6 bg-[#511E1D] hover:bg-[#3d1615] text-white font-semibold text-sm rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-xs">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h18M6 8h12M9 12h6M11 16h2"/></svg>
+                            <span>Filter Periode</span>
+                        </button>
+
+                        @if(request()->filled('bulan') || request()->filled('tahun'))
+                            <a href="{{ route('reports.rekap') }}" class="flex-1 sm:flex-initial h-11 px-4 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold text-sm rounded-xl transition flex items-center justify-center gap-1 border border-stone-200">
+                                Reset
+                            </a>
+                        @endif
+                    </div>
+
+                </form>
+            </div>
+
+        {{-- notif filter aktif --}}
         <div x-show="selectedDate" x-cloak class="mb-6 p-4 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl flex items-center justify-between shadow-xs">
             <div class="flex items-center gap-2 text-sm font-medium">
                 <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h18M6 8h12M9 12h6M11 16h2"/></svg>
@@ -42,10 +93,10 @@
             </button>
         </div>
 
-        {{-- Card Ringkasan --}}
+        {{-- kartu ringkasan --}}
         <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6">
 
-            {{-- Card: Total Laporan Kerusakan --}}
+            {{-- kartu total laporan --}}
             <div class="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-5 flex items-start justify-between shadow-xs">
                 <div class="flex gap-4">
                     <div class="w-12 h-12 rounded-xl bg-emerald-700 flex items-center justify-center shrink-0 shadow-xs">
@@ -67,7 +118,7 @@
             </div>
         </div>
 
-        {{-- Grafik Batang --}}
+        {{-- grafik laporan per hari --}}
         <div class="grid grid-cols-1 gap-4 mb-6">
             <div class="bg-white border border-stone-200 rounded-2xl p-5 shadow-xs">
                 <div class="flex justify-between items-center mb-3">
@@ -78,7 +129,7 @@
             </div>
         </div>
 
-        {{-- Tabel Rekap --}}
+        {{-- tabel rekap fasilitas --}}
         <div class="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-xs">
             <table class="w-full text-sm">
                 <thead class="bg-[#511E1D] text-white text-xs uppercase">
@@ -90,14 +141,14 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-stone-100">
-                    @foreach ($rekap as $facility)
-                        <tr class="transition hover:bg-stone-50/60" :class="{ 'opacity-40': selectedDate && getFacilityCount({{ $facility->id }}) === 0 }">
+                    @foreach ($rekap as $index => $facility)
+                        <tr x-show="isInPage({{ $index }})" class="transition hover:bg-stone-50/60" :class="{ 'opacity-40': selectedDate && getFacilityCount({{ $facility->id }}) === 0 }">
                             <td class="px-4 py-3.5 font-semibold text-slate-800">{{ $facility->nama_fasilitas }}</td>
                             <td class="px-4 py-3.5 text-gray-600">{{ $facility->lokasi }}</td>
                             <td class="px-4 py-3.5">
-                                <span class="px-2.5 py-1 rounded-md text-xs font-semibold
-                                    {{ $facility->status === 'aktif' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200' }}">
-                                    {{ ucfirst(str_replace('_', ' ', $facility->status)) }}
+                                <span class="px-2.5 py-1 rounded-md text-xs font-semibold"
+                                    :class="getFacilityCount({{ $facility->id }}) > 0 ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'"
+                                    x-text="getFacilityCount({{ $facility->id }}) > 0 ? 'Dalam Perbaikan' : 'Aktif'">
                                 </span>
                             </td>
                             <td class="px-4 py-3.5 text-center font-bold text-slate-900" x-text="getFacilityCount({{ $facility->id }})"></td>
@@ -105,6 +156,45 @@
                     @endforeach
                 </tbody>
             </table>
+
+            {{-- Pagination Footer --}}
+            <div class="px-6 py-4 bg-white border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-[#511E1D]">
+                <p class="text-xs sm:text-sm text-stone-600">
+                    Menampilkan 
+                    <span class="font-bold text-[#511E1D]" x-text="{{ count($rekap) }} > 0 ? ((currentPage - 1) * perPage + 1) : 0"></span>
+                    sampai 
+                    <span class="font-bold text-[#511E1D]" x-text="Math.min(currentPage * perPage, {{ count($rekap) }})"></span>
+                    dari 
+                    <span class="font-bold text-[#511E1D]">{{ count($rekap) }}</span> data fasilitas
+                </p>
+
+                <div class="flex items-center gap-1" x-show="totalPages > 1">
+                    <button type="button" 
+                            @click="if(currentPage > 1) currentPage--" 
+                            :disabled="currentPage === 1"
+                            :class="currentPage === 1 ? 'opacity-30 cursor-not-allowed text-stone-400' : 'hover:bg-stone-100 text-[#511E1D] cursor-pointer'"
+                            class="w-8 h-8 flex items-center justify-center rounded-lg border border-stone-200 font-bold transition">
+                        ‹
+                    </button>
+
+                    <template x-for="p in totalPages" :key="p">
+                        <button type="button" 
+                                @click="currentPage = p"
+                                :class="currentPage === p ? 'bg-[#511E1D] text-white font-bold' : 'hover:bg-stone-100 text-stone-700 border border-transparent'"
+                                class="w-8 h-8 flex items-center justify-center rounded-lg text-xs transition cursor-pointer"
+                                x-text="p">
+                        </button>
+                    </template>
+
+                    <button type="button" 
+                            @click="if(currentPage < totalPages) currentPage++" 
+                            :disabled="currentPage === totalPages"
+                            :class="currentPage === totalPages ? 'opacity-30 cursor-not-allowed text-stone-400' : 'hover:bg-stone-100 text-[#511E1D] cursor-pointer'"
+                            class="w-8 h-8 flex items-center justify-center rounded-lg border border-stone-200 font-bold transition">
+                        ›
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -123,7 +213,19 @@
                 selectedDateFormatted: '',
                 selectedDateTotal: 0,
                 displayTotal: defaultTotalOverall,
-                
+                currentPage: 1,
+                perPage: 10,
+
+                get totalPages() {
+                    return Math.ceil({{ count($rekap) }} / this.perPage) || 1;
+                },
+
+                isInPage(index) {
+                    const start = (this.currentPage - 1) * this.perPage;
+                    const end = start + this.perPage;
+                    return index >= start && index < end;
+                },
+
                 selectDate(dateStr) {
                     if (this.selectedDate === dateStr) {
                         this.resetFilter();
@@ -134,6 +236,7 @@
                     this.selectedDateFormatted = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
                     this.selectedDateTotal = rawLaporanData[dateStr] || 0;
                     this.displayTotal = this.selectedDateTotal;
+                    this.currentPage = 1;
                 },
                 
                 resetFilter() {
@@ -141,6 +244,7 @@
                     this.selectedDateFormatted = '';
                     this.selectedDateTotal = 0;
                     this.displayTotal = defaultTotalOverall;
+                    this.currentPage = 1;
                 },
                 
                 getFacilityCount(facilityId) {
