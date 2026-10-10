@@ -1,26 +1,26 @@
+
 <x-app-layout>
-    {{-- Font Poppins seperti pada desain referensi --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <div class="w-full px-6 sm:px-10 lg:px-12 py-8" style="font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;">
+    <div class="w-full px-6 sm:px-10 lg:px-12 py-8"
+         style="font-family: 'Poppins', ui-sans-serif, system-ui, sans-serif;">
 
-        {{-- Header: tombol kembali + judul sejajar --}}
+        {{-- Header --}}
         <div class="flex items-center gap-5 mb-6">
             <a href="{{ route('admin.pengguna.index') }}"
                class="text-[#5A2A27] hover:text-[#7B1E1E] transition"
                aria-label="Kembali">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                <svg class="w-6 h-6" fill="none" stroke="currentColor"
+                     stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M15 19l-7-7 7-7" />
                 </svg>
             </a>
 
             <div>
-                <h1 class="text-3xl font-bold text-black">
-                    Tambah Pengguna
-                </h1>
-
+                <h1 class="text-3xl font-bold text-black">Tambah Pengguna</h1>
                 <p class="mt-1 text-sm text-gray-500">
                     Lengkapi data pengguna untuk menambahkan akun baru.
                     Kolom bertanda <span class="text-red-600 font-bold">*</span> wajib diisi.
@@ -28,13 +28,13 @@
             </div>
         </div>
 
-        {{-- Banner error dari validasi browser (disembunyikan sampai ada error) --}}
+        {{-- Banner error JavaScript --}}
         <div id="banner-error"
              role="alert"
              class="hidden mb-5 rounded-lg border border-[#9B0000] bg-[#FDDEDC] px-6 py-4 text-base font-semibold text-[#9B0000]">
         </div>
 
-        {{-- Banner error dari server (Laravel) --}}
+        {{-- Banner error Laravel --}}
         @if ($errors->any())
             <div role="alert"
                  class="mb-5 rounded-lg border border-[#9B0000] bg-[#FDDEDC] px-6 py-4 text-base font-semibold text-[#9B0000]">
@@ -50,10 +50,13 @@
             </div>
         @endif
 
-        {{-- Card full width --}}
+        {{-- Form --}}
         <div class="w-full bg-white rounded-3xl border border-gray-300 px-6 py-8 sm:px-12 sm:py-12">
 
-            <form id="form-pengguna" action="{{ route('admin.pengguna.store') }}" method="POST" novalidate>
+            <form id="form-pengguna"
+                  action="{{ route('admin.pengguna.store') }}"
+                  method="POST"
+                  novalidate>
                 @csrf
 
                 {{-- Nama --}}
@@ -71,6 +74,7 @@
                         autocomplete="off"
                         aria-required="true"
                         class="w-full h-14 px-6 rounded-xl border border-[#DCC9C5] bg-[#F5EEEB] text-base text-gray-900 placeholder-gray-500 focus:border-[#7B1E1E] focus:ring-1 focus:ring-[#7B1E1E] focus:bg-white">
+
                     <p id="error-name" class="hidden mt-2 text-sm font-medium text-[#9B0000]"></p>
                 </div>
 
@@ -89,27 +93,55 @@
                         autocomplete="off"
                         aria-required="true"
                         class="w-full h-14 px-6 rounded-xl border border-[#DCC9C5] bg-[#F5EEEB] text-base text-gray-900 placeholder-gray-500 focus:border-[#7B1E1E] focus:ring-1 focus:ring-[#7B1E1E] focus:bg-white">
+
                     <p id="error-email" class="hidden mt-2 text-sm font-medium text-[#9B0000]"></p>
                 </div>
 
-                {{-- NIM + Nomor Telepon berdampingan --}}
+                {{-- Jenis Pengguna --}}
+                <div class="mb-6">
+                    <label for="jenis_pengguna" class="block text-base font-bold text-black mb-3">
+                        Jenis Pengguna <span class="text-red-600">*</span>
+                    </label>
+
+                    <select
+                        id="jenis_pengguna"
+                        name="jenis_pengguna"
+                        aria-required="true"
+                        class="w-full h-14 px-6 rounded-xl border border-[#DCC9C5] bg-[#F5EEEB] text-base text-gray-900 focus:border-[#7B1E1E] focus:ring-1 focus:ring-[#7B1E1E] focus:bg-white">
+
+                        <option value="">Pilih jenis pengguna</option>
+                        <option value="mahasiswa" @selected(old('jenis_pengguna') === 'mahasiswa')>
+                            Mahasiswa
+                        </option>
+                        <option value="dosen" @selected(old('jenis_pengguna') === 'dosen')>
+                            Dosen
+                        </option>
+                        <option value="staf" @selected(old('jenis_pengguna') === 'staf')>
+                            Staf
+                        </option>
+                    </select>
+
+                    <p id="error-jenis_pengguna" class="hidden mt-2 text-sm font-medium text-[#9B0000]"></p>
+                </div>
+
+                {{-- Nomor Identitas dan Nomor Telepon --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-[60px] gap-y-6 mb-6">
+
                     <div>
                         <label for="nim_nip" class="block text-base font-bold text-black mb-3">
-                            NIM <span class="text-red-600">*</span>
+                            Nomor Identitas (NIM/NIP/NIK Pegawai)
                         </label>
 
                         <input
                             type="text"
-                            inputmode="numeric"
                             id="nim_nip"
                             name="nim_nip"
                             value="{{ old('nim_nip') }}"
-                            placeholder="Masukkan NIM"
-                            maxlength="20"
+                            placeholder="Masukkan nomor identitas jika tersedia"
+                            maxlength="50"
                             autocomplete="off"
-                            aria-required="true"
                             class="w-full h-14 px-6 rounded-xl border border-[#DCC9C5] bg-[#F5EEEB] text-base text-gray-900 placeholder-gray-500 focus:border-[#7B1E1E] focus:ring-1 focus:ring-[#7B1E1E] focus:bg-white">
+
                         <p id="error-nim_nip" class="hidden mt-2 text-sm font-medium text-[#9B0000]"></p>
                     </div>
 
@@ -129,12 +161,14 @@
                             autocomplete="off"
                             aria-required="true"
                             class="w-full h-14 px-6 rounded-xl border border-[#DCC9C5] bg-[#F5EEEB] text-base text-gray-900 placeholder-gray-500 focus:border-[#7B1E1E] focus:ring-1 focus:ring-[#7B1E1E] focus:bg-white">
+
                         <p id="error-no_telepon" class="hidden mt-2 text-sm font-medium text-[#9B0000]"></p>
                     </div>
                 </div>
 
-                {{-- Password + Konfirmasi berdampingan --}}
+                {{-- Password dan Konfirmasi --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-[60px] gap-y-6 mb-10">
+
                     <div>
                         <label for="password" class="block text-base font-bold text-black mb-3">
                             Password <span class="text-red-600">*</span>
@@ -148,6 +182,7 @@
                             autocomplete="new-password"
                             aria-required="true"
                             class="w-full h-14 px-6 rounded-xl border border-[#DCC9C5] bg-[#F5EEEB] text-base text-gray-900 placeholder-gray-500 focus:border-[#7B1E1E] focus:ring-1 focus:ring-[#7B1E1E] focus:bg-white">
+
                         <p id="error-password" class="hidden mt-2 text-sm font-medium text-[#9B0000]"></p>
                     </div>
 
@@ -164,10 +199,12 @@
                             autocomplete="new-password"
                             aria-required="true"
                             class="w-full h-14 px-6 rounded-xl border border-[#DCC9C5] bg-[#F5EEEB] text-base text-gray-900 placeholder-gray-500 focus:border-[#7B1E1E] focus:ring-1 focus:ring-[#7B1E1E] focus:bg-white">
+
                         <p id="error-password_confirmation" class="hidden mt-2 text-sm font-medium text-[#9B0000]"></p>
                     </div>
                 </div>
 
+                {{-- Tombol --}}
                 <div class="flex justify-end gap-3">
                     <a href="{{ route('admin.pengguna.index') }}"
                        class="px-8 h-12 inline-flex items-center rounded-xl border border-[#DCC9C5] text-[#5A2A27] font-medium hover:bg-[#F5EEEB] transition">
@@ -181,12 +218,11 @@
                         Simpan Pengguna
                     </button>
                 </div>
-
             </form>
         </div>
     </div>
 
-    {{-- Popup konfirmasi simpan --}}
+    {{-- Popup konfirmasi --}}
     <div id="modal-konfirmasi"
          class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4"
          role="dialog"
@@ -200,8 +236,10 @@
                     id="modal-tutup"
                     class="absolute top-5 right-5 text-black hover:text-[#7B1E1E] transition"
                     aria-label="Tutup">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18" />
+                <svg class="w-6 h-6" fill="none" stroke="currentColor"
+                     stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M6 6l12 12M18 6L6 18" />
                 </svg>
             </button>
 
@@ -231,53 +269,91 @@
 
     <script>
         (function () {
-            const form        = document.getElementById('form-pengguna');
-            const banner      = document.getElementById('banner-error');
-            const modal       = document.getElementById('modal-konfirmasi');
-            const btnSimpan   = document.getElementById('btn-simpan');
-            const fieldNames  = ['name', 'email', 'nim_nip', 'no_telepon', 'password', 'password_confirmation'];
+            const form = document.getElementById('form-pengguna');
+            const banner = document.getElementById('banner-error');
+            const modal = document.getElementById('modal-konfirmasi');
+            const btnSimpan = document.getElementById('btn-simpan');
 
-            const regexEmail  = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-            const regexNim    = /^[0-9]{5,20}$/;
-            // Format nomor Indonesia: 08xx..., 628xx..., atau +628xx... (10-13 digit untuk awalan 0)
-            const regexTelp   = /^(\+62|62|0)8[1-9][0-9]{7,10}$/;
+            const fieldNames = [
+                'name',
+                'email',
+                'jenis_pengguna',
+                'nim_nip',
+                'no_telepon',
+                'password',
+                'password_confirmation'
+            ];
 
-            // Aturan validasi: return '' kalau valid, atau pesan error (bahasa Indonesia)
+            const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+            const regexTelp = /^(\+62|62|0)8[1-9][0-9]{7,10}$/;
+
             const rules = {
                 name(v) {
                     v = v.trim();
+
                     if (!v) return 'Nama lengkap wajib diisi.';
                     if (v.length < 3) return 'Nama lengkap minimal 3 karakter.';
+
                     return '';
                 },
+
                 email(v) {
                     v = v.trim();
+
                     if (!v) return 'Email wajib diisi.';
                     if (!regexEmail.test(v)) return 'Format email tidak valid. Contoh: nama@email.com';
+
                     return '';
                 },
+
+                jenis_pengguna(v) {
+                    if (!v) return 'Jenis pengguna wajib dipilih.';
+
+                    if (!['mahasiswa', 'dosen', 'staf'].includes(v)) {
+                        return 'Jenis pengguna tidak valid.';
+                    }
+
+                    return '';
+                },
+
                 nim_nip(v) {
                     v = v.trim();
-                    if (!v) return 'NIM wajib diisi.';
-                    if (!regexNim.test(v)) return 'NIM tidak valid. Gunakan angka saja (5-20 digit).';
+
+                    if (v.length > 50) {
+                        return 'Nomor identitas maksimal 50 karakter.';
+                    }
+
                     return '';
                 },
+
                 no_telepon(v) {
                     v = v.trim();
+
                     if (!v) return 'Nomor telepon wajib diisi.';
-                    if (!regexTelp.test(v)) return 'Nomor telepon tidak valid. Gunakan format 08xxxxxxxxxx (10-13 digit).';
+
+                    if (!regexTelp.test(v)) {
+                        return 'Nomor telepon tidak valid. Gunakan format 08xxxxxxxxxx.';
+                    }
+
                     return '';
                 },
+
                 password(v) {
                     if (!v) return 'Password wajib diisi.';
                     if (v.length < 8) return 'Password minimal 8 karakter.';
+
                     return '';
                 },
+
                 password_confirmation(v) {
                     if (!v) return 'Konfirmasi password wajib diisi.';
-                    if (v !== document.getElementById('password').value) return 'Konfirmasi password tidak sama dengan password.';
+
+                    if (v !== document.getElementById('password').value) {
+                        return 'Konfirmasi password tidak sama dengan password.';
+                    }
+
                     return '';
-                },
+                }
             };
 
             function setError(name, message) {
@@ -300,15 +376,24 @@
             function validateField(name) {
                 const message = rules[name](document.getElementById(name).value);
                 setError(name, message);
+
                 return message;
             }
 
             function validateAll() {
                 const errors = [];
+
                 fieldNames.forEach(function (name) {
                     const message = validateField(name);
-                    if (message) errors.push({ name: name, message: message });
+
+                    if (message) {
+                        errors.push({
+                            name: name,
+                            message: message
+                        });
+                    }
                 });
+
                 return errors;
             }
 
@@ -318,11 +403,16 @@
                     banner.textContent = '';
                     return;
                 }
+
                 banner.textContent = errors.length === 1
                     ? errors[0].message
                     : 'Data belum lengkap atau tidak valid. Periksa kembali kolom yang ditandai merah.';
+
                 banner.classList.remove('hidden');
-                banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                banner.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
             }
 
             function bukaModal() {
@@ -336,19 +426,20 @@
                 modal.classList.remove('flex');
             }
 
-            // NIM: hanya angka
-            document.getElementById('nim_nip').addEventListener('input', function () {
-                this.value = this.value.replace(/[^0-9]/g, '');
-            });
-
             // Nomor telepon: hanya angka dan tanda + di awal
             document.getElementById('no_telepon').addEventListener('input', function () {
                 let v = this.value.replace(/[^0-9+]/g, '');
-                v = v.charAt(0) === '+' ? '+' + v.slice(1).replace(/\+/g, '') : v.replace(/\+/g, '');
+
+                if (v.charAt(0) === '+') {
+                    v = '+' + v.slice(1).replace(/\+/g, '');
+                } else {
+                    v = v.replace(/\+/g, '');
+                }
+
                 this.value = v;
             });
 
-            // Validasi saat keluar dari kolom, dan hapus error begitu sudah benar
+            // Validasi saat kolom diisi atau ditinggalkan
             fieldNames.forEach(function (name) {
                 const input = document.getElementById(name);
 
@@ -357,14 +448,24 @@
                 });
 
                 input.addEventListener('input', function () {
-                    if (!rules[name](input.value)) setError(name, '');
-                    if (name === 'password' && document.getElementById('password_confirmation').value) {
+                    if (!rules[name](input.value)) {
+                        setError(name, '');
+                    }
+
+                    if (
+                        name === 'password' &&
+                        document.getElementById('password_confirmation').value
+                    ) {
                         validateField('password_confirmation');
                     }
                 });
+
+                input.addEventListener('change', function () {
+                    validateField(name);
+                });
             });
 
-            // Klik "Simpan Pengguna" -> validasi dulu, kalau lolos tampilkan popup konfirmasi
+            // Validasi sebelum popup ditampilkan
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
 
@@ -372,30 +473,38 @@
                 showBanner(errors);
 
                 if (errors.length > 0) {
-                    document.getElementById(errors[0].name).focus({ preventScroll: true });
+                    document.getElementById(errors[0].name).focus({
+                        preventScroll: true
+                    });
+
                     return;
                 }
 
                 bukaModal();
             });
 
-            // Konfirmasi di popup
+            // Konfirmasi simpan
             document.getElementById('modal-simpan').addEventListener('click', function () {
                 tutupModal();
                 btnSimpan.disabled = true;
                 btnSimpan.textContent = 'Menyimpan...';
-                form.submit(); // submit native tidak memicu event 'submit' lagi
+
+                form.submit();
             });
 
             document.getElementById('modal-batal').addEventListener('click', tutupModal);
             document.getElementById('modal-tutup').addEventListener('click', tutupModal);
 
             modal.addEventListener('click', function (e) {
-                if (e.target === modal) tutupModal();
+                if (e.target === modal) {
+                    tutupModal();
+                }
             });
 
             document.addEventListener('keydown', function (e) {
-                if (e.key === 'Escape' && !modal.classList.contains('hidden')) tutupModal();
+                if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                    tutupModal();
+                }
             });
         })();
     </script>

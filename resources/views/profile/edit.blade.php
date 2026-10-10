@@ -1,5 +1,26 @@
 <x-app-layout>
 
+    @php
+        // Label kolom identitas menyesuaikan peran / jenis pengguna
+        $jenis = strtolower(trim($user->jenis_pengguna ?? ''));
+
+        $labelIdentitas = match ($jenis) {
+            'mahasiswa'                          => 'NIM',
+            'dosen'                              => 'NIP',
+            'staf', 'staff', 'pegawai', 'tendik' => 'NIK Pegawai',
+            default                              => 'NIM/NIP/NIK Pegawai',
+        };
+
+        // Admin & petugas tidak punya NIM/NIP/NIK, jadi kolomnya disembunyikan
+        $tampilIdentitas = ! ($user->isAdmin() || $user->isPetugas());
+
+        $jenisText = match ($jenis) {
+            'mahasiswa'                          => 'Mahasiswa',
+            'dosen'                              => 'Dosen',
+            'staf', 'staff', 'pegawai', 'tendik' => 'Staf',
+            default                              => null,
+        };
+    @endphp
 
     <div class="py-6">
         <div class="max-w-none space-y-6">
@@ -15,7 +36,7 @@
                         <div class="text-sm text-gray-500">
                             @if($user->isAdmin()) Admin
                             @elseif($user->isPetugas()) Petugas
-                            @else Pengguna
+                            @else {{ $jenisText ?? 'Pengguna' }}
                             @endif
                         </div>
                     </div>
@@ -31,35 +52,38 @@
                         @csrf
                     </form>
 
-                    <form method="post" action="{{ route('profile.update') }}" class="space-y-4">
+                    <form method="post" action="{{ route('profile.update') }}" class="space-y-4"
+                          x-data="{ editing: {{ $errors->any() ? 'true' : 'false' }} }">
                         @csrf
                         @method('patch')
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <x-input-label for="name" value="Nama Lengkap" />
-                                <x-text-input id="name" name="name" type="text" class="mt-1 block w-full bg-[#F5EFE9] border-0"
-                                              :value="old('name', $user->name)" required autofocus autocomplete="name" />
+                                <x-text-input id="name" name="name" type="text" class="mt-1 block w-full bg-[#F5EFE9] border-0 disabled:opacity-60 disabled:cursor-not-allowed" x-bind:disabled="!editing"
+                                              :value="old('name', $user->name)" required autocomplete="name" x-ref="nama" />
                                 <x-input-error class="mt-2" :messages="$errors->get('name')" />
                             </div>
 
-                            <div>
-                                <x-input-label for="nim_nip" value="NIM" />
-                                <x-text-input id="nim_nip" name="nim_nip" type="text" class="mt-1 block w-full bg-[#F5EFE9] border-0"
-                                              :value="old('nim_nip', $user->nim_nip)" />
-                                <x-input-error class="mt-2" :messages="$errors->get('nim_nip')" />
-                            </div>
+                            @if ($tampilIdentitas)
+                                <div>
+                                    <x-input-label for="nim_nip" :value="$labelIdentitas" />
+                                    <x-text-input id="nim_nip" name="nim_nip" type="text" class="mt-1 block w-full bg-[#F5EFE9] border-0 disabled:opacity-60 disabled:cursor-not-allowed" x-bind:disabled="!editing"
+                                                  :value="old('nim_nip', $user->nim_nip)" />
+                                    <x-input-error class="mt-2" :messages="$errors->get('nim_nip')" />
+                                </div>
+                            @endif
 
                             <div>
                                 <x-input-label for="email" value="Email" />
-                                <x-text-input id="email" name="email" type="email" class="mt-1 block w-full bg-[#F5EFE9] border-0"
+                                <x-text-input id="email" name="email" type="email" class="mt-1 block w-full bg-[#F5EFE9] border-0 disabled:opacity-60 disabled:cursor-not-allowed" x-bind:disabled="!editing"
                                               :value="old('email', $user->email)" required autocomplete="username" />
                                 <x-input-error class="mt-2" :messages="$errors->get('email')" />
                             </div>
 
                             <div>
                                 <x-input-label for="no_telepon" value="Nomor Kontak" />
-                                <x-text-input id="no_telepon" name="no_telepon" type="text" class="mt-1 block w-full bg-[#F5EFE9] border-0"
+                                <x-text-input id="no_telepon" name="no_telepon" type="text" class="mt-1 block w-full bg-[#F5EFE9] border-0 disabled:opacity-60 disabled:cursor-not-allowed" x-bind:disabled="!editing"
                                               :value="old('no_telepon', $user->no_telepon)" />
                                 <x-input-error class="mt-2" :messages="$errors->get('no_telepon')" />
                             </div>
@@ -81,8 +105,23 @@
                             </div>
                         @endif
 
-                        <div class="flex items-center gap-4 pt-2">
-                            <x-primary-button>{{ __('Simpan') }}</x-primary-button>
+                        <div class="flex items-center gap-3 pt-2">
+                            {{-- Mode lihat: hanya tombol Edit Profil --}}
+                            <button type="button"
+                                    x-show="!editing"
+                                    @click="editing = true; $nextTick(() => $refs.nama.focus())"
+                                    class="inline-flex items-center px-4 py-2 bg-[#4a1a24] border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-[#3a141c] transition">
+                                Edit Profil
+                            </button>
+
+                            {{-- Mode edit: Simpan + Batal --}}
+                            <x-primary-button x-show="editing" x-cloak>{{ __('Simpan') }}</x-primary-button>
+
+                            <a href="{{ route('profile.edit') }}"
+                               x-show="editing" x-cloak
+                               class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-50 transition">
+                                Batal
+                            </a>
 
                             @if (session('status') === 'profile-updated')
                                 <p x-data="{ show: true }" x-show="show" x-transition

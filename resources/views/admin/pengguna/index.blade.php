@@ -1,15 +1,14 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800">
-            Kelola Pengguna
-        </h2>
-    </x-slot>
-
     @php
         $jumlahFilter = collect([$status, $tanggal])->filter()->count();
     @endphp
 
-    <div class="py-8 max-w-6xl mx-auto px-4">
+    <div class="max-w-6xl mx-auto px-4 pt-2 pb-8">
+
+        {{-- Judul halaman (di dalam konten, tanpa header putih + garis) --}}
+        <h2 class="font-semibold text-xl text-gray-800 mb-4">
+            Kelola Pengguna
+        </h2>
 
         @if (session('success'))
             <div id="banner-sukses"
@@ -48,7 +47,7 @@
                     <input type="text"
                            name="search"
                            value="{{ $search }}"
-                           placeholder="Cari nama, email, NIM, no. telepon, status..."
+                           placeholder="Cari nama, email, NIM/NIP/NIK, no. telepon, status..."
                            autocomplete="off"
                            class="w-full pl-4 pr-12 py-3 bg-[#F5EFE9] border-0 rounded-lg text-sm placeholder-gray-500 focus:ring-2 focus:ring-[#511E1D]">
 
@@ -160,7 +159,8 @@
                             <tr>
                                 <th class="px-6 py-4 text-left font-bold text-[#A94438]">No</th>
                                 <th class="px-6 py-4 text-left font-bold text-[#A94438]">Pengguna</th>
-                                <th class="px-6 py-4 text-left font-bold text-[#A94438]">NIM</th>
+                                <th class="px-6 py-4 text-left font-bold text-[#A94438]">Jenis Pengguna</th>
+                                <th class="px-6 py-4 text-left font-bold text-[#A94438]">NIM/NIP/NIK Pegawai</th>
                                 <th class="px-6 py-4 text-left font-bold text-[#A94438]">No. Telepon</th>
                                 <th class="px-6 py-4 text-left font-bold text-[#A94438]">Status</th>
                                 <th class="px-6 py-4 text-center font-bold text-[#A94438]">Aksi</th>
@@ -182,7 +182,32 @@
                                         <p class="text-xs text-gray-400 mt-0.5">{{ $user->email }}</p>
                                     </td>
 
-                                    {{-- nim --}}
+                                    {{-- jenis pengguna --}}
+                                    <td class="px-6 py-5">
+                                        @php
+                                            $jenis = strtolower(trim($user->jenis_pengguna ?? ''));
+
+                                            $jenisText = match ($jenis) {
+                                                'mahasiswa'                          => 'Mahasiswa',
+                                                'dosen'                              => 'Dosen',
+                                                'staf', 'staff', 'pegawai', 'tendik' => 'Staf',
+                                                default                              => $jenis !== '' ? ucfirst($jenis) : '-',
+                                            };
+
+                                            $jenisColor = match ($jenis) {
+                                                'mahasiswa'                          => 'bg-blue-50 text-blue-700',
+                                                'dosen'                              => 'bg-purple-50 text-purple-700',
+                                                'staf', 'staff', 'pegawai', 'tendik' => 'bg-amber-50 text-amber-700',
+                                                default                              => 'bg-gray-100 text-gray-600',
+                                            };
+                                        @endphp
+
+                                        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium {{ $jenisColor }}">
+                                            {{ $jenisText }}
+                                        </span>
+                                    </td>
+
+                                    {{-- nim / nip / nik pegawai --}}
                                     <td class="px-6 py-5 text-gray-700 font-medium">
                                         {{ $user->nim_nip ?? '-' }}
                                     </td>

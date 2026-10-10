@@ -1,13 +1,13 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800">Kelola Fasilitas</h2>
-    </x-slot>
 
     @php
         $pesanSukses = session('success') ?? session('status');
     @endphp
 
-    <div class="py-8 max-w-6xl mx-auto px-4">
+    <div class="max-w-6xl mx-auto px-4 pt-2 pb-8">
+
+        {{-- Judul halaman (di dalam konten, tanpa header putih + garis) --}}
+        <h2 class="font-semibold text-xl text-gray-800 mb-4">Kelola Fasilitas</h2>
 
         @if ($pesanSukses)
             <div id="banner-sukses"
@@ -40,9 +40,23 @@
         <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
 
             <form method="GET" class="flex flex-1 items-center gap-3">
-                <input type="text" name="search" value="{{ $search }}"
-                       placeholder="Cari Nama/Lokasi..."
-                       class="flex-1 min-w-0 px-4 py-3 bg-[#F5EFE9] border-0 rounded-lg text-sm placeholder-gray-500 focus:ring-2 focus:ring-[#511E1D]">
+                {{-- Search --}}
+                <div class="relative flex-1 min-w-0">
+                    <input type="text"
+                           name="search"
+                           value="{{ $search }}"
+                           placeholder="Cari Nama/Lokasi..."
+                           autocomplete="off"
+                           class="w-full pl-4 pr-12 py-3 bg-[#F5EFE9] border-0 rounded-lg text-sm placeholder-gray-500 focus:ring-2 focus:ring-[#511E1D]">
+
+                    <button type="submit"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#5A2A27] transition"
+                            aria-label="Cari">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
 
                 <button type="submit"
                         class="inline-flex items-center gap-2 px-5 py-3 bg-[#5A2A27] text-white text-sm font-medium rounded-lg shadow-sm hover:bg-[#47201B] transition whitespace-nowrap">

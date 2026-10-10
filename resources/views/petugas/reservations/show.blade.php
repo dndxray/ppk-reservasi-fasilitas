@@ -120,7 +120,7 @@
                         @if($reservation->facility && $reservation->facility->tipe === 'alat')
                             {{-- JUMLAH PINJAM (hanya untuk alat) --}}
                             <div class="grid grid-cols-[20px_1fr] sm:grid-cols-[40px_180px_1fr] gap-x-2 sm:gap-x-0 gap-y-0.5 items-center">
-                                <svg class="w-4 h-4 sm:w-6 sm:h-6 text-[#996561]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 sm:w-6 sm:h-6 text-[#950704]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                                 </svg>
                                 <div class="sm:contents">
@@ -184,7 +184,7 @@
                         </li>
                         <li class="flex items-center gap-2.5 sm:gap-3">
                             @if($reservation->facility->tipe === 'alat')
-                                <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-[#996561]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-[#47201B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                                 </svg>
                                 <span class="text-sm sm:text-base">Stok: {{ $reservation->facility->kuantitas ?? 1 }} unit</span>

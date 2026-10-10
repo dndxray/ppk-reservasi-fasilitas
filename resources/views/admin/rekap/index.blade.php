@@ -1,9 +1,16 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800">Rekap & Ekspor</h2>
-    </x-slot>
+    <div x-data="{
+            currentPage: 1,
+            perPage: 10,
+            total: {{ count($rekap) }},
+            get totalPages() { return Math.ceil(this.total / this.perPage) || 1 },
+            get shown() { return Math.min(this.currentPage * this.perPage, this.total) - (this.currentPage - 1) * this.perPage },
+            isInPage(i) { return i >= (this.currentPage - 1) * this.perPage && i < this.currentPage * this.perPage }
+        }"
+        class="max-w-6xl mx-auto px-4 pt-2 pb-8">
 
-    <div x-data="{ currentPage: 1, perPage: 10, get totalPages() { return Math.ceil({{ count($rekap) }} / this.perPage) || 1 }, isInPage(i) { return i >= (this.currentPage - 1) * this.perPage && i < this.currentPage * this.perPage } }" class="py-8 max-w-6xl mx-auto px-4">
+        {{-- Judul halaman (di dalam konten, tanpa header putih + garis) --}}
+        <h2 class="font-semibold text-xl text-gray-800 mb-4">Rekap & Ekspor</h2>
 
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             {{-- Filter Periode Bulan & Tahun --}}
@@ -33,9 +40,12 @@
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <button type="submit" class="h-10 px-5 bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h18M6 8h12M9 12h6M11 16h2"/></svg>
-                        <span>Filter</span>
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 h-10 px-5 bg-[#5A2A27] text-white text-sm font-medium rounded-lg shadow-sm hover:bg-[#47201B] transition whitespace-nowrap">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+                        </svg>
+                        Filter
                     </button>
 
                     @if(request()->filled('bulan') || request()->filled('tahun'))
@@ -56,10 +66,10 @@
             </div>
         </div>
 
-        {{--  Card Ringkasan --}}
+        {{-- Card Ringkasan --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
 
-            {{-- Card: Total Fasilitas Direservasi --}}
+            {{-- Card: Total Reservasi --}}
             <div class="rounded-2xl border border-rose-100 bg-gradient-to-br from-rose-50 to-white p-5 flex items-start justify-between">
                 <div class="flex gap-4">
                     <div class="w-12 h-12 rounded-xl bg-rose-800 flex items-center justify-center shrink-0">
@@ -68,14 +78,14 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="font-bold text-slate-800">Total Fasilitas Direservasi</p>
-                        <p class="text-xs text-stone-500 mt-1 max-w-xs">Jumlah fasilitas yang pernah direservasi di sistem.</p>
-                        <p class="text-3xl font-extrabold text-rose-900 mt-3">{{ $totalFasilitasDireservasi }}</p>
+                        <p class="font-bold text-slate-800">Total Reservasi</p>
+                        <p class="text-xs text-stone-500 mt-1 max-w-xs">Jumlah reservasi yang tercatat di sistem.</p>
+                        <p class="text-3xl font-extrabold text-rose-900 mt-3">{{ $totalReservasi }}</p>
                     </div>
                 </div>
                 <span class="text-xs font-semibold px-2 py-1 rounded-full flex items-center gap-1 whitespace-nowrap
-                    {{ $selisihFasilitas >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700' }}">
-                    {{ $selisihFasilitas >= 0 ? '↑' : '↓' }} {{ $selisihFasilitas >= 0 ? '+' : '' }}{{ $selisihFasilitas }}
+                    {{ $selisihReservasi >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700' }}">
+                    {{ $selisihReservasi >= 0 ? '↑' : '↓' }} {{ $selisihReservasi >= 0 ? '+' : '' }}{{ $selisihReservasi }}
                     <span class="font-normal">dari bulan lalu</span>
                 </span>
             </div>
@@ -85,7 +95,7 @@
                 <div class="flex gap-4">
                     <div class="w-12 h-12 rounded-xl bg-emerald-700 flex items-center justify-center shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
                     </div>
                     <div>
@@ -102,86 +112,90 @@
             </div>
         </div>
 
-        {{--  Grafik Batang --}}
+        {{-- Grafik Batang --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-
             <div class="bg-white border border-stone-200 rounded-2xl p-5">
-                <p class="text-sm font-semibold text-slate-800 mb-3">Fasilitas Direservasi per Hari (14 Hari Terakhir)</p>
+                <p class="text-sm font-semibold text-slate-800 mb-3">Reservasi per Hari ({{ $judulGrafik }})</p>
                 <canvas id="grafikFasilitasHarian" height="180"></canvas>
             </div>
 
             <div class="bg-white border border-stone-200 rounded-2xl p-5">
-                <p class="text-sm font-semibold text-slate-800 mb-3">Laporan Kerusakan per Hari (14 Hari Terakhir)</p>
+                <p class="text-sm font-semibold text-slate-800 mb-3">Laporan Kerusakan per Hari ({{ $judulGrafik }})</p>
                 <canvas id="grafikLaporanHarian" height="180"></canvas>
             </div>
         </div>
 
-        {{--  Tabel Rekap --}}
-        <div class="bg-white border border-stone-200 rounded-lg overflow-hidden">
-            <table class="w-full text-sm">
-                <thead class="bg-slate-800 text-white text-xs uppercase">
-                    <tr>
-                        <th class="text-left px-4 py-3">Fasilitas</th>
-                        <th class="text-left px-4 py-3">Lokasi</th>
-                        <th class="text-left px-4 py-3">Status</th>
-                        <th class="text-left px-4 py-3">Total Reservasi</th>
-                        <th class="text-left px-4 py-3">Total Laporan Kerusakan</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($rekap as $index => $facility)
-                        <tr x-show="isInPage({{ $index }})" class="border-t border-stone-100">
-                            <td class="px-4 py-3 font-semibold text-slate-800">{{ $facility->nama_fasilitas }}</td>
-                            <td class="px-4 py-3">{{ $facility->lokasi }}</td>
-                            <td class="px-4 py-3">
-                                <span class="px-2.5 py-1 rounded-md text-xs font-semibold {{ $facility->total_laporan > 0 ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200' }}">
-                                    {{ $facility->total_laporan > 0 ? 'Dalam Perbaikan' : 'Aktif' }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3">{{ $facility->total_reservasi }}</td>
-                            <td class="px-4 py-3">{{ $facility->total_laporan }}</td>
+        {{-- Tabel Rekap --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
+            <div class="overflow-x-auto p-3 pb-0">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-rose-50 text-gray-700 text-xs font-bold">
+                            <th class="text-left px-4 py-3 rounded-l-xl w-12">No</th>
+                            <th class="text-left px-4 py-3">Fasilitas</th>
+                            <th class="text-left px-4 py-3">Lokasi</th>
+                            <th class="text-left px-4 py-3">Status</th>
+                            <th class="text-center px-4 py-3">Total Reservasi</th>
+                            <th class="text-center px-4 py-3 rounded-r-xl">Total Laporan Kerusakan</th>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @forelse ($rekap as $index => $facility)
+                            <tr x-show="isInPage({{ $index }})" class="border-b border-stone-100 last:border-0">
+                                <td class="px-4 py-4 text-xs text-gray-700">{{ $loop->iteration }}.</td>
+                                <td class="px-4 py-4 text-xs font-semibold text-slate-800">{{ $facility->nama_fasilitas }}</td>
+                                <td class="px-4 py-4 text-xs text-gray-700">{{ $facility->lokasi }}</td>
+                                <td class="px-4 py-4 text-xs font-semibold">
+                                    @if($facility->total_laporan > 0)
+                                        <span class="inline-flex items-center gap-1.5 text-amber-600">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Dalam Perbaikan
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 text-emerald-600">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Aktif
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-4 text-xs text-center text-gray-700">{{ $facility->total_reservasi }}</td>
+                                <td class="px-4 py-4 text-xs text-center text-gray-700">{{ $facility->total_laporan }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-4 py-8 text-center text-xs text-stone-500">Belum ada data.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
 
-            {{-- Pagination Footer --}}
-            <div class="px-6 py-4 bg-white border-t border-stone-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-slate-800">
-                <p class="text-xs sm:text-sm text-stone-600">
-                    Menampilkan 
-                    <span class="font-bold text-slate-900" x-text="{{ count($rekap) }} > 0 ? ((currentPage - 1) * perPage + 1) : 0"></span>
-                    sampai 
-                    <span class="font-bold text-slate-900" x-text="Math.min(currentPage * perPage, {{ count($rekap) }})"></span>
-                    dari 
-                    <span class="font-bold text-slate-900">{{ count($rekap) }}</span> data fasilitas
+            {{-- Footer Pagination --}}
+            <div class="px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-stone-100">
+                <p class="text-xs text-[#A94442]">
+                    Menampilkan <span x-text="shown"></span> dari {{ count($rekap) }} data
                 </p>
 
                 <div class="flex items-center gap-1" x-show="totalPages > 1">
-                    <button type="button" 
-                            @click="if(currentPage > 1) currentPage--" 
+                    <button type="button"
+                            @click="if(currentPage > 1) currentPage--"
                             :disabled="currentPage === 1"
-                            :class="currentPage === 1 ? 'opacity-30 cursor-not-allowed text-stone-400' : 'hover:bg-stone-100 text-slate-800 cursor-pointer'"
-                            class="w-8 h-8 flex items-center justify-center rounded-lg border border-stone-200 font-bold transition">
-                        ‹
-                    </button>
+                            :class="currentPage === 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-stone-100 cursor-pointer'"
+                            class="w-7 h-7 flex items-center justify-center rounded-md text-stone-500 text-sm transition">‹</button>
 
                     <template x-for="p in totalPages" :key="p">
-                        <button type="button" 
+                        <button type="button"
                                 @click="currentPage = p"
-                                :class="currentPage === p ? 'bg-slate-800 text-white font-bold' : 'hover:bg-stone-100 text-stone-700 border border-transparent'"
-                                class="w-8 h-8 flex items-center justify-center rounded-lg text-xs transition cursor-pointer"
-                                x-text="p">
-                        </button>
+                                :class="currentPage === p ? 'bg-[#A94442] text-white font-bold' : 'text-stone-600 hover:bg-stone-100'"
+                                class="w-7 h-7 flex items-center justify-center rounded-md text-xs transition cursor-pointer"
+                                x-text="p"></button>
                     </template>
 
-                    <button type="button" 
-                            @click="if(currentPage < totalPages) currentPage++" 
+                    <button type="button"
+                            @click="if(currentPage < totalPages) currentPage++"
                             :disabled="currentPage === totalPages"
-                            :class="currentPage === totalPages ? 'opacity-30 cursor-not-allowed text-stone-400' : 'hover:bg-stone-100 text-slate-800 cursor-pointer'"
-                            class="w-8 h-8 flex items-center justify-center rounded-lg border border-stone-200 font-bold transition">
-                        ›
-                    </button>
+                            :class="currentPage === totalPages ? 'opacity-30 cursor-not-allowed' : 'hover:bg-stone-100 cursor-pointer'"
+                            class="w-7 h-7 flex items-center justify-center rounded-md text-stone-500 text-sm transition">›</button>
                 </div>
+            </div>
         </div>
     </div>
 
@@ -197,10 +211,7 @@
 
         const opsiChartDasar = {
             responsive: true,
-            animation: {
-                duration: 1600,
-                easing: 'easeOutQuart',
-            },
+            animation: { duration: 1600, easing: 'easeOutQuart' },
             plugins: {
                 legend: { display: false },
                 tooltip: {
@@ -216,47 +227,30 @@
                     ticks: { precision: 0 },
                     grid: { color: 'rgba(0, 0, 0, 0.05)' }
                 },
-                x: {
-                    grid: { display: false }
-                }
+                x: { grid: { display: false } }
             }
         };
 
-        // Grafik batang: fasilitas direservasi per hari
-        const dataFasilitas = @json($reservasiPerHari);
-        new Chart(document.getElementById('grafikFasilitasHarian'), {
-            type: 'bar',
-            data: {
-                labels: buatLabelTanggal(dataFasilitas),
-                datasets: [{
-                    label: 'Fasilitas Direservasi',
-                    data: Object.values(dataFasilitas),
-                    backgroundColor: '#BA3D34',
-                    hoverBackgroundColor: '#9E3129',
-                    borderRadius: 8,
-                    borderSkipped: false
-                }]
-            },
-            options: opsiChartDasar
-        });
+        function buatGrafikBatang(idCanvas, label, dataHarian) {
+            new Chart(document.getElementById(idCanvas), {
+                type: 'bar',
+                data: {
+                    labels: buatLabelTanggal(dataHarian),
+                    datasets: [{
+                        label: label,
+                        data: Object.values(dataHarian),
+                        backgroundColor: '#BA3D34',
+                        hoverBackgroundColor: '#9E3129',
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
+                },
+                options: opsiChartDasar
+            });
+        }
 
-        // Grafik batang: laporan kerusakan per hari
-        const dataLaporan = @json($laporanPerHari);
-        new Chart(document.getElementById('grafikLaporanHarian'), {
-            type: 'bar',
-            data: {
-                labels: buatLabelTanggal(dataLaporan),
-                datasets: [{
-                    label: 'Laporan Kerusakan',
-                    data: Object.values(dataLaporan),
-                    backgroundColor: '#BA3D34',
-                    hoverBackgroundColor: '#9E3129',
-                    borderRadius: 8,
-                    borderSkipped: false
-                }]
-            },
-            options: opsiChartDasar
-        });
+        buatGrafikBatang('grafikFasilitasHarian', 'Reservasi', @json($reservasiPerHari));
+        buatGrafikBatang('grafikLaporanHarian', 'Laporan Kerusakan', @json($laporanPerHari));
     </script>
     @endpush
 </x-app-layout>
