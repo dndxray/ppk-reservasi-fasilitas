@@ -232,10 +232,10 @@
                         <div>
                             <h2 class="text-lg sm:text-xl font-bold text-[#47201B] tracking-tight"
                                 style="font-family: 'Poppins', sans-serif;">
-                                Rangkuman Rekap Fasilitas & Laporan
+                                Rekap Laporan Kerusakan
                             </h2>
                             <p class="text-xs sm:text-sm text-gray-500 mt-0.5">
-                                Pratinjau data fasilitas dengan reservasi dan laporan terbanyak.
+                                Pratinjau data laporan kerusakan fasilitas.
                             </p>
                         </div>
                     </div>
