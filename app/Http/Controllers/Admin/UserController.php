@@ -160,28 +160,35 @@ public function storeStaff(Request $request)
             ->with('success', 'Petugas berhasil ditambahkan.');
     }
 
-    // Mendaftarkan pengguna
+
     public function storeUser(Request $request)
     {
         $validated = $request->validate([
-            'name'       => 'required|string|min:3|max:255',
-            'email'      => 'required|email|max:255|unique:users,email',
-            'nim_nip'    => ['required', 'regex:/^[0-9]{5,20}$/'],
-            'no_telepon' => ['required', 'string', 'max:20', 'regex:/^(\+62|62|0)8[1-9][0-9]{7,10}$/'],
-            'password'   => 'required|string|min:8|confirmed',
+            'name' => 'required|string|min:3|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'jenis_pengguna' => 'required|in:mahasiswa,dosen,staf',
+            'nim_nip' => 'nullable|string|max:50',
+            'no_telepon' => [
+                'required',
+                'string',
+                'max:20',
+                'regex:/^(\+62|62|0)8[1-9][0-9]{7,10}$/',
+            ],
+            'password' => 'required|string|min:8|confirmed',
         ], [
-            'name.required'       => 'Nama lengkap wajib diisi.',
-            'name.min'            => 'Nama lengkap minimal 3 karakter.',
-            'email.required'      => 'Email wajib diisi.',
-            'email.email'         => 'Format email tidak valid.',
-            'email.unique'        => 'Email sudah terdaftar.',
-            'nim_nip.required'    => 'NIM wajib diisi.',
-            'nim_nip.regex'       => 'NIM tidak valid. Gunakan angka saja (5-20 digit).',
+            'name.required' => 'Nama lengkap wajib diisi.',
+            'name.min' => 'Nama lengkap minimal 3 karakter.',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email sudah terdaftar.',
+            'jenis_pengguna.required' => 'Jenis pengguna wajib dipilih.',
+            'jenis_pengguna.in' => 'Jenis pengguna tidak valid.',
+            'nim_nip.max' => 'Nomor identitas maksimal 50 karakter.',
             'no_telepon.required' => 'Nomor telepon wajib diisi.',
-            'no_telepon.regex'    => 'Nomor telepon tidak valid. Gunakan format 08xxxxxxxxxx.',
-            'password.required'   => 'Password wajib diisi.',
-            'password.min'        => 'Password minimal 8 karakter.',
-            'password.confirmed'  => 'Konfirmasi password tidak sama dengan password.',
+            'no_telepon.regex' => 'Nomor telepon tidak valid. Gunakan format 08xxxxxxxxxx.',
+            'password.required' => 'Password wajib diisi.',
+            'password.min' => 'Password minimal 8 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak sama dengan password.',
         ]);
 
         unset($validated['password_confirmation']);
@@ -195,6 +202,7 @@ public function storeStaff(Request $request)
             ->route('admin.pengguna.index')
             ->with('success', 'Pengguna berhasil ditambahkan.');
     }
+
     //Verifikasi pengguna
     public function verify(Request $request, User $user)
     {
