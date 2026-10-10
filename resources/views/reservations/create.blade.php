@@ -68,15 +68,17 @@
                 <div class="mb-5">
                     <label class="block text-[17px] font-bold text-black mb-2">Nama Fasilitas</label>
 
-                    <select name="facility_id" id="facility_id" required onchange="updateLokasi(); refreshSlots()"
+                    <select name="facility_id" id="facility_id" required onchange="updateLokasi(); updateKategoriForm(); refreshSlots()"
                             class="w-full h-12 rounded-lg bg-[#F5F0ED] border border-[#D5C6BD] px-4 text-black focus:ring-0 focus:border-[#BE433E]">
                         <option value="">Pilih fasilitas</option>
 
                         @foreach($facilities as $facility)
                             <option value="{{ $facility->id }}"
                                     data-lokasi="{{ $facility->lokasi }}"
+                                    data-tipe="{{ $facility->tipe }}"
+                                    data-kuantitas="{{ $facility->kuantitas }}"
                                     {{ (string)$currentFacilityId === (string)$facility->id ? 'selected' : '' }}>
-                                {{ $facility->nama_fasilitas }}
+                                {{ $facility->nama_fasilitas }} ({{ ucfirst(str_replace('_', ' ', $facility->tipe)) }})
                             </option>
                         @endforeach
                     </select>
@@ -90,9 +92,18 @@
                            class="w-full h-12 rounded-lg bg-[#EAE3DF] border border-[#D5C6BD] px-4 text-black cursor-not-allowed">
                 </div>
 
+                {{-- JUMLAH ALAT (KHUSUS KATEGORI ALAT) --}}
+                <div id="wrapper_jumlah_alat" class="mb-6 hidden">
+                    <label class="block text-[17px] font-bold text-black mb-3">Jumlah Alat (Kuantitas)</label>
+                    <input type="number" name="jumlah" id="jumlah" min="1" value="{{ old('jumlah', 1) }}"
+                           placeholder="Masukkan jumlah alat yang ingin dipinjam"
+                           class="w-full h-12 rounded-lg bg-[#F5F0ED] border border-[#D5C6BD] px-4 text-black focus:ring-0 focus:border-[#BE433E]">
+                    <p id="stok_info" class="text-xs text-gray-500 mt-1.5"></p>
+                </div>
+
                 {{-- TANGGAL --}}
                 <div class="mb-6">
-                    <label class="block text-[17px] font-bold text-black mb-3">Tanggal</label>
+                    <label id="label_tanggal" class="block text-[17px] font-bold text-black mb-3">Tanggal</label>
 
                     <div class="relative">
                         <input type="text" id="tanggal_display" onclick="openCalendar()" readonly
@@ -106,14 +117,14 @@
                     </div>
                 </div>
 
-                {{-- WAKTU --}}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10 mb-6">
+                {{-- WAKTU (MULAI & SELESAI) --}}
+                <div id="wrapper_waktu" class="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-10 mb-6">
 
                     {{-- MULAI --}}
                     <div>
                         <label class="block text-[17px] font-bold text-black mb-2">Waktu Mulai</label>
 
-                        <input type="hidden" name="waktu_mulai" id="waktu_mulai" value="{{ $oldMulai }}" required>
+                        <input type="hidden" name="waktu_mulai" id="waktu_mulai" value="{{ $oldMulai }}">
 
                         <div class="relative" id="wrapper_waktu_mulai">
                             <button type="button" id="btn_waktu_mulai" onclick="toggleMenuMulai()"
@@ -136,7 +147,7 @@
                     <div>
                         <label class="block text-[17px] font-bold text-black mb-2">Waktu Selesai</label>
 
-                        <input type="hidden" name="waktu_selesai" id="waktu_selesai" value="{{ $oldSelesai }}" required>
+                        <input type="hidden" name="waktu_selesai" id="waktu_selesai" value="{{ $oldSelesai }}">
 
                         <div class="relative" id="wrapper_waktu_selesai">
                             <button type="button" id="btn_waktu_selesai" onclick="toggleMenuSelesai()"
@@ -488,6 +499,36 @@ function refreshWaktuByDate() {
 }
 
 /* =========================
+   KATEGORI FASILITAS (ALAT VS RUANG)
+========================= */
+function updateKategoriForm() {
+    const select = document.getElementById('facility_id');
+    const wrapJumlah = document.getElementById('wrapper_jumlah_alat');
+    const stokInfo = document.getElementById('stok_info');
+    const inputJumlah = document.getElementById('jumlah');
+
+    if (!select || !select.value) {
+        if (wrapJumlah) wrapJumlah.classList.add('hidden');
+        return;
+    }
+
+    const opt = select.options[select.selectedIndex];
+    const tipe = opt.dataset ? opt.dataset.tipe : '';
+    const kuantitas = opt.dataset ? (opt.dataset.kuantitas || 1) : 1;
+
+    if (tipe === 'alat') {
+        if (wrapJumlah) wrapJumlah.classList.remove('hidden');
+        if (stokInfo) stokInfo.innerText = `Stok total alat tersedia: ${kuantitas} unit`;
+        if (inputJumlah) {
+            inputJumlah.max = kuantitas;
+            if (!inputJumlah.value || inputJumlah.value < 1) inputJumlah.value = 1;
+        }
+    } else {
+        if (wrapJumlah) wrapJumlah.classList.add('hidden');
+    }
+}
+
+/* =========================
    LOKASI
 ========================= */
 function updateLokasi() {
@@ -533,7 +574,6 @@ function renderCalendar() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Hari ini tidak bisa dipilih lagi bila semua slot mulai sudah lewat
     const todayFull = nowTime() >= lastStartSlot;
 
     let html = '';
@@ -608,7 +648,20 @@ function hideClientError() {
 }
 
 function validateForm() {
-    if (!document.getElementById('facility_id').value) return 'Pilih fasilitas terlebih dahulu.';
+    const select = document.getElementById('facility_id');
+    if (!select || !select.value) return 'Pilih fasilitas terlebih dahulu.';
+
+    const opt = select.options[select.selectedIndex];
+    const tipe = opt.dataset ? opt.dataset.tipe : '';
+    const kuantitas = opt.dataset ? parseInt(opt.dataset.kuantitas || 1) : 1;
+
+    if (tipe === 'alat') {
+        const jumlahInput = document.getElementById('jumlah');
+        const jumlahVal = parseInt(jumlahInput ? jumlahInput.value : 0);
+        if (!jumlahVal || jumlahVal < 1) return 'Jumlah alat minimal 1 unit.';
+        if (jumlahVal > kuantitas) return `Jumlah alat tidak boleh melebihi stok tersedia (${kuantitas} unit).`;
+    }
+
     if (!document.getElementById('tanggal').value) return 'Pilih tanggal reservasi.';
 
     const mulai = document.getElementById('waktu_mulai').value;
@@ -616,10 +669,11 @@ function validateForm() {
 
     if (!mulai) return 'Pilih waktu mulai.';
     if (isSlotPassed(mulai)) return 'Waktu mulai sudah lewat. Pilih waktu yang masih tersedia.';
-    if (terisiMap()[mulai]) return 'Waktu mulai sudah dipesan. Pilih waktu lain.';
+    if (tipe !== 'alat' && terisiMap()[mulai]) return 'Waktu mulai sudah dipesan. Pilih waktu lain.';
     if (!selesai) return 'Pilih waktu selesai.';
     if (selesai <= mulai) return 'Waktu selesai harus setelah waktu mulai.';
     if (!document.getElementById('tujuan_penggunaan').value.trim()) return 'Isi tujuan penggunaan.';
+    if (document.getElementById('tujuan_penggunaan').value.trim().length < 5) return 'Tujuan penggunaan minimal 5 karakter.';
 
     return null;
 }
@@ -648,7 +702,6 @@ function closeConfirmModal() {
 }
 
 function submitReservation() {
-    // Cek ulang saat kirim, karena jam bisa berganti selagi modal terbuka
     const error = validateForm();
     if (error) {
         closeConfirmModal();
@@ -667,8 +720,10 @@ function resetForm() {
     selectedDate = null;
     document.getElementById('tanggal').value = '';
     document.getElementById('tanggal_display').value = '';
+
     hideClientError();
     updateLokasi();
+    updateKategoriForm();
     resetWaktuMulai();
     resetWaktuSelesai();
     refreshSlots();
@@ -684,6 +739,7 @@ document.addEventListener('click', function (event) {
 
 document.addEventListener('DOMContentLoaded', async function () {
     updateLokasi();
+    updateKategoriForm();
 
     const dateVal = document.getElementById('tanggal').value;
     if (dateVal) {
@@ -701,7 +757,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     const initialMulai = "{{ $oldMulai }}";
     const initialSelesai = "{{ $oldSelesai }}";
 
-    // Data lama yang sudah lewat jamnya (mis. setelah gagal validasi) dibuang
     if (initialMulai && isSlotPassed(initialMulai)) {
         resetWaktuMulai();
         resetWaktuSelesai();

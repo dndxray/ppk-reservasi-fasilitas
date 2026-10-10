@@ -117,6 +117,19 @@
                             </div>
                         </div>
 
+                        @if($reservation->facility && $reservation->facility->tipe === 'alat')
+                            {{-- JUMLAH PINJAM (hanya untuk alat) --}}
+                            <div class="grid grid-cols-[20px_1fr] sm:grid-cols-[40px_180px_1fr] gap-x-2 sm:gap-x-0 gap-y-0.5 items-center">
+                                <svg class="w-4 h-4 sm:w-6 sm:h-6 text-[#996561]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                                <div class="sm:contents">
+                                    <dt class="text-gray-500 text-xs sm:text-base">Jumlah dipinjam</dt>
+                                    <dd class="font-semibold text-sm sm:text-base text-[#47201B]">{{ $reservation->jumlah ?? 1 }} unit</dd>
+                                </div>
+                            </div>
+                        @endif
+
                         {{-- TUJUAN --}}
                         <div class="grid grid-cols-[20px_1fr] sm:grid-cols-[40px_180px_1fr] gap-x-2 sm:gap-x-0 gap-y-0.5 items-start">
                             <img src="{{ asset('assets/icons/tujuan.png') }}" class="w-4 h-4 sm:w-6 sm:h-6 mt-0.5" alt="">
@@ -161,7 +174,7 @@
                         {{ $reservation->facility->nama_fasilitas }}
                     </h2>
                     <p class="text-xs sm:text-sm text-[#996561] mt-1">
-                        {{ $reservation->facility->tipe }}
+                        {{ ucfirst(str_replace('_', ' ', $reservation->facility->tipe)) }}
                     </p>
 
                     <ul class="mt-3 sm:mt-5 space-y-2.5 sm:space-y-3 text-[#47201B]">
@@ -170,8 +183,15 @@
                             <span class="text-sm sm:text-base break-words">{{ $reservation->facility->lokasi }}</span>
                         </li>
                         <li class="flex items-center gap-2.5 sm:gap-3">
-                            <img src="{{ asset('assets/icons/kapasitas.png') }}" class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" alt="">
-                            <span class="text-sm sm:text-base">{{ $reservation->facility->kapasitas }} orang</span>
+                            @if($reservation->facility->tipe === 'alat')
+                                <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-[#996561]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                                <span class="text-sm sm:text-base">Stok: {{ $reservation->facility->kuantitas ?? 1 }} unit</span>
+                            @else
+                                <img src="{{ asset('assets/icons/kapasitas.png') }}" class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" alt="">
+                                <span class="text-sm sm:text-base">{{ $reservation->facility->kapasitas }} orang</span>
+                            @endif
                         </li>
                     </ul>
 

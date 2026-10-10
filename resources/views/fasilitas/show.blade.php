@@ -24,7 +24,7 @@
 
         <!-- header -->
         <div class="bg-[#F5F0ED] rounded-xl p-5 flex gap-5 mb-6">
-            <img src="{{ asset('images/login-bg.jpg') }}" alt="{{ $fasilitas->nama_fasilitas }}"
+            <img src="{{ $fasilitas->foto_url }}" alt="{{ $fasilitas->nama_fasilitas }}"
                  class="w-40 h-32 object-cover rounded-lg flex-shrink-0">
 
             <div class="flex-1">
@@ -53,12 +53,21 @@
                     </svg>
                     {{ $fasilitas->lokasi }}
                 </p>
-                <p class="text-sm text-gray-600 flex items-center gap-1.5">
-                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    {{ $fasilitas->kapasitas ?? '-' }} Orang
-                </p>
+                @if($fasilitas->tipe === 'alat')
+                    <p class="text-sm text-gray-600 flex items-center gap-1.5">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                        Kuantitas: {{ $fasilitas->kuantitas ?? '-' }} Unit
+                    </p>
+                @else
+                    <p class="text-sm text-gray-600 flex items-center gap-1.5">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        {{ $fasilitas->kapasitas ?? '-' }} Orang
+                    </p>
+                @endif
 
                 @if($fasilitas->deskripsi)
                     <p class="text-sm text-black mt-2" style="font-family: 'Poppins', sans-serif;">{{ $fasilitas->deskripsi }}</p>

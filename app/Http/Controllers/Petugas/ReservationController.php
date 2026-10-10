@@ -61,38 +61,68 @@ class ReservationController extends Controller
         Reservation $reservation
     )
     {
-        $bentrok = Reservation::where(
-            'facility_id',
-            $reservation->facility_id
-        )
-        ->where(
-            'tanggal',
-            $reservation->tanggal
-        )
-        ->where(
-            'status',
-            'disetujui'
-        )
-        ->where(function($query) use ($reservation){
-            $query
-            ->where(
-                'waktu_mulai',
-                '<',
-                $reservation->waktu_selesai
+        $facility = $reservation->facility;
+
+        if ($facility && $facility->tipe === 'alat') {
+            $maxStok = $facility->kuantitas ?? 1;
+            $jumlahDiajukan = $reservation->jumlah ?? 1;
+
+            $approvedReservations = Reservation::where('facility_id', $reservation->facility_id)
+                ->where('id', '!=', $reservation->id)
+                ->where('tanggal', $reservation->tanggal)
+                ->where('status', 'disetujui')
+                ->where(function($query) use ($reservation) {
+                    $query->where('waktu_mulai', '<', $reservation->waktu_selesai)
+                          ->where('waktu_selesai', '>', $reservation->waktu_mulai);
+                })
+                ->get();
+
+            $totalTerpakai = $approvedReservations->sum(function ($r) {
+                return $r->jumlah ?? 1;
+            });
+
+            if (($totalTerpakai + $jumlahDiajukan) > $maxStok) {
+                return back()->withErrors(
+                    'Peminjaman alat tidak dapat disetujui karena stok tidak mencukupi pada jam tersebut.'
+                );
+            }
+        } else {
+            $bentrok = Reservation::where(
+                'facility_id',
+                $reservation->facility_id
             )
             ->where(
-                'waktu_selesai',
-                '>',
-                $reservation->waktu_mulai
-            );
-        })
-        ->exists();
+                'id', '!=', $reservation->id
+            )
+            ->where(
+                'tanggal',
+                $reservation->tanggal
+            )
+            ->where(
+                'status',
+                'disetujui'
+            )
+            ->where(function($query) use ($reservation){
+                $query
+                ->where(
+                    'waktu_mulai',
+                    '<',
+                    $reservation->waktu_selesai
+                )
+                ->where(
+                    'waktu_selesai',
+                    '>',
+                    $reservation->waktu_mulai
+                );
+            })
+            ->exists();
 
-        if($bentrok)
-        {
-            return back()->withErrors(
-                'Reservasi bentrok dengan jadwal lain.'
-            );
+            if($bentrok)
+            {
+                return back()->withErrors(
+                    'Reservasi bentrok dengan jadwal lain.'
+                );
+            }
         }
 
         $reservation->update([

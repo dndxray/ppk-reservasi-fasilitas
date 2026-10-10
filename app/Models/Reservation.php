@@ -10,6 +10,7 @@ class Reservation extends Model
     protected $fillable = [
         'user_id',
         'facility_id',
+        'jumlah',
         'tanggal',
         'waktu_mulai',
         'waktu_selesai',
@@ -18,6 +19,11 @@ class Reservation extends Model
         'alasan_pembatalan',
         'diproses_oleh',
     ];
+
+    public function isAlat(): bool
+    {
+        return $this->facility && $this->facility->tipe === 'alat';
+    }
 
     public function user(): BelongsTo
     {

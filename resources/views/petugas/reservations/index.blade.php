@@ -132,7 +132,11 @@
 
                                 <div class="text-xs text-gray-600 space-y-1 bg-[#F5EBE9]/40 p-3 rounded-xl border border-[#F5EBE9]">
                                     <p><span class="font-semibold text-gray-700">Pemesan:</span> {{ $reservation->user->name ?? '-' }} ({{ $reservation->user->email ?? '-' }})</p>
-                                    <p><span class="font-semibold text-gray-700">Tanggal & Waktu:</span> {{ \Carbon\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }} ({{ substr($reservation->waktu_mulai, 0, 5) }} - {{ substr($reservation->waktu_selesai, 0, 5) }})</p>
+                                    @if($reservation->facility && $reservation->facility->tipe === 'alat')
+                                        <p><span class="font-semibold text-gray-700">Periode Pinjam:</span> {{ \Carbon\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }} - {{ \Carbon\Carbon::parse($reservation->tanggal_kembali ?? $reservation->tanggal)->translatedFormat('d M Y') }} ({{ $reservation->jumlah ?? 1 }} unit)</p>
+                                    @else
+                                        <p><span class="font-semibold text-gray-700">Tanggal & Waktu:</span> {{ \Carbon\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }} ({{ substr($reservation->waktu_mulai, 0, 5) }} - {{ substr($reservation->waktu_selesai, 0, 5) }})</p>
+                                    @endif
                                     <p><span class="font-semibold text-gray-700">Diajukan:</span> {{ $reservation->created_at?->translatedFormat('d M Y H:i') }} WIB</p>
                                 </div>
 
@@ -193,12 +197,21 @@
                                             </p>
                                         </td>
                                         <td class="px-6 py-5 text-gray-700 font-medium">
-                                            <p class="font-medium text-gray-900">
-                                                {{ \Carbon\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }}
-                                            </p>
-                                            <p class="text-xs text-gray-500 mt-0.5">
-                                                {{ substr($reservation->waktu_mulai, 0, 5) }} - {{ substr($reservation->waktu_selesai, 0, 5) }} WIB
-                                            </p>
+                                            @if($reservation->facility && $reservation->facility->tipe === 'alat')
+                                                <p class="font-medium text-gray-900">
+                                                    {{ \Carbon\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }} - {{ \Carbon\Carbon::parse($reservation->tanggal_kembali ?? $reservation->tanggal)->translatedFormat('d M Y') }}
+                                                </p>
+                                                <p class="text-xs text-gray-500 mt-0.5">
+                                                    Jumlah: {{ $reservation->jumlah ?? 1 }} unit
+                                                </p>
+                                            @else
+                                                <p class="font-medium text-gray-900">
+                                                    {{ \Carbon\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }}
+                                                </p>
+                                                <p class="text-xs text-gray-500 mt-0.5">
+                                                    {{ substr($reservation->waktu_mulai, 0, 5) }} - {{ substr($reservation->waktu_selesai, 0, 5) }} WIB
+                                                </p>
+                                            @endif
                                         </td>
                                         <td class="px-6 py-5 text-gray-700 font-medium">
                                             <p class="font-medium text-gray-900">

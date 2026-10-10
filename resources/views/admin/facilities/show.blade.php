@@ -194,12 +194,21 @@
 
                                             {{-- jadwal --}}
                                             <td class="px-6 py-5 whitespace-nowrap">
-                                                <p class="font-medium text-gray-900">
-                                                    {{ \Carbon\Carbon::parse($reservation->tanggal)->locale('id')->translatedFormat('d M Y') }}
-                                                </p>
-                                                <p class="text-xs text-gray-400 mt-0.5">
-                                                    {{ substr($reservation->waktu_mulai, 0, 5) }} - {{ substr($reservation->waktu_selesai, 0, 5) }}
-                                                </p>
+                                                @if($isAlat)
+                                                    <p class="font-medium text-gray-900">
+                                                        {{ \Carbon\Carbon::parse($reservation->tanggal)->locale('id')->translatedFormat('d M Y') }} - {{ \Carbon\Carbon::parse($reservation->tanggal_kembali ?? $reservation->tanggal)->locale('id')->translatedFormat('d M Y') }}
+                                                    </p>
+                                                    <p class="text-xs text-gray-400 mt-0.5">
+                                                        Jumlah: {{ $reservation->jumlah ?? 1 }} unit
+                                                    </p>
+                                                @else
+                                                    <p class="font-medium text-gray-900">
+                                                        {{ \Carbon\Carbon::parse($reservation->tanggal)->locale('id')->translatedFormat('d M Y') }}
+                                                    </p>
+                                                    <p class="text-xs text-gray-400 mt-0.5">
+                                                        {{ substr($reservation->waktu_mulai, 0, 5) }} - {{ substr($reservation->waktu_selesai, 0, 5) }}
+                                                    </p>
+                                                @endif
                                             </td>
 
                                             {{-- status & warna --}}

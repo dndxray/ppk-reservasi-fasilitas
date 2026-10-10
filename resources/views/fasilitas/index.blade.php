@@ -19,13 +19,11 @@
         {{-- judul + tombol tambah reservasi --}}
         <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6">
             <div class="flex items-center gap-3">
-                @if(request('from') === 'beranda' || url()->previous() === route('beranda'))
-                    <a href="{{ route('beranda') }}" class="text-[#4a1a24] hover:opacity-70 transition" aria-label="Kembali ke Beranda">
-                        <svg class="w-6 h-6 font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </a>
-                @endif
+                <a href="{{ route('beranda') }}" class="text-[#4a1a24] hover:opacity-70 transition" aria-label="Kembali ke Beranda" title="Kembali ke Beranda">
+                    <svg class="w-6 h-6 font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </a>
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">Reservasi Fasilitas</h1>
                     <p class="text-[#B23A2E] text-sm mt-1">Temukan Fasilitas yang ingin Anda reservasi.</p>

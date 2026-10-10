@@ -127,7 +127,14 @@
                                 </div>
 
                                 <div class="text-xs text-gray-600 space-y-1 bg-[#F5EBE9]/40 p-3 rounded-xl border border-[#F5EBE9]">
-                                    <p><span class="font-semibold text-gray-700">Tanggal & Waktu:</span> {{ \Carbon\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }} ({{ substr($reservation->waktu_mulai, 0, 5) }} - {{ substr($reservation->waktu_selesai, 0, 5) }})</p>
+                                    <p>
+                                        <span class="font-semibold text-gray-700">Tanggal & Waktu:</span>
+                                        {{ \Carbon\Carbon::parse($reservation->tanggal)->translatedFormat('d M Y') }}
+                                        ({{ substr($reservation->waktu_mulai, 0, 5) }} - {{ substr($reservation->waktu_selesai, 0, 5) }})
+                                        @if($reservation->facility && $reservation->facility->tipe === 'alat')
+                                            &mdash; {{ $reservation->jumlah ?? 1 }} unit
+                                        @endif
+                                    </p>
                                     <p><span class="font-semibold text-gray-700">Diajukan:</span> {{ $reservation->created_at?->translatedFormat('d M Y H:i') }} WIB</p>
                                 </div>
 
@@ -184,6 +191,9 @@
                                             </p>
                                             <p class="text-xs text-gray-500 mt-0.5">
                                                 {{ substr($reservation->waktu_mulai, 0, 5) }} - {{ substr($reservation->waktu_selesai, 0, 5) }} WIB
+                                                @if($reservation->facility && $reservation->facility->tipe === 'alat')
+                                                    &mdash; {{ $reservation->jumlah ?? 1 }} unit
+                                                @endif
                                             </p>
                                         </td>
                                         <td class="px-6 py-5 text-gray-700 font-medium">
