@@ -14,26 +14,48 @@ class FacilityController extends Controller
 {
     public function index(Request $request)
     {
-        // Baca filter dari cookie kalau user ga isi filter baru
-        $tipe = $request->filled('tipe') ? $request->tipe : $request->cookie('filter_tipe');
-        $lokasi = $request->filled('lokasi') ? $request->lokasi : $request->cookie('filter_lokasi');
+        // Filter hanya dari URL. Tidak ada fallback cookie.
+        $tipe   = $request->input('tipe');
+        $lokasi = $request->input('lokasi');
 
-        // Filter dipakai bersama oleh daftar utama dan "Paling Banyak Direservasi"
-        $terapkanFilter = function ($q) use ($request, $tipe, $lokasi) {
+        // ---- Filter ketersediaan (tanggal + jam) ----
+        [$hanyaAktif, $idTerpakai, $errorWaktu] = $this->filterKetersediaan($request);
+
+        $terapkanFilter = function ($q) use ($request, $tipe, $lokasi, $hanyaAktif, $idTerpakai) {
             if ($tipe) {
                 $q->where('tipe', $tipe);
             }
-
             if ($lokasi) {
                 $q->where('lokasi', 'like', '%' . $lokasi . '%');
             }
 
+            // Kapasitas minimal (orang) - untuk ruangan, aula, dll
             if ($request->filled('kapasitas_minimal')) {
-                $q->where('kapasitas', '>=', $request->kapasitas_minimal);
+                $q->where('kapasitas', '>=', (int) $request->kapasitas_minimal);
             }
 
+            // Kuantitas minimal (unit) - untuk tipe alat
+            if ($request->filled('kuantitas_minimal')) {
+                $q->where('kuantitas', '>=', (int) $request->kuantitas_minimal);
+            }
+
+            // Cari: cocokkan nama fasilitas ATAU lokasi
             if ($request->filled('cari')) {
-                $q->where('nama_fasilitas', 'like', '%' . $request->cari . '%');
+                $kata = $request->cari;
+                $q->where(function ($w) use ($kata) {
+                    $w->where('nama_fasilitas', 'like', '%' . $kata . '%')
+                      ->orWhere('lokasi', 'like', '%' . $kata . '%');
+                });
+            }
+
+            // Ada tanggal valid -> hanya fasilitas aktif
+            if ($hanyaAktif) {
+                $q->where('status', 'aktif');
+            }
+
+            // Ada tanggal + jam valid -> buang yang sudah dipesan di rentang itu
+            if (!empty($idTerpakai)) {
+                $q->whereNotIn('id', $idTerpakai);
             }
         };
 
@@ -63,35 +85,106 @@ class FacilityController extends Controller
                 ->get();
         }
 
-        $daftarTipe = Facility::select('tipe')->distinct()->pluck('tipe');
+        $daftarTipe   = Facility::select('tipe')->distinct()->pluck('tipe');
         $daftarLokasi = Facility::select('lokasi')->distinct()->pluck('lokasi');
 
-        // 5 reservasi terakhir milik user yang login
-        $riwayatReservasi = Reservation::with('facility')
-            ->where('user_id', auth()->id())
-            ->latest()
-            ->take(5)
-            ->get();
+        // 5 reservasi terakhir milik user yang login (tamu tidak punya riwayat)
+        $riwayatReservasi = auth()->check()
+            ? Reservation::with('facility')
+                ->where('user_id', auth()->id())
+                ->latest()
+                ->take(5)
+                ->get()
+            : collect();
 
-        $response = response()->view('fasilitas.index', compact(
+        return view('fasilitas.index', compact(
             'daftarFasilitas',
             'daftarTipe',
             'daftarLokasi',
             'tipe',
             'lokasi',
             'riwayatReservasi',
-            'fasilitasPopuler'
+            'fasilitasPopuler',
+            'errorWaktu'
         ));
+    }
 
-        // Simpan filter ke cookie (30 hari)
-        if ($request->filled('tipe')) {
-            $response->cookie('filter_tipe', $request->tipe, 60 * 24 * 30);
-        }
-        if ($request->filled('lokasi')) {
-            $response->cookie('filter_lokasi', $request->lokasi, 60 * 24 * 30);
+    /**
+     * Validasi input tanggal + jam, lalu cari fasilitas yang sudah terpakai.
+     * Return: [hanyaAktif (bool), idTerpakai (array), errorWaktu (string|null)]
+     */
+    private function filterKetersediaan(Request $request): array
+    {
+        $tanggalInput = $request->input('tanggal');
+        $mulaiInput = $request->input('waktu_mulai');
+        $selesaiInput = $request->input('waktu_selesai');
+
+        // Tidak ada input waktu sama sekali -> tidak ada filter ketersediaan
+        if (!$request->filled('tanggal') && !$request->filled('waktu_mulai') && !$request->filled('waktu_selesai')) {
+            return [false, [], null];
         }
 
-        return $response;
+        if (!$request->filled('tanggal')) {
+            return [false, [], 'Pilih tanggal reservasi dulu.'];
+        }
+
+        try {
+            $tanggal = Carbon::createFromFormat('Y-m-d', $tanggalInput)->startOfDay();
+        } catch (\Exception $e) {
+            return [false, [], 'Format tanggal tidak valid.'];
+        }
+
+        if ($tanggal->lt(now()->startOfDay())) {
+            return [false, [], 'Tanggal reservasi tidak boleh sudah lewat.'];
+        }
+
+        // Hanya tanggal diisi (jam kosong) -> cukup saring fasilitas aktif
+        if (!$request->filled('waktu_mulai') && !$request->filled('waktu_selesai')) {
+            return [true, [], null];
+        }
+
+        if (!$request->filled('waktu_mulai') || !$request->filled('waktu_selesai')) {
+            return [false, [], 'Isi jam mulai dan jam selesai.'];
+        }
+
+        $slotValid = $this->jamOperasional();
+        if (!in_array($mulaiInput, $slotValid, true) || !in_array($selesaiInput, $slotValid, true)) {
+            return [false, [], 'Jam harus dalam jam operasional 07:00 - 20:00 (kelipatan 30 menit).'];
+        }
+
+        if ($mulaiInput >= $selesaiInput) {
+            return [false, [], 'Jam mulai harus lebih kecil dari jam selesai.'];
+        }
+
+        if ($tanggal->isToday() && $mulaiInput <= now()->format('H:i')) {
+            return [false, [], 'Jam mulai sudah lewat. Pilih jam yang masih tersedia hari ini.'];
+        }
+
+        $idTerpakai = [];
+        if (Schema::hasTable('reservations')) {
+            $idTerpakai = DB::table('reservations')
+                ->where('tanggal', $tanggal->toDateString())
+                ->whereIn('status', ['menunggu', 'disetujui'])
+                ->where('waktu_mulai', '<', $selesaiInput . ':00')
+                ->where('waktu_selesai', '>', $mulaiInput . ':00')
+                ->pluck('facility_id')
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        return [true, $idTerpakai, null];
+    }
+
+    // Slot jam operasional 07:00 - 20:00, kelipatan 30 menit
+    private function jamOperasional(): array
+    {
+        $slot = [];
+        for ($menit = 7 * 60; $menit <= 20 * 60; $menit += 30) {
+            $slot[] = sprintf('%02d:%02d', intdiv($menit, 60), $menit % 60);
+        }
+
+        return $slot;
     }
 
     public function show(Request $request, Facility $facility): View

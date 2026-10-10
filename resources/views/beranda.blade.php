@@ -15,33 +15,65 @@
                     @endauth
                 </h1>
                 <p class="text-white/80 mb-6">Cari Fasilitas yang tersedia untuk direservasi disini!</p>
-                <form method="GET" action="{{ route('fasilitas.index') }}"
-                      class="flex flex-col sm:flex-row gap-3">
+                                @php
+                    // Slot 30 menit, jam operasional 07:00 - 20:00
+                    $slotJam = [];
+                    for ($m = 7 * 60; $m <= 20 * 60; $m += 30) {
+                        $slotJam[] = sprintf('%02d:%02d', intdiv($m, 60), $m % 60);
+                    }
+                    $slotMulai = array_slice($slotJam, 0, -1);   // 07:00 - 19:30
+                    $slotSelesai = array_slice($slotJam, 1);     // 07:30 - 20:00
+                @endphp
 
+                <form method="GET" action="{{ route('fasilitas.index') }}"
+                      class="flex flex-col lg:flex-row gap-3">
+
+                    {{-- Lokasi / nama fasilitas --}}
                     <div class="flex-1 flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2.5">
                         <svg class="w-4 h-4 text-white/70 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
-                        <input type="text" name="lokasi" placeholder="Lokasi/Nama Fasilitas"
+                        <input type="text" name="cari" placeholder="Lokasi/Nama Fasilitas"
                                style="background-color: transparent;"
                                class="w-full border-0 focus:ring-0 text-sm p-0 text-white placeholder-white/70">
                     </div>
 
-                    <div class="flex-1 flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2.5">
+                    {{-- Tanggal dan jam reservasi --}}
+                    <div class="lg:flex-[2] flex flex-wrap items-center gap-x-3 gap-y-2 bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2.5">
                         <svg class="w-4 h-4 text-white/70 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <input type="text" placeholder="Tanggal dan Jam Reservasi" disabled
+
+                        <input type="date" name="tanggal" min="{{ now()->toDateString() }}"
                                style="background-color: transparent;"
-                               class="w-full border-0 focus:ring-0 text-sm p-0 text-white placeholder-white/70">
+                               class="border-0 focus:ring-0 text-sm p-0 text-white [color-scheme:dark] w-36">
+
+                        <select name="waktu_mulai" style="background-color: transparent;"
+                                class="border-0 focus:ring-0 text-sm p-0 pr-6 text-white">
+                            <option value="" class="text-gray-900">Mulai</option>
+                            @foreach($slotMulai as $jam)
+                                <option value="{{ $jam }}" class="text-gray-900">{{ $jam }}</option>
+                            @endforeach
+                        </select>
+
+                        <span class="text-white/70 text-sm">-</span>
+
+                        <select name="waktu_selesai" style="background-color: transparent;"
+                                class="border-0 focus:ring-0 text-sm p-0 pr-6 text-white">
+                            <option value="" class="text-gray-900">Selesai</option>
+                            @foreach($slotSelesai as $jam)
+                                <option value="{{ $jam }}" class="text-gray-900">{{ $jam }}</option>
+                            @endforeach
+                        </select>
                     </div>
 
+                    {{-- Kapasitas --}}
                     <div class="flex-1 flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2.5">
                         <svg class="w-4 h-4 text-white/70 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
-                        <input type="number" name="kapasitas_minimal" placeholder="Kapasitas Orang"
+                        <input type="number" name="kapasitas_minimal" min="1" placeholder="Kapasitas Orang"
                                style="background-color: transparent;"
                                class="w-full border-0 focus:ring-0 text-sm p-0 text-white placeholder-white/70">
                     </div>

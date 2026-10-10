@@ -14,6 +14,7 @@ class Facility extends Model
         'tipe',
         'lokasi',
         'kapasitas',
+        'kuantitas',
         'deskripsi',
         'status',
         'foto',

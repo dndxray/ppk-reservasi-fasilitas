@@ -205,7 +205,7 @@
                             </button>
                         </div>
 
-                    @elseif ($reservation->status == 'disetujui')
+                    @elseif ($reservation->status == 'disetujui' && Carbon::today()->lte(Carbon::parse($reservation->tanggal)))
 
                         <button type="button" onclick="openActionModal('cancel')"
                                 class="mt-6 sm:mt-8 w-full bg-[#F8D8D5] text-[#BE433E] py-3.5 sm:py-4 text-sm sm:text-base rounded-xl font-bold

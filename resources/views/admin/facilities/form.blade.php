@@ -3,6 +3,10 @@
         $fotoLama = $facility?->foto ? asset('storage/' . $facility->foto) : null;
         $inputClass = 'w-full px-5 py-4 bg-[#F5EFE9] border border-[#E6D6CE] rounded-xl text-base placeholder-gray-400 focus:ring-2 focus:ring-[#511E1D] focus:border-[#511E1D]';
         $sedangEdit = (bool) $facility?->exists;
+
+        // Tipe "alat" memakai Kuantitas; tipe lain memakai Kapasitas
+        $tipeAwal = old('tipe', $facility?->tipe ?? '');
+        $tipeAlat = $tipeAwal === 'alat';
     @endphp
 
     <div class="min-h-screen bg-white px-6 sm:px-10 lg:px-12 py-8">
@@ -86,7 +90,7 @@
                 <select id="tipe" name="tipe" aria-required="true" class="{{ $inputClass }}">
                     <option value="">Pilih tipe</option>
                     @foreach ($tipeOptions as $value => $label)
-                        <option value="{{ $value }}" @selected(old('tipe', $facility?->tipe ?? '') === $value)>
+                        <option value="{{ $value }}" @selected($tipeAwal === $value)>
                             {{ $label }}
                         </option>
                     @endforeach
@@ -109,8 +113,8 @@
                    class="{{ $errors->has('lokasi') ? '' : 'hidden' }} mt-2 text-sm font-medium text-[#9B0000]">{{ $errors->first('lokasi') }}</p>
             </div>
 
-            {{-- Kapasitas --}}
-            <div>
+            {{-- Kapasitas: tampil untuk semua tipe selain alat --}}
+            <div id="blok-kapasitas" class="{{ $tipeAlat ? 'hidden' : '' }}">
                 <label for="kapasitas" class="block text-lg font-bold text-black mb-3">
                     Kapasitas <span class="text-red-600">*</span>
                 </label>
@@ -119,8 +123,24 @@
                        placeholder="Contoh: 50"
                        maxlength="6" autocomplete="off" aria-required="true"
                        class="{{ $inputClass }}">
+                <p class="mt-2 text-xs text-gray-400">Jumlah orang yang dapat ditampung.</p>
                 <p id="error-kapasitas"
                    class="{{ $errors->has('kapasitas') ? '' : 'hidden' }} mt-2 text-sm font-medium text-[#9B0000]">{{ $errors->first('kapasitas') }}</p>
+            </div>
+
+            {{-- Kuantitas: tampil hanya untuk tipe alat --}}
+            <div id="blok-kuantitas" class="{{ $tipeAlat ? '' : 'hidden' }}">
+                <label for="kuantitas" class="block text-lg font-bold text-black mb-3">
+                    Kuantitas <span class="text-red-600">*</span>
+                </label>
+                <input type="text" inputmode="numeric" id="kuantitas" name="kuantitas"
+                       value="{{ old('kuantitas', $facility?->kuantitas ?? '') }}"
+                       placeholder="Contoh: 10"
+                       maxlength="6" autocomplete="off" aria-required="true"
+                       class="{{ $inputClass }}">
+                <p class="mt-2 text-xs text-gray-400">Jumlah unit alat yang tersedia.</p>
+                <p id="error-kuantitas"
+                   class="{{ $errors->has('kuantitas') ? '' : 'hidden' }} mt-2 text-sm font-medium text-[#9B0000]">{{ $errors->first('kuantitas') }}</p>
             </div>
 
             {{-- Deskripsi --}}
@@ -231,15 +251,28 @@
 
     <script>
         (function () {
-            const form       = document.getElementById('form-fasilitas');
-            const banner     = document.getElementById('banner-error');
-            const modal      = document.getElementById('modal-konfirmasi');
-            const btnSimpan  = document.getElementById('btn-simpan');
+            const form        = document.getElementById('form-fasilitas');
+            const banner      = document.getElementById('banner-error');
+            const modal       = document.getElementById('modal-konfirmasi');
+            const btnSimpan   = document.getElementById('btn-simpan');
             const labelSimpan = btnSimpan.textContent.trim();
-            const fieldNames = ['nama_fasilitas', 'tipe', 'lokasi', 'kapasitas', 'deskripsi', 'foto'];
+            const fieldNames  = ['nama_fasilitas', 'tipe', 'lokasi', 'kapasitas', 'kuantitas', 'deskripsi', 'foto'];
+
+            const tipeEl        = document.getElementById('tipe');
+            const blokKapasitas = document.getElementById('blok-kapasitas');
+            const blokKuantitas = document.getElementById('blok-kuantitas');
+            const TIPE_ALAT     = 'alat'; // nilai (value) tipe alat di dropdown
 
             const tipeFotoOk = ['image/jpeg', 'image/png', 'image/webp'];
             const maxFoto    = 2 * 1024 * 1024; // 2 MB
+
+            // Kapasitas dipakai untuk semua tipe selain alat, kuantitas hanya untuk alat
+            function jumlahAktif(name) {
+                const alat = tipeEl.value === TIPE_ALAT;
+                if (name === 'kapasitas') return !alat;
+                if (name === 'kuantitas') return alat;
+                return true;
+            }
 
             // Aturan validasi: return '' kalau valid, atau pesan error (bahasa Indonesia)
             const rules = {
@@ -262,10 +295,19 @@
                     return '';
                 },
                 kapasitas(el) {
+                    if (!jumlahAktif('kapasitas')) return ''; // tidak dipakai untuk tipe alat
                     const v = el.value.trim();
                     if (!v) return 'Kapasitas wajib diisi.';
                     if (!/^[0-9]+$/.test(v)) return 'Kapasitas harus berupa angka bulat.';
                     if (Number(v) < 1) return 'Kapasitas minimal 1 orang.';
+                    return '';
+                },
+                kuantitas(el) {
+                    if (!jumlahAktif('kuantitas')) return ''; // hanya dipakai untuk tipe alat
+                    const v = el.value.trim();
+                    if (!v) return 'Kuantitas wajib diisi.';
+                    if (!/^[0-9]+$/.test(v)) return 'Kuantitas harus berupa angka bulat.';
+                    if (Number(v) < 1) return 'Kuantitas minimal 1 unit.';
                     return '';
                 },
                 deskripsi(el) {
@@ -300,6 +342,17 @@
                     target.classList.remove('!border-[#9B0000]', '!bg-[#FDF3F2]');
                     input.removeAttribute('aria-invalid');
                 }
+            }
+
+            // Tampilkan Kuantitas untuk alat, Kapasitas untuk tipe lainnya
+            function sesuaikanJumlah() {
+                const alat = tipeEl.value === TIPE_ALAT;
+
+                blokKapasitas.classList.toggle('hidden', alat);
+                blokKuantitas.classList.toggle('hidden', !alat);
+
+                // Bersihkan tanda error pada kolom yang sedang disembunyikan
+                setError(alat ? 'kapasitas' : 'kuantitas', '');
             }
 
             function validateField(name) {
@@ -341,10 +394,15 @@
                 modal.classList.remove('flex');
             }
 
-            // Kapasitas: hanya angka
-            document.getElementById('kapasitas').addEventListener('input', function () {
-                this.value = this.value.replace(/[^0-9]/g, '');
+            // Kapasitas & kuantitas: hanya angka
+            ['kapasitas', 'kuantitas'].forEach(function (id) {
+                document.getElementById(id).addEventListener('input', function () {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                });
             });
+
+            // Ganti tipe -> ganti kolom jumlah yang tampil
+            tipeEl.addEventListener('change', sesuaikanJumlah);
 
             // Validasi saat keluar dari kolom, dan hapus error begitu sudah benar
             fieldNames.forEach(function (name) {
@@ -370,10 +428,11 @@
                 setError('foto', message);
             });
 
-            // Tombol Reset: bersihkan semua tanda error
+            // Tombol Reset: bersihkan semua tanda error dan sesuaikan ulang kolom jumlah
             form.addEventListener('reset', function () {
                 fieldNames.forEach(function (name) { setError(name, ''); });
                 showBanner([]);
+                setTimeout(sesuaikanJumlah, 0); // tunggu nilai form kembali ke awal
             });
 
             // Klik simpan -> validasi dulu, kalau lolos tampilkan popup konfirmasi
@@ -419,7 +478,10 @@
             window.addEventListener('pageshow', function () {
                 btnSimpan.disabled = false;
                 btnSimpan.textContent = labelSimpan;
+                sesuaikanJumlah();
             });
+
+            sesuaikanJumlah();
         })();
     </script>
 </x-app-layout>
