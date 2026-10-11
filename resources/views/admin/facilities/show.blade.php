@@ -11,8 +11,11 @@
             'nonaktif'        => 'Nonaktif',
         ];
 
-        // Fasilitas yang masih punya reservasi aktif/akan datang tidak boleh dihapus
-        $tidakBisaHapus = $facility->reservasiAktif()->exists();
+        // Fasilitas yang masih punya reservasi aktif/akan datang:
+        // tidak boleh dihapus dan statusnya tidak boleh diubah
+        $jumlahReservasiAktif = $facility->reservasiAktif()->count();
+        $tidakBisaHapus       = $jumlahReservasiAktif > 0;
+        $statusTerkunci       = $jumlahReservasiAktif > 0;
     @endphp
 
     <div class="min-h-screen bg-[#F8F7F7]">
@@ -124,6 +127,20 @@
                         </div>
                     </div>
 
+                    {{-- disclaimer: fasilitas masih punya reservasi aktif --}}
+                    @if ($tidakBisaHapus)
+                        <div class="mt-4 flex items-start gap-3 rounded-lg border border-[#F2D58A] bg-[#FFF8E1] px-4 py-3 text-sm text-[#7A5A00]">
+                            <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                            </svg>
+                            <p>
+                                <span class="font-semibold">Fasilitas ini tidak dapat dihapus</span>
+                                karena masih memiliki {{ $jumlahReservasiAktif }} reservasi aktif (menunggu atau akan datang).
+                                Tunggu reservasi selesai atau batalkan terlebih dahulu.
+                            </p>
+                        </div>
+                    @endif
+
                     <div class="mt-3 space-y-1 text-gray-600">
                         <p class="flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
@@ -166,6 +183,20 @@
                     Pilih status baru lalu klik "Perbarui Status". Data fasilitas tidak dihapus saat status diubah.
                 </p>
 
+                {{-- disclaimer: status terkunci --}}
+                @if ($statusTerkunci)
+                    <div class="mb-6 flex items-start gap-3 rounded-lg border border-[#F2D58A] bg-[#FFF8E1] px-4 py-3 text-sm text-[#7A5A00]">
+                        <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                        </svg>
+                        <p>
+                            <span class="font-semibold">Status fasilitas tidak dapat diubah</span>
+                            karena masih memiliki {{ $jumlahReservasiAktif }} reservasi aktif (menunggu atau akan datang).
+                            Tunggu reservasi selesai atau batalkan terlebih dahulu.
+                        </p>
+                    </div>
+                @endif
+
                 <form id="form-status" action="{{ route('admin.facilities.status', $facility) }}" method="POST"
                       class="flex flex-col sm:flex-row sm:items-end gap-4">
                     @csrf
@@ -174,7 +205,8 @@
                     <div class="w-full sm:max-w-xs">
                         <label for="status-select" class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
                         <select id="status-select" name="status" data-awal="{{ $facility->status }}"
-                                class="w-full rounded-xl border border-[#E6D6CE] bg-[#F5EFE9] px-4 py-3 text-base text-gray-900 focus:border-[#511E1D] focus:ring-2 focus:ring-[#511E1D]">
+                                @disabled($statusTerkunci)
+                                class="w-full rounded-xl border border-[#E6D6CE] bg-[#F5EFE9] px-4 py-3 text-base text-gray-900 focus:border-[#511E1D] focus:ring-2 focus:ring-[#511E1D] disabled:opacity-50 disabled:cursor-not-allowed">
                             @foreach ($opsiStatus as $nilai => $label)
                                 <option value="{{ $nilai }}" @selected($facility->status === $nilai)>{{ $label }}</option>
                             @endforeach
@@ -185,6 +217,7 @@
                     </div>
 
                     <button type="button" id="btn-ubah-status" disabled
+                            @if ($statusTerkunci) title="Tidak dapat diubah karena masih memiliki reservasi aktif" @endif
                             class="rounded-xl bg-[#C0453F] px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-[#A83B32] transition disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#C0453F]">
                         Perbarui Status
                     </button>
@@ -386,6 +419,8 @@
 
     <script>
         (function () {
+            const statusTerkunci = @json($statusTerkunci);
+
             const form      = document.getElementById('form-status');
             const select    = document.getElementById('status-select');
             const btnUbah   = document.getElementById('btn-ubah-status');
@@ -402,11 +437,13 @@
             };
 
             function perbarui() {
-                btnUbah.disabled = (select.value === awal);
-                catatan.textContent = keterangan[select.value] || '';
+                // Tombol selalu nonaktif kalau status terkunci (masih ada reservasi aktif)
+                btnUbah.disabled = statusTerkunci || (select.value === awal);
+                catatan.textContent = statusTerkunci ? '' : (keterangan[select.value] || '');
             }
 
             function buka() {
+                if (statusTerkunci) return;
                 labelBaru.textContent = select.options[select.selectedIndex].text;
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
@@ -424,6 +461,7 @@
             document.getElementById('modal-tutup').addEventListener('click', tutup);
 
             btnYa.addEventListener('click', function () {
+                if (statusTerkunci) return;
                 this.disabled = true;
                 this.textContent = 'Memproses...';
                 form.submit();

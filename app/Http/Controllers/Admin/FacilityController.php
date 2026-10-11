@@ -187,6 +187,11 @@ class FacilityController extends Controller
             'dalam_perbaikan' => 'Dalam Perbaikan',
             'nonaktif'        => 'Nonaktif',
         ][$validated['status']];
+        if ($facility->reservasiAktif()->exists()) {
+            return redirect()
+                ->route('admin.facilities.show', $facility)
+                ->with('error', 'Status fasilitas tidak dapat diubah karena masih memiliki reservasi yang menunggu atau akan datang.');
+        }
 
         return redirect()
             ->route('admin.facilities.show', $facility)

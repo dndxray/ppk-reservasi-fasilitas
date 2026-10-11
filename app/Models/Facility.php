@@ -4,7 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;  
+use Illuminate\Database\Eloquent\SoftDeletes; 
+use Illuminate\Support\Facades\Schema; 
 
 class Facility extends Model
 {
@@ -74,10 +75,21 @@ class Facility extends Model
             ? asset('storage/' . $this->foto)
             : asset('images/login-bg.jpg');
     }
+
+
     public function reservasiAktif()
     {
-        return $this->reservations()
-            ->whereIn('status', ['menunggu', 'disetujui'])
-            ->whereDate(\DB::raw('COALESCE(tanggal_kembali, tanggal)'), '>=', now()->toDateString());
+        $query = $this->reservations()
+            ->whereIn('status', ['menunggu', 'disetujui']);
+
+        // Reservasi alat punya tanggal kembali; ruangan hanya punya tanggal
+        if (Schema::hasColumn('reservations', 'tanggal_kembali')) {
+            return $query->whereRaw(
+                'COALESCE(reservations.tanggal_kembali, reservations.tanggal) >= ?',
+                [now()->toDateString()]
+            );
+        }
+
+        return $query->whereDate('tanggal', '>=', now()->toDateString());
     }
 }

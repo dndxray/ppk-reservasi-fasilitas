@@ -1,6 +1,9 @@
 <x-app-layout>
     @php
         $status = $pengguna->status_verifikasi;
+
+        // Akun yang masih punya reservasi aktif/akan datang tidak boleh dihapus
+        $tidakBisaHapus = $pengguna->reservasiAktif()->exists();
     @endphp
 
     <div class="py-8 max-w-6xl mx-auto px-4">
@@ -34,6 +37,23 @@
                     setTimeout(function () { el.remove(); }, 500);
                 }, 4000);
             </script>
+        @endif
+
+        @if (session('error'))
+            <div id="banner-error"
+                 role="alert"
+                 class="mb-5 flex items-center justify-between gap-4 rounded-lg border border-[#991B1B] bg-[#FEE2E2] px-6 py-4 text-base font-semibold text-[#991B1B]">
+                <span>{{ session('error') }}</span>
+
+                <button type="button"
+                        onclick="document.getElementById('banner-error').remove()"
+                        class="text-[#991B1B] hover:text-[#7F1D1D]"
+                        aria-label="Tutup">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18" />
+                    </svg>
+                </button>
+            </div>
         @endif
 
         {{-- Header: tombol kembali + judul --}}
@@ -189,6 +209,23 @@
                         Pendaftaran akun ini telah ditolak, sehingga pengguna tidak dapat menggunakan sistem.
                     </p>
                 @endif
+
+                {{-- Hapus akun: pudar & tidak bisa diklik kalau masih ada reservasi aktif/akan datang --}}
+                <div class="mt-8 border-t border-gray-200 pt-6">
+                    <h3 class="text-xl font-medium text-gray-900">Hapus Akun</h3>
+                    <p class="mt-2 mb-6 text-base text-gray-500">
+                        Akun akan dihapus dari daftar pengguna dan tidak bisa masuk ke sistem.
+                        Riwayat reservasinya tetap tersimpan.
+                    </p>
+
+                    <button type="button"
+                            @if (! $tidakBisaHapus) data-modal-open="modal-hapus" @endif
+                            @disabled($tidakBisaHapus)
+                            @if ($tidakBisaHapus) title="Tidak dapat dihapus karena masih memiliki reservasi aktif" @endif
+                            class="rounded-xl border-2 border-[#B91C1C] px-6 py-3 text-base font-semibold text-[#B91C1C] hover:bg-[#B91C1C] hover:text-white transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-[#B91C1C]">
+                        Hapus Akun
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -422,6 +459,49 @@
             </div>
         </div>
     @endif
+
+    {{-- Popup konfirmasi hapus (hanya ada kalau akun boleh dihapus) --}}
+    @unless ($tidakBisaHapus)
+        <form id="form-hapus" action="{{ route('admin.pengguna.destroy', $pengguna) }}" method="POST" class="hidden">
+            @csrf
+            @method('DELETE')
+        </form>
+
+        <div id="modal-hapus" data-modal data-form="form-hapus"
+             class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4"
+             role="dialog" aria-modal="true" aria-labelledby="judul-hapus">
+
+            <div class="relative w-full max-w-md rounded-3xl bg-white px-8 pt-16 pb-8 shadow-2xl">
+                <button type="button" data-modal-close
+                        class="absolute top-5 right-5 text-black hover:text-[#7B1E1E] transition"
+                        aria-label="Tutup">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18" />
+                    </svg>
+                </button>
+
+                <h2 id="judul-hapus" class="text-center text-2xl font-bold leading-snug text-black">
+                    Anda yakin ingin menghapus akun pengguna ini?
+                </h2>
+
+                <p class="mt-3 text-center text-sm text-gray-500">
+                    {{ $pengguna->name }} akan dihapus dari daftar pengguna dan tidak bisa masuk ke sistem lagi.
+                </p>
+
+                <div class="mt-8 grid grid-cols-2 gap-4">
+                    <button type="button" data-modal-close
+                            class="h-14 rounded-2xl bg-[#7B3A36] text-base font-bold text-white shadow-md hover:bg-[#5F1717] transition">
+                        Batal
+                    </button>
+
+                    <button type="button" data-modal-confirm
+                            class="h-14 rounded-2xl bg-[#F5F0F7] text-base font-bold text-black shadow-md hover:bg-[#EAE0EE] transition">
+                        Ya, Hapus
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endunless
 
     <script>
         (function () {
