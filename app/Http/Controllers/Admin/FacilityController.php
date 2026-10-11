@@ -131,7 +131,21 @@ class FacilityController extends Controller
             'tipeOptions' => $this->tipeOptions(),
         ]);
     }
+    public function destroy(Facility $facility)
+    {
+        if ($facility->reservasiAktif()->exists()) {
+            return redirect()
+                ->route('admin.facilities.show', $facility)
+                ->with('error', 'Fasilitas tidak dapat dihapus karena masih memiliki reservasi yang menunggu atau akan datang.');
+        }
 
+        // Foto tidak dihapus dari storage, supaya data masih utuh kalau suatu saat dipulihkan
+        $facility->delete();
+
+        return redirect()
+            ->route('admin.fasilitas.index')
+            ->with('success', 'Fasilitas berhasil dihapus.');
+    }
     // Mengubah fasilitas
     public function update(Request $request, Facility $facility)
     {

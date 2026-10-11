@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;  
 
 class Facility extends Model
 {
-    use HasFactory;
+    use HasFactory; use SoftDeletes; 
 
     protected $fillable = [
         'nama_fasilitas',
@@ -72,5 +73,11 @@ class Facility extends Model
         return $this->foto
             ? asset('storage/' . $this->foto)
             : asset('images/login-bg.jpg');
+    }
+    public function reservasiAktif()
+    {
+        return $this->reservations()
+            ->whereIn('status', ['menunggu', 'disetujui'])
+            ->whereDate(\DB::raw('COALESCE(tanggal_kembali, tanggal)'), '>=', now()->toDateString());
     }
 }

@@ -10,6 +10,9 @@
             'dalam_perbaikan' => 'Dalam Perbaikan',
             'nonaktif'        => 'Nonaktif',
         ];
+
+        // Fasilitas yang masih punya reservasi aktif/akan datang tidak boleh dihapus
+        $tidakBisaHapus = $facility->reservasiAktif()->exists();
     @endphp
 
     <div class="min-h-screen bg-[#F8F7F7]">
@@ -52,6 +55,23 @@
                 </script>
             @endif
 
+            @if (session('error'))
+                <div id="banner-error"
+                     role="alert"
+                     class="flex items-center justify-between gap-4 rounded-lg border border-[#991B1B] bg-[#FEE2E2] px-6 py-4 text-base font-semibold text-[#991B1B]">
+                    <span>{{ session('error') }}</span>
+
+                    <button type="button"
+                            onclick="document.getElementById('banner-error').remove()"
+                            class="text-[#991B1B] hover:text-[#7F1D1D]"
+                            aria-label="Tutup">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18" />
+                        </svg>
+                    </button>
+                </div>
+            @endif
+
             {{-- kartu detail fasilitas --}}
             <div class="flex flex-col sm:flex-row gap-5 bg-[#F5F0ED] rounded-2xl p-5 sm:p-7">
                 <img src="{{ $facility->foto_url }}" alt="{{ $facility->nama_fasilitas }}"
@@ -79,14 +99,29 @@
                             </div>
                         </div>
 
-                        <a href="{{ route('admin.facilities.edit', $facility) }}"
-                           class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#C0453F] text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-[#A83B32] transition whitespace-nowrap">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                      d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H9v-2.414a2 2 0 01.586-1.414z" />
-                            </svg>
-                            Edit Fasilitas
-                        </a>
+                        {{-- tombol aksi: edit + hapus --}}
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <a href="{{ route('admin.facilities.edit', $facility) }}"
+                               class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-[#C0453F] text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-[#A83B32] transition whitespace-nowrap">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-1.414.586H9v-2.414a2 2 0 01.586-1.414z" />
+                                </svg>
+                                Edit Fasilitas
+                            </a>
+
+                            {{-- pudar & tidak bisa diklik kalau masih ada reservasi aktif/akan datang --}}
+                            <button type="button" id="btn-hapus-fasilitas"
+                                    @disabled($tidakBisaHapus)
+                                    @if ($tidakBisaHapus) title="Tidak dapat dihapus karena masih memiliki reservasi aktif" @endif
+                                    class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-white text-[#C0453F] text-sm font-semibold rounded-lg border border-[#C0453F] shadow-sm hover:bg-[#FDECEA] transition whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Hapus Fasilitas
+                            </button>
+                        </div>
                     </div>
 
                     <div class="mt-3 space-y-1 text-gray-600">
@@ -305,6 +340,50 @@
         </div>
     </div>
 
+    {{-- Popup konfirmasi hapus fasilitas (hanya ada kalau fasilitas boleh dihapus) --}}
+    @unless ($tidakBisaHapus)
+        <div id="modal-hapus"
+             class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 px-4"
+             role="dialog" aria-modal="true" aria-labelledby="judul-hapus">
+
+            <div class="relative w-full max-w-md rounded-3xl bg-white px-8 pt-16 pb-8 shadow-2xl">
+                <button type="button" id="hapus-tutup"
+                        class="absolute top-5 right-5 text-black hover:text-[#7B1E1E] transition"
+                        aria-label="Tutup">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18" />
+                    </svg>
+                </button>
+
+                <h2 id="judul-hapus" class="text-center text-2xl font-bold leading-snug text-black">
+                    Anda yakin ingin menghapus fasilitas ini?
+                </h2>
+
+                <p class="mt-3 text-center text-sm text-gray-500">
+                    <span class="font-semibold text-gray-800">{{ $facility->nama_fasilitas }}</span>
+                    akan dihapus dari daftar fasilitas.
+                </p>
+
+                <form id="form-hapus" action="{{ route('admin.facilities.destroy', $facility) }}" method="POST">
+                    @csrf
+                    @method('DELETE')
+
+                    <div class="mt-8 grid grid-cols-2 gap-4">
+                        <button type="button" id="hapus-batal"
+                                class="h-14 rounded-2xl bg-[#F5F0F7] text-base font-bold text-black shadow-md hover:bg-[#EAE0EE] transition">
+                            Batal
+                        </button>
+
+                        <button type="button" id="hapus-ya"
+                                class="h-14 rounded-2xl bg-[#C0453F] text-base font-bold text-white shadow-md hover:bg-[#A83B32] transition">
+                            Ya, Hapus
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endunless
+
     <script>
         (function () {
             const form      = document.getElementById('form-status');
@@ -359,12 +438,56 @@
                 if (e.key === 'Escape' && !modal.classList.contains('hidden')) tutup();
             });
 
+            // ===== Hapus fasilitas (modal hanya ada kalau fasilitas boleh dihapus) =====
+            const modalHapus = document.getElementById('modal-hapus');
+            const btnHapus   = document.getElementById('btn-hapus-fasilitas');
+            let btnHapusYa   = null;
+
+            function tutupHapus() {
+                if (!modalHapus) return;
+                modalHapus.classList.add('hidden');
+                modalHapus.classList.remove('flex');
+            }
+
+            if (modalHapus) {
+                const formHapus = document.getElementById('form-hapus');
+                btnHapusYa = document.getElementById('hapus-ya');
+
+                btnHapus.addEventListener('click', function () {
+                    modalHapus.classList.remove('hidden');
+                    modalHapus.classList.add('flex');
+                    document.getElementById('hapus-batal').focus();
+                });
+
+                document.getElementById('hapus-batal').addEventListener('click', tutupHapus);
+                document.getElementById('hapus-tutup').addEventListener('click', tutupHapus);
+
+                btnHapusYa.addEventListener('click', function () {
+                    this.disabled = true;
+                    this.textContent = 'Menghapus...';
+                    formHapus.submit();
+                });
+
+                modalHapus.addEventListener('click', function (e) {
+                    if (e.target === modalHapus) tutupHapus();
+                });
+
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape' && !modalHapus.classList.contains('hidden')) tutupHapus();
+                });
+            }
+
             // Kalau kembali lewat tombol "Kembali" browser, pulihkan kondisi awal
             window.addEventListener('pageshow', function () {
                 select.value = awal;
                 btnYa.disabled = false;
                 btnYa.textContent = 'Ya, Ubah';
+                if (btnHapusYa) {
+                    btnHapusYa.disabled = false;
+                    btnHapusYa.textContent = 'Ya, Hapus';
+                }
                 tutup();
+                tutupHapus();
                 perbarui();
             });
 
