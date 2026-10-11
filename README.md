@@ -43,49 +43,86 @@ ppk-reservasi-fasilitas/
 │       ├── petugas/             ← Tampilan khusus petugas
 │       ├── reports/             ← Tampilan laporan kerusakan
 │       ├── reservations/        ← Tampilan reservasi pengguna
-│       ├── beranda.blade.php
-│       └── welcome.blade.php
-└── routes/
-    └── web.php                  ← Definisi seluruh route aplikasi
+│       └── beranda.blade.php
+├── routes/
+│   └── web.php                  ← Definisi seluruh route aplikasi
+├── loka.sql                     ← SQL dump untuk setup cepat (opsional)
+└── .env.example                 ← Template konfigurasi environment
 ```
 
 ---
 
+## Prasyarat
 
-### Langkah Instalasi
+- **Laragon Full** (sudah termasuk PHP 8.2+, MySQL, Composer, Node.js, npm, Git).
+- Jika memakai Laragon Lite, install Node.js manual dari [nodejs.org](https://nodejs.org).
+
+---
+
+## Langkah Instalasi
 
 ```bash
-# 1. Clone repository
+# 1. Clone repository ke folder www Laragon
+cd C:\laragon\www
 git clone https://github.com/dndxray/ppk-reservasi-fasilitas.git
 cd ppk-reservasi-fasilitas
 
 # 2. Install dependensi PHP
 composer install
 
-# 3. Salin file environment
-cp .env.example .env
+# 3. Install dependensi Node.js
+npm install
 
-# 4. Generate application key
+# 4. Salin file environment
+copy .env.example .env
+
+# 5. Generate application key
 php artisan key:generate
 
-# 5. Konfigurasi database di file .env
-#    DB_DATABASE=nama_database
+# 6. Konfigurasi database di file .env
+#    DB_CONNECTION=mysql
+#    DB_HOST=127.0.0.1
+#    DB_PORT=3306
+#    DB_DATABASE=loka
 #    DB_USERNAME=root
 #    DB_PASSWORD=
 
-# 6. Jalankan migrasi & seeder
+# 7. Setup database (pilih SALAH SATU cara berikut):
+
+#    Cara A — Migration + Seeder (butuh create DB manual):
+mysql -u root -e "CREATE DATABASE loka CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 php artisan migrate --seed
 
-# 7. Buat symbolic link storage
+#    Cara B — Import file SQL (instalasi cepat, DB dibuat otomatis):
+#       Buka HeidiSQL (bawaan Laragon)
+#       → Connect: 127.0.0.1 / root / (password kosong)
+#       → File → Run SQL file → pilih loka.sql
+#       Database "loka" akan dibuat otomatis beserta data contoh
+
+# 8. Buat symbolic link untuk file upload
 php artisan storage:link
 
-# 8. Jalankan server lokal
+# 9. Compile asset frontend (Tailwind + Alpine)
+npm run build
+
+# 10. Jalankan server lokal
 php artisan serve
 ```
 
-Akses melalui **http://127.0.0.1:8000**
+Akses aplikasi melalui **http://127.0.0.1:8000**
 
+---
 
+## Akun Default
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@loka.test | password |
+| Petugas | petugas@gmail.com | password |
+| Pengguna | pengguna@gmail.com | password |
+
+> Jika login gagal, jalankan `php artisan tinker` lalu reset:
+> `App\Models\User::find(2)->update(['password' => bcrypt('password')]);`
 
 ---
 
@@ -148,8 +185,8 @@ Akses melalui **http://127.0.0.1:8000**
 
 | Lapisan | Implementasi |
 |---------|-------------|
-| **Server (PHP)** | Laravel Form Request, validasi di Controller (`validate()`) |
-| **Client (JavaScript)** | Validasi interaktif pada form reservasi dan laporan sebelum submit |
+| **Server (PHP)** | Validasi di Controller (`validate()`) dan helper `filterKetersediaan()` pada `FacilityController` |
+| **Client (HTML5)** | Atribut `required`, `min`, `max`, `type="number"`, `type="date"`, `type="time"` pada form |
 
 ---
 
@@ -174,3 +211,25 @@ Menunggu
 ```
 
 > Saat laporan sedang diproses, petugas dapat menandai fasilitas terkait sebagai **"dalam perbaikan"** sehingga fasilitas tersebut tidak dapat direservasi hingga perbaikan selesai.
+
+---
+
+## Catatan Teknis
+
+- **Validasi waktu** dilakukan di server (`FacilityController::filterKetersediaan`), bukan hanya di tampilan kalender, untuk mencegah bypass melalui request langsung (Postman/curl).
+- **Prepared Statement** otomatis di Eloquent — mencegah SQL injection.
+- **Session** menyimpan status login dan riwayat fasilitas terakhir dilihat (tidak disimpan di cookie).
+- **Cookie** hanya dipakai untuk session ID dan CSRF token dengan atribut HttpOnly + SameSite=Lax.
+- **Setup database** dapat dilakukan dengan 2 cara: `migrate --seed` (development) atau import `loka.sql` (instalasi cepat).
+
+---
+
+## Troubleshooting
+
+| Error | Solusi |
+|-------|--------|
+| `Vite manifest not found` | Jalankan `npm run build` |
+| `Access denied for user` | Cek `DB_USERNAME` & `DB_PASSWORD` di `.env` |
+| `No application encryption key` | Jalankan `php artisan key:generate` |
+| Gambar tidak muncul | Jalankan `php artisan storage:link` |
+| Perubahan `.env` tidak terbaca | Jalankan `php artisan config:clear` |
