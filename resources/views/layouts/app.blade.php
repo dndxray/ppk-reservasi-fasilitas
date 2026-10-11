@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LOKA Reservation</title>
-
+    <link rel="icon" href="{{ asset('images/logo-trans.png') }}" type="image/png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=MuseoModerno:wght@700&family=Poppins:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
@@ -30,6 +30,9 @@
         }
         html.sidebar-collapsed #main-sidebar {
             width: 5rem !important; /* w-20 */
+        }
+        html.sidebar-collapsed #main-sidebar .sidebar-label {
+            display: none !important;
         }
         html.sidebar-collapsed #main-sidebar .sidebar-toggle-box {
             justify-content: center !important;
@@ -59,11 +62,6 @@
         transitionsEnabled: false
      }"
      x-init="
-        if (sidebarOpen) {
-            document.documentElement.classList.remove('sidebar-collapsed');
-        } else {
-            document.documentElement.classList.add('sidebar-collapsed');
-        }
         $watch('sidebarOpen', val => {
             localStorage.setItem('sidebarOpen', val);
             if (val) {
@@ -72,6 +70,7 @@
                 document.documentElement.classList.add('sidebar-collapsed');
             }
         });
+        // Aktifkan animasi transisi HANYA setelah halaman selesai dirender
         setTimeout(() => { transitionsEnabled = true; }, 100);
      "
      class="min-h-screen flex flex-col">
