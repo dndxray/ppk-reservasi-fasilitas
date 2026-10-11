@@ -13,7 +13,7 @@
                         </svg>
                     </a>
                     <h1 class="text-2xl font-bold text-[#47201B]" style="font-family: 'Poppins', sans-serif;">
-                        Rekap Fasilitas & Kerusakan
+                        Rekap Laporan Kerusakan
                     </h1>
                 </div>
 

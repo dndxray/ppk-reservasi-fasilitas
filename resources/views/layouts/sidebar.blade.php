@@ -7,7 +7,10 @@
     class="bg-[#3d1513] text-white flex-shrink-0 sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto overflow-x-hidden"
 >
     <div class="flex py-4 px-4 sidebar-toggle-box" :class="sidebarOpen ? 'justify-end' : 'justify-center'">
-        <button type="button" @click="sidebarOpen = !sidebarOpen" class="text-white hover:text-gray-200 focus:outline-none">
+        <button type="button" 
+                @click="sidebarOpen = !sidebarOpen" 
+                class="text-white hover:text-gray-200 focus:outline-none cursor-pointer transition-transform duration-200 active:scale-95"
+                aria-label="Toggle Sidebar">
             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>

@@ -127,7 +127,8 @@ class ReportController extends Controller
 
         $reports = $query
             ->latest()
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         $daftarKategori = Report::distinct()
             ->whereNotNull('kategori')
@@ -165,8 +166,11 @@ class ReportController extends Controller
 
         $request->validate([
             'status' => 'required|in:menunggu,baru,diproses,selesai,ditolak',
-            'catatan_resolusi' => 'nullable|string',
+            'catatan_resolusi' => 'required|string|max:1000',
             'status_fasilitas' => 'nullable|in:aktif,dalam_perbaikan',
+        ], [
+            'catatan_resolusi.required' => 'Catatan resolusi penanganan wajib diisi saat memperbarui status.',
+            'catatan_resolusi.max' => 'Catatan resolusi penanganan maksimal 1000 karakter.',
         ]);
 
         $report->status = $request->status;
@@ -242,7 +246,7 @@ class ReportController extends Controller
             });
         }
 
-        $reports = $query->latest()->get();
+        $reports = $query->latest()->paginate(10)->withQueryString();
 
         $daftarKategori = Report::distinct()
             ->whereNotNull('kategori')

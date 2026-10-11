@@ -31,9 +31,6 @@
         html.sidebar-collapsed #main-sidebar {
             width: 5rem !important; /* w-20 */
         }
-        html.sidebar-collapsed #main-sidebar .sidebar-label {
-            display: none !important;
-        }
         html.sidebar-collapsed #main-sidebar .sidebar-toggle-box {
             justify-content: center !important;
         }
@@ -62,6 +59,11 @@
         transitionsEnabled: false
      }"
      x-init="
+        if (sidebarOpen) {
+            document.documentElement.classList.remove('sidebar-collapsed');
+        } else {
+            document.documentElement.classList.add('sidebar-collapsed');
+        }
         $watch('sidebarOpen', val => {
             localStorage.setItem('sidebarOpen', val);
             if (val) {
@@ -70,7 +72,6 @@
                 document.documentElement.classList.add('sidebar-collapsed');
             }
         });
-        // Aktifkan animasi transisi HANYA setelah halaman selesai dirender
         setTimeout(() => { transitionsEnabled = true; }, 100);
      "
      class="min-h-screen flex flex-col">

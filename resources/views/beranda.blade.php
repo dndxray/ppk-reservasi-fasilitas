@@ -202,7 +202,11 @@
         <!-- Fasilitas Terakhir Dilihat -->
         <div class="flex justify-between items-center mb-3">
             <h2 class="font-semibold text-gray-800" style="font-family: 'Plus Jakarta Sans', sans-serif;">
-                Fasilitas Terakhir Dilihat
+                @auth
+                    Fasilitas Terakhir Dilihat
+                @else
+                    Daftar Fasilitas Kampus
+                @endauth
             </h2>
             <a href="{{ route('fasilitas.index', ['from' => 'beranda']) }}" class="text-sm text-[#B23A2E] font-medium hover:underline">
                 Lihat Semua

@@ -65,6 +65,19 @@
                             <div class="flex items-center">
                                 <div class="w-1/3 flex items-center text-sm text-gray-700">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-[#A94438]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    Lokasi Fasilitas
+                                </div>
+                                <div class="w-2/3 text-sm text-gray-900 font-medium">
+                                    {{ $report->facility->lokasi ?? '-' }}
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <div class="w-1/3 flex items-center text-sm text-gray-700">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3 text-[#A94438]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                                     </svg>
                                     Kategori
@@ -215,8 +228,11 @@
                             </div>
 
                             <div class="mb-5">
-                                <label class="block text-sm font-bold text-[#1A1A1A] mb-2">Catatan Resolusi Penanganan</label>
-                                <textarea name="catatan_resolusi" rows="4" placeholder="Ketik catatan resolusi penanganan..." class="w-full rounded-xl border-gray-300 bg-[#F8F7F7] focus:border-[#A94438] focus:ring-[#A94438] text-sm p-4">{{ old('catatan_resolusi', $report->catatan_resolusi) }}</textarea>
+                                <label class="block text-sm font-bold text-[#1A1A1A] mb-2">
+                                    Catatan Resolusi Penanganan <span class="text-red-500">*</span>
+                                </label>
+                                <textarea name="catatan_resolusi" rows="4" required placeholder="Ketik catatan resolusi penanganan..." class="w-full rounded-xl border-gray-300 bg-[#F8F7F7] focus:border-[#A94438] focus:ring-[#A94438] text-sm p-4">{{ old('catatan_resolusi', $report->catatan_resolusi) }}</textarea>
+                                <p class="text-xs text-gray-500 mt-1">Wajib diisi sebagai penjelasan update status penanganan kepada pelapor.</p>
                             </div>
                             
                             <button type="submit" class="w-full mt-2 bg-[#C84F4F] hover:bg-[#A94438] text-white py-3.5 rounded-xl font-bold text-sm transition cursor-pointer flex items-center justify-center gap-2">
@@ -327,7 +343,7 @@
                                 @endif
                             </div>
 
-                            <div class="mt-10">
+                            <div class="mt-8">
                                 <h3 class="text-lg font-bold text-[#1A1A1A] mb-4">Deskripsi Kerusakan</h3>
                                 <div class="p-6 bg-[#F8F7F7] rounded-xl border border-gray-100">
                                     <p class="text-sm leading-relaxed text-gray-700 whitespace-pre-line">
@@ -368,11 +384,11 @@
                             </h3>
 
                             <div class="flex items-center text-sm text-gray-600 mb-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-[#A94438]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
-                                Fasilitas Terkait
+                                {{ $report->facility->lokasi ?? '-' }}
                             </div>
 
                             <div class="mt-4 flex flex-wrap gap-2">
@@ -420,8 +436,11 @@
                                         </div>
 
                                         <div>
-                                            <label for="catatan_resolusi" class="block text-sm font-medium text-gray-700 mb-1">Catatan Resolusi</label>
-                                            <textarea name="catatan_resolusi" id="catatan_resolusi" rows="4" placeholder="Ketik catatan penyelesaian..." class="w-full rounded-lg border-gray-300 bg-[#F8F7F7] focus:border-[#A94438] focus:ring-[#A94438] text-sm">{{ old('catatan_resolusi', $report->catatan_resolusi) }}</textarea>
+                                            <label for="catatan_resolusi" class="block text-sm font-medium text-gray-700 mb-1">
+                                                Catatan Resolusi Penanganan <span class="text-red-500">*</span>
+                                            </label>
+                                            <textarea name="catatan_resolusi" id="catatan_resolusi" rows="4" required placeholder="Ketik catatan resolusi penanganan..." class="w-full rounded-lg border-gray-300 bg-[#F8F7F7] focus:border-[#A94438] focus:ring-[#A94438] text-sm">{{ old('catatan_resolusi', $report->catatan_resolusi) }}</textarea>
+                                            <p class="text-xs text-gray-500 mt-1">Wajib diisi sebagai penjelasan update status penanganan.</p>
                                         </div>
 
                                     </div>
@@ -434,17 +453,36 @@
 
                         @else
                             
-                            @if($report->catatan_resolusi)
                             <div class="bg-white rounded-xl border border-gray-200 p-6">
-                                <h3 class="text-lg font-bold text-[#1A1A1A] mb-4">Catatan Petugas</h3>
+                                <h3 class="text-lg font-bold text-[#1A1A1A] mb-4 flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#A94438]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                    Catatan Penanganan Petugas
+                                </h3>
                                 
-                                <div class="p-4 bg-[#F8F7F7] rounded-xl border border-gray-100">
-                                    <p class="text-sm leading-relaxed text-gray-700 whitespace-pre-line">
-                                        {{ $report->catatan_resolusi }}
-                                    </p>
-                                </div>
+                                @if($report->catatan_resolusi)
+                                    <div class="p-4 bg-[#F8F7F7] rounded-xl border border-gray-100">
+                                        <p class="text-sm leading-relaxed text-gray-800 whitespace-pre-line font-medium">
+                                            {{ $report->catatan_resolusi }}
+                                        </p>
+                                        @if($report->petugas)
+                                            <div class="mt-3 pt-3 border-t border-gray-200/80 flex flex-col gap-1 text-xs text-gray-600 font-medium">
+                                                <span class="text-[#511E1D] font-semibold">Petugas: {{ $report->petugas->name }}</span>
+                                                @if($report->updated_at)
+                                                    <span class="text-[11px] text-gray-400">Diperbarui: {{ $report->updated_at->translatedFormat('d F Y, H:i') }}</span>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </div>
+                                @else
+                                    <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 text-center">
+                                        <p class="text-sm text-gray-500 italic">
+                                            Belum ada catatan penanganan dari petugas.
+                                        </p>
+                                    </div>
+                                @endif
                             </div>
-                            @endif
 
                         @endif
 
