@@ -290,4 +290,27 @@ class UserController extends Controller
             ->route('admin.pengguna.show', $user)
             ->with('success', 'Akun pengguna berhasil diaktifkan kembali.');
     }
+    public function destroy(User $user)
+    {
+        $isPetugas = $user->role === 'petugas';
+        $label     = $isPetugas ? 'Petugas' : 'Pengguna';
+        $show      = $isPetugas ? 'admin.petugas.show' : 'admin.pengguna.show';
+        $index     = $isPetugas ? 'admin.petugas.index' : 'admin.pengguna.index';
+
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
+        }
+
+        if ($user->reservasiAktif()->exists()) {
+            return redirect()
+                ->route($show, $user)
+                ->with('error', $label . ' tidak dapat dihapus karena masih memiliki reservasi yang menunggu atau akan datang.');
+        }
+
+        $user->delete();
+
+        return redirect()
+            ->route($index)
+            ->with('success', $label . ' berhasil dihapus.');
+    }
 }

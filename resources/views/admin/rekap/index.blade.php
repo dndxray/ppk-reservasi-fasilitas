@@ -9,15 +9,50 @@
         }"
         class="max-w-6xl mx-auto px-4 pt-2 pb-8">
 
-        {{-- Judul halaman (di dalam konten, tanpa header putih + garis) --}}
-        <h2 class="font-semibold text-xl text-gray-800 mb-4">Rekap & Ekspor</h2>
+        {{-- Header: tombol kembali + judul (kiri), tombol export (kanan) --}}
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <div class="flex items-center gap-3">
+                <a href="{{ url()->previous() }}"
+                   class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-800 hover:bg-stone-100 transition"
+                   aria-label="Kembali">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                </a>
+                <h2 class="font-semibold text-xl text-gray-800">Rekap & Ekspor</h2>
+            </div>
 
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            {{-- Filter Periode Bulan & Tahun --}}
-            <form method="GET" action="{{ route('admin.rekap.index') }}" class="flex flex-wrap items-end gap-3 flex-1">
+            <div class="flex items-center gap-2 shrink-0">
+                <a href="{{ route('admin.rekap.export.csv', request()->query()) }}"
+                   class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-300 rounded-xl px-3 py-2 hover:bg-blue-100 transition">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Export CSV
+                </a>
+                <a href="{{ route('admin.rekap.export.excel', request()->query()) }}"
+                   class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-300 rounded-xl px-3 py-2 hover:bg-emerald-100 transition">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Export Excel
+                </a>
+                <a href="{{ route('admin.rekap.export.pdf', request()->query()) }}"
+                   class="inline-flex items-center gap-1.5 text-xs font-semibold text-red-600 bg-red-50 border border-red-300 rounded-xl px-3 py-2 hover:bg-red-100 transition">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Export PDF
+                </a>
+            </div>
+        </div>
+
+        {{-- Card Filter Periode --}}
+        <div class="bg-white rounded-2xl border border-stone-200 shadow-sm p-4 mb-6">
+            <form method="GET" action="{{ route('admin.rekap.index') }}" class="flex flex-wrap items-end gap-3">
                 <div>
-                    <label for="bulan" class="block text-xs font-bold text-gray-700 uppercase mb-1">Pilih Bulan</label>
-                    <select name="bulan" id="bulan" class="h-10 rounded-xl bg-stone-100 border-0 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#511E1D]">
+                    <label for="bulan" class="block text-[10px] font-bold text-gray-700 uppercase mb-1">Pilih Bulan</label>
+                    <select name="bulan" id="bulan" class="h-10 w-40 rounded-xl bg-[#F3EDE8] border-0 text-xs font-medium text-gray-800 focus:ring-2 focus:ring-[#511E1D]">
                         <option value="">Semua Bulan</option>
                         @foreach(($daftarBulan ?? []) as $num => $namaBulan)
                             <option value="{{ $num }}" {{ (string)($bulan ?? '') === (string)$num ? 'selected' : '' }}>
@@ -28,8 +63,8 @@
                 </div>
 
                 <div>
-                    <label for="tahun" class="block text-xs font-bold text-gray-700 uppercase mb-1">Pilih Tahun</label>
-                    <select name="tahun" id="tahun" class="h-10 rounded-xl bg-stone-100 border-0 text-sm font-medium text-gray-800 focus:ring-2 focus:ring-[#511E1D]">
+                    <label for="tahun" class="block text-[10px] font-bold text-gray-700 uppercase mb-1">Pilih Tahun</label>
+                    <select name="tahun" id="tahun" class="h-10 w-40 rounded-xl bg-[#F3EDE8] border-0 text-xs font-medium text-gray-800 focus:ring-2 focus:ring-[#511E1D]">
                         <option value="">Semua Tahun</option>
                         @foreach(($daftarTahun ?? []) as $thn)
                             <option value="{{ $thn }}" {{ (string)($tahun ?? '') === (string)$thn ? 'selected' : '' }}>
@@ -41,11 +76,11 @@
 
                 <div class="flex items-center gap-2">
                     <button type="submit"
-                            class="inline-flex items-center gap-2 h-10 px-5 bg-[#5A2A27] text-white text-sm font-medium rounded-lg shadow-sm hover:bg-[#47201B] transition whitespace-nowrap">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            class="inline-flex items-center gap-2 h-10 px-5 bg-[#511E1D] text-white text-xs font-semibold rounded-xl shadow-sm hover:bg-[#3E1716] transition whitespace-nowrap">
+                        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
                         </svg>
-                        Filter
+                        Filter Periode
                     </button>
 
                     @if(request()->filled('bulan') || request()->filled('tahun'))
@@ -55,15 +90,6 @@
                     @endif
                 </div>
             </form>
-
-            <div class="flex items-center gap-2 shrink-0">
-                <a href="{{ route('admin.rekap.export.csv', request()->query()) }}"
-                   class="text-xs font-semibold border border-stone-300 rounded-xl px-3 py-2.5 hover:bg-stone-50 transition">Export CSV</a>
-                <a href="{{ route('admin.rekap.export.excel', request()->query()) }}"
-                   class="text-xs font-semibold border border-stone-300 rounded-xl px-3 py-2.5 hover:bg-stone-50 transition">Export Excel</a>
-                <a href="{{ route('admin.rekap.export.pdf', request()->query()) }}"
-                   class="text-xs font-semibold border border-stone-300 rounded-xl px-3 py-2.5 hover:bg-stone-50 transition">Export PDF</a>
-            </div>
         </div>
 
         {{-- Card Ringkasan --}}
@@ -146,16 +172,24 @@
                                 <td class="px-4 py-4 text-xs font-semibold text-slate-800">{{ $facility->nama_fasilitas }}</td>
                                 <td class="px-4 py-4 text-xs text-gray-700">{{ $facility->lokasi }}</td>
                                 <td class="px-4 py-4 text-xs font-semibold">
-                                    @if($facility->total_laporan > 0)
-                                        <span class="inline-flex items-center gap-1.5 text-amber-600">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Dalam Perbaikan
-                                        </span>
-                                    @else
+                                    @if($facility->status === 'aktif')
                                         <span class="inline-flex items-center gap-1.5 text-emerald-600">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Aktif
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            Aktif
+                                        </span>
+                                    @elseif($facility->status === 'dalam_perbaikan')
+                                        <span class="inline-flex items-center gap-1.5 text-amber-600">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                            Dalam Perbaikan
+                                        </span>
+                                    @elseif($facility->status === 'nonaktif')
+                                        <span class="inline-flex items-center gap-1.5 text-red-600">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                            Nonaktif
                                         </span>
                                     @endif
                                 </td>
+
                                 <td class="px-4 py-4 text-xs text-center text-gray-700">{{ $facility->total_reservasi }}</td>
                                 <td class="px-4 py-4 text-xs text-center text-gray-700">{{ $facility->total_laporan }}</td>
                             </tr>

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
     'name',
@@ -25,7 +26,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /**
      * Get the attributes that should be cast.
@@ -96,5 +97,15 @@ class User extends Authenticatable
     public function isVerifikasi(): bool
     {
         return $this->status_verifikasi === 'terverifikasi';
+    }
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
+    public function reservasiAktif()
+    {
+        return $this->reservations()
+            ->whereIn('status', ['menunggu', 'disetujui'])
+            ->whereDate('tanggal', '>=', now()->toDateString());
     }
 }

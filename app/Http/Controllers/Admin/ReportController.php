@@ -84,7 +84,7 @@ class ReportController extends Controller
         // Total seluruh reservasi (bukan jumlah fasilitas unik)
         $totalReservasi        = $okupansi->sum('jumlah_reservasi');
         $totalLaporanKerusakan = $kerusakan->sum('jumlah_laporan');
-
+        
         // ---- Data grafik harian ----
         if ($bulan && $tahun) {
             $daysInMonth = Carbon::createFromDate((int) $tahun, (int) $bulan, 1)->daysInMonth;
@@ -96,45 +96,55 @@ class ReportController extends Controller
                 ->groupByRaw('DATE(tanggal)')
                 ->pluck('jumlah', 'tgl');
 
-            $laporanHarianRaw = Report::whereYear('created_at', $tahun)
-                ->whereMonth('created_at', $bulan)
-                ->selectRaw('DATE(created_at) as tgl, COUNT(*) as jumlah')
-                ->groupByRaw('DATE(created_at)')
+            $laporanHarianRaw = Report::whereYear('tanggal_ditemukan', $tahun)
+                ->whereMonth('tanggal_ditemukan', $bulan)
+                ->selectRaw('DATE(tanggal_ditemukan) as tgl, COUNT(*) as jumlah')
+                ->groupByRaw('DATE(tanggal_ditemukan)')
                 ->pluck('jumlah', 'tgl');
 
             $reservasiPerHari = [];
-            $laporanPerHari   = [];
+            $laporanPerHari = [];
+
             for ($d = 1; $d <= $daysInMonth; $d++) {
                 $t = sprintf('%04d-%02d-%02d', $tahun, $bulan, $d);
-                $reservasiPerHari[$t] = $reservasiHarianRaw[$t] ?? 0;
-                $laporanPerHari[$t]   = $laporanHarianRaw[$t] ?? 0;
+                $reservasiPerHari[$t] = (int) ($reservasiHarianRaw[$t] ?? 0);
+                $laporanPerHari[$t] = (int) ($laporanHarianRaw[$t] ?? 0);
             }
 
             $judulGrafik = $this->labelPeriode($bulan, $tahun);
         } else {
-            $mulaiTanggal = now()->subDays(13)->startOfDay();
+            $mulaiTanggal = Carbon::today()->subDays(13);
+            $hariIni = Carbon::today();
 
             $reservasiHarianRaw = Reservation::where('status', 'disetujui')
-                ->where('created_at', '>=', $mulaiTanggal)
-                ->selectRaw('DATE(created_at) as tgl, COUNT(*) as jumlah')
-                ->groupByRaw('DATE(created_at)')
+                ->whereBetween('tanggal', [
+                    $mulaiTanggal->toDateString(),
+                    $hariIni->toDateString(),
+                ])
+                ->selectRaw('DATE(tanggal) as tgl, COUNT(*) as jumlah')
+                ->groupByRaw('DATE(tanggal)')
                 ->pluck('jumlah', 'tgl');
 
-            $laporanHarianRaw = Report::where('created_at', '>=', $mulaiTanggal)
-                ->selectRaw('DATE(created_at) as tgl, COUNT(*) as jumlah')
-                ->groupByRaw('DATE(created_at)')
+            $laporanHarianRaw = Report::whereBetween('tanggal_ditemukan', [
+                    $mulaiTanggal->toDateString(),
+                    $hariIni->toDateString(),
+                ])
+                ->selectRaw('DATE(tanggal_ditemukan) as tgl, COUNT(*) as jumlah')
+                ->groupByRaw('DATE(tanggal_ditemukan)')
                 ->pluck('jumlah', 'tgl');
 
             $reservasiPerHari = [];
-            $laporanPerHari   = [];
+            $laporanPerHari = [];
+
             for ($i = 13; $i >= 0; $i--) {
-                $t = now()->subDays($i)->format('Y-m-d');
-                $reservasiPerHari[$t] = $reservasiHarianRaw[$t] ?? 0;
-                $laporanPerHari[$t]   = $laporanHarianRaw[$t] ?? 0;
+                $t = Carbon::today()->subDays($i)->toDateString();
+                $reservasiPerHari[$t] = (int) ($reservasiHarianRaw[$t] ?? 0);
+                $laporanPerHari[$t] = (int) ($laporanHarianRaw[$t] ?? 0);
             }
 
             $judulGrafik = '14 Hari Terakhir';
         }
+
 
         // ---- Perbandingan dengan bulan lalu ----
         $bulanLalu = now()->subMonthNoOverflow();

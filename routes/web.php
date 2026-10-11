@@ -162,6 +162,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/pengguna/{user}', [UserController::class, 'showUser'])->whereNumber('user')->name('pengguna.show');
     Route::patch('/pengguna/{user}/nonaktifkan', [UserController::class, 'deactivateUser'])->whereNumber('user')->name('pengguna.deactivate');
     Route::patch('/pengguna/{user}/aktifkan', [UserController::class, 'activateUser'])->whereNumber('user')->name('pengguna.activate');
+    Route::delete('/pengguna/{user}', [UserController::class, 'destroy'])->name('pengguna.destroy');
+
 
     // ----- Petugas -----
     Route::get('/petugas', [UserController::class, 'indexStaff'])->name('petugas.index');
@@ -170,10 +172,12 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/petugas/{user}', [UserController::class, 'showStaff'])->whereNumber('user')->name('petugas.show');
     Route::patch('/petugas/{user}/nonaktifkan', [UserController::class, 'deactivateStaff'])->whereNumber('user')->name('petugas.deactivate');
     Route::patch('/petugas/{user}/aktifkan', [UserController::class, 'activateStaff'])->whereNumber('user')->name('petugas.activate');
+    Route::delete('/petugas/{user}', [UserController::class, 'destroy'])->name('petugas.destroy');
 
     // ----- Fasilitas -----
     Route::get('/fasilitas', [AdminFacilityController::class, 'index'])->name('fasilitas.index');
     Route::get('/fasilitas/create', [AdminFacilityController::class, 'create'])->name('facilities.create');
+    Route::delete('/fasilitas/{facility}', [AdminFacilityController::class, 'destroy'])->name('facilities.destroy');
     Route::get('/fasilitas/{facility}', [AdminFacilityController::class, 'show'])->name('facilities.show'); 
     Route::post('/fasilitas', [AdminFacilityController::class, 'store'])->name('facilities.store');
     Route::get('/fasilitas/{facility}/edit', [AdminFacilityController::class, 'edit'])->name('facilities.edit');

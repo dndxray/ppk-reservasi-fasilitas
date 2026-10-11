@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes; 
+use Illuminate\Support\Facades\Schema; 
 
 class Facility extends Model
 {
-    use HasFactory;
+    use HasFactory; use SoftDeletes; 
 
     protected $fillable = [
         'nama_fasilitas',
@@ -72,5 +74,22 @@ class Facility extends Model
         return $this->foto
             ? asset('storage/' . $this->foto)
             : asset('images/login-bg.jpg');
+    }
+
+
+    public function reservasiAktif()
+    {
+        $query = $this->reservations()
+            ->whereIn('status', ['menunggu', 'disetujui']);
+
+        // Reservasi alat punya tanggal kembali; ruangan hanya punya tanggal
+        if (Schema::hasColumn('reservations', 'tanggal_kembali')) {
+            return $query->whereRaw(
+                'COALESCE(reservations.tanggal_kembali, reservations.tanggal) >= ?',
+                [now()->toDateString()]
+            );
+        }
+
+        return $query->whereDate('tanggal', '>=', now()->toDateString());
     }
 }
